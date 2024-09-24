@@ -26,7 +26,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`hidden md:block  transition-all duration-300 ease-in-out ${
+      className={`  transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 ${
         isSidebarOpen ? "w-64" : "w-16"
       }`}
     >

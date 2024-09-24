@@ -42,7 +42,9 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  
 }
+
 
 /* Custom scrollbar styling */
 ::-webkit-scrollbar {
