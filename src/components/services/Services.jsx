@@ -37,8 +37,11 @@ export default function Services() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 mx-auto lg:grid-cols-4 gap-[10px]  my-4 place-items-center">
-          {servicesData?.map((service) => (
-            <div className="w-[312px] h-[228px] rounded-[11px] border">
+          {servicesData?.map((service, index) => (
+            <div
+              className="w-full h-full rounded-[11px] border overflow-hidden"
+              key={index}
+            >
               <div className="p-5">
                 <div className="p-4 bg-[#FFDAC0] w-[56px] rounded-[7px]">
                   {service?.icon}
@@ -47,7 +50,7 @@ export default function Services() {
                   <p className="text-[17px] font-semibold text-[#1C2226] mb-1">
                     {service?.title}
                   </p>
-                  <p className="text-[14px] text-[#6C7072]">
+                  <p className="text-[14px] text-[#6C7072] ">
                     {service?.content}
                   </p>
                 </div>

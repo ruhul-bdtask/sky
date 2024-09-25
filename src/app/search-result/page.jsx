@@ -27,13 +27,16 @@ export default function page() {
   return (
     <>
       <div className="bg-[#F0F3F5] py-10">
-        <div className="flex  container mx-auto gap-5">
+        <div className="flex container_section_sm mx-auto gap-5 max-w-7xl">
           <FlightFilter />
-          <div className="">
+          <div className="flex-1">
             <TopFilter />
             {cards?.map((card) => (
               <FlightCard key={card.id} />
             ))}
+            <button className="w-full p-5 rounded-[10px] bg-[#5F6D77] text-white my-3 text-[14px] font-semibold">
+              Show More Results
+            </button>
           </div>
         </div>
       </div>

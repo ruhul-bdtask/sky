@@ -14,9 +14,9 @@ import InstagramIcon from "@/public/icons/InstagramIcon";
 
 export default function Footer() {
   return (
-    <footer className="bg-white text-gray-600 py-8 border-t">
-      <div className="max-w-7xl mx-auto py-10 ">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 ">
+    <footer className="bg-white text-gray-600 py-8 border-t ">
+      <div className=" py-10 container_section_sm  max-w-7xl">
+        <div className="px-20 xl:px-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 ">
           <div>
             <h2 className="text-[14px] font-semibold mb-4">Company</h2>
             <ul className="space-y-2 text-[14px]">
@@ -123,10 +123,10 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto px-20 xl:px-0">
           <div className="mt-8 pt-8  ">
             <div className="flex flex-wrap justify-between items-center">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 flex-wrap">
                 <span className="text-sm">&copy;2024 TICKETING</span>
                 <Link href="#" className="text-sm hover:text-gray-900">
                   Privacy
