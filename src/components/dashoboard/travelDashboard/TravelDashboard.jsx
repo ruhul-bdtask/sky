@@ -8,6 +8,7 @@ import Travelers from "../travelers/Travelers";
 import Payment from "../payment/Payment";
 import Notifications from "../notifications/Notifications";
 import Airplane from "@/public/icons/Airplane";
+import accountImg from "@/public/images/accountImg.png";
 
 export default function TravelDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -17,59 +18,59 @@ export default function TravelDashboard() {
       <>
         <section className="mb-8">
           <h2 className="text-[22px] font-semibold mb-4">Trip Stats</h2>
-          <div className={`bg-gray-100 p-12 `}>
-            <div>
-              <p className=" mb-2 text-[18px] font-semibold">
-                You don't have any Trip Stats yet
-              </p>
-              <p className="text-[14px] font-semibold text-black mb-4">
-                Kick your trip into gear. Get started!
-              </p>
-              <button className="bg-[#363F45] text-white text-[14px] font-semibold px-4 py-2 rounded">
-                View Trips
-              </button>
+          <div
+            className={`bg-gray-100 px-6 py-8 `}
+            style={{
+              backgroundImage: `url(${trip.src})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+            <div className="flex items-center justify-between flex-wrap">
+              <div>
+                <p className=" mb-2 text-[18px] font-semibold">
+                  You don't have any Trip Stats yet
+                </p>
+                <p className="text-[14px] font-semibold text-black mb-4">
+                  Kick your trip into gear. Get started!
+                </p>
+                <button className="bg-[#363F45] text-white text-[14px] font-semibold px-4 py-2 rounded">
+                  View Trips
+                </button>
+              </div>
+              <Image className="w-[382px] h-[182px]" src={accountImg}></Image>
             </div>
-            {/* <Image
-              src={trip}
-              alt="Airplane illustration"
-              width={250}
-              height={150}
-              className="ml-4"
-            /> */}
           </div>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-4">Recent searches</h2>
-          <div className="border rounded-lg overflow-hidden  mx-auto">
+          <div className="border overflow-hidden  mx-auto">
             {/* First search item */}
-            <div className="flex items-center p-4 border-b">
-              <Airplane className="mr-4" /> {/* Airplane Icon */}
-              <div className="flex-grow">
+            <div className="flex items-center justify-between py-4  w-[95%] mx-auto">
+              <div className="flex gap-4">
+                <Airplane />
                 <p className="font-semibold">DAC Dhaka → CCU Kolkata</p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Sat, 10/05 - Sun, 10/13</p>
-                <p className="text-sm text-gray-600">1 traveler, economy</p>
               </div>
+              <p className="text-sm text-gray-600">1 traveler, economy</p>
             </div>
 
             {/* Second search item */}
-            <div className="flex items-center p-4 justify-between">
-              <div className="flex-grow flex items-center gap-4">
-                <Airplane className="mr-4" /> {/* Airplane Icon */}
-                <p className="font-semibold">DAC Dhaka → BOM Kolkata</p>
-                {/* <p className="text-sm text-red-600">(expired)</p> */}
+            <div className="flex items-center justify-between py-4 border-t w-[95%] mx-auto">
+              <div className="flex gap-4">
+                <Airplane />
+                <p className="font-semibold">DAC Dhaka → CCU Kolkata</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Mon, 09/09</p>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Sat, 10/05 - Sun, 10/13</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">1 traveler, economy</p>
-              </div>
+              <p className="text-sm text-gray-600">1 traveler, economy</p>
             </div>
           </div>
-          <button className="text-sm text-gray-600 mt-2 hover:underline">
+          <button className="text-sm text-gray-600 mt-5 hover:underline">
             See all search history
           </button>
         </section>
@@ -132,7 +133,7 @@ export default function TravelDashboard() {
           </div>
         </header>
 
-        <nav className="flex border-b mb-8">
+        <nav className="flex border-b mb-8 overflow-x-auto scrollbar-hide">
           {[
             "dashboard",
             "account",
