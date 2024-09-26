@@ -37,12 +37,12 @@ export default function Header() {
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 rounded-md text-gray-500 hover:bg-gray-100 focus:outline-none  "
-            >
+            > 
               <span className="sr-only">Open sidebar</span>
               {isSidebarOpen ? (
                 <X className="h-6 w-6" />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="h-6 w-6" /> 
               )}
             </button>
             <Link href={"/"}>
