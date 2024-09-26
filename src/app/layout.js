@@ -1,6 +1,6 @@
 import HomeLayout from "@/components/homeLayout/HomeLayout";
 import "./globals.css";
-import { SidebarProvider } from "./sidebar-context";
+import { SidebarProvider } from "../context/sidebar-context";
 
 export const metadata = {
   title: "Ticketing",

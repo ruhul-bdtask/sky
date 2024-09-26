@@ -1,8 +1,15 @@
 "use client";
-import { useSidebar } from "@/app/sidebar-context";
-import { Search } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDown,
+  X,
+  Search,
+  Calendar,
+  PlaneTakeoff,
+  PlaneLanding,
+} from "lucide-react";
 
 import {
   format,
@@ -15,19 +22,15 @@ import {
   isSameDay,
   isToday,
 } from "date-fns";
-import {
-  CalendarIcon,
-  ArrowLeftRightIcon,
-  PlaneTakeoffIcon,
-} from "lucide-react";
+import { ArrowLeftRightIcon } from "lucide-react"; 
 import Image from "next/image";
 import Airplane from "@/public/icons/Airplane";
 import Calender from "@/public/icons/Calender";
 import SearchIcon from "@/public/icons/SearchIcon";
 import Link from "next/link";
+import descriptImage from "@/public/images/bangkok.png";  
 
 export default function SearchPad() {
-  const { isSidebarOpen } = useSidebar(); // Access the sidebar state
   const [isPassengerOpen, setIsPassengerOpen] = useState(false);
   const [isWayOpen, setIsWayOpen] = useState(false);
   const [isClassOpen, setIsClassOpen] = useState(false);
@@ -39,7 +42,35 @@ export default function SearchPad() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDestination, setSelectedDestination] = useState("");
   const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1)); // November 2024
+  const [tripType, setTripType] = useState("round-trip");
+  const [passengers, setPassengers] = useState("1 adult");
+  const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
+  const [flightRows, setFlightRows] = useState([
+    { id: 1, from: "", to: "", date: "", class: "Economy" },
+    { id: 2, from: "", to: "", date: "", class: "Economy" },
+  ]);
 
+  const addFlightRow = () => {
+    const newId = Math.max(...flightRows.map((row) => row.id), 0) + 1;
+    setFlightRows([
+      ...flightRows,
+      { id: newId, from: "", to: "", date: "", class: "Economy" },
+    ]);
+  };
+
+  const removeFlightRow = (id) => {
+    if (flightRows.length > 2) {
+      setFlightRows(flightRows.filter((row) => row.id !== id));
+    }
+  };
+
+  const updateFlightRow = (id, field, value) => {
+    setFlightRows(
+      flightRows.map((row) =>
+        row.id === id ? { ...row, [field]: value } : row
+      )
+    );
+  };
   const [ways, setWays] = useState([
     { name: "One-way", price: 50, shortCode: "one_way" },
     { name: "Return", price: 90, shortCode: "return" },
@@ -61,25 +92,25 @@ export default function SearchPad() {
       name: "Dhaka, Bangladesh",
       code: "DAC",
       airport: "Hazrat Shajalal Intl.",
-      image: "/placeholder.svg?height=50&width=50",
+      image: descriptImage,
     },
     {
       name: "Dharmasala, India",
       code: "DHM",
       airport: "Kangra",
-      image: "/placeholder.svg?height=50&width=50",
+      image: descriptImage,
     },
     {
       name: "Dharavandhoo, Maldives",
       code: "DRV",
       airport: "Dharavandhoo",
-      image: "/placeholder.svg?height=50&width=50",
+      image: descriptImage,
     },
     {
       name: "Abu Dhabi, Arab Emirates",
       code: "AUH",
       airport: "Zayed Intl",
-      image: "/placeholder.svg?height=50&width=50",
+      image: descriptImage,
     },
   ];
   const arrivals = [
@@ -87,25 +118,25 @@ export default function SearchPad() {
       name: "Dhaka, Bangladesh",
       code: "DAC",
       airport: "Hazrat Shajalal Intl.",
-      image: "/placeholder.svg?height=50&width=50",
+      image: descriptImage,
     },
     {
       name: "Dharmasala, India",
       code: "DHM",
       airport: "Kangra",
-      image: "/placeholder.svg?height=50&width=50",
+      image: descriptImage,
     },
     {
       name: "Dharavandhoo, Maldives",
       code: "DRV",
       airport: "Dharavandhoo",
-      image: "/placeholder.svg?height=50&width=50",
+      image: descriptImage,
     },
     {
       name: "Abu Dhabi, Arab Emirates",
       code: "AUH",
       airport: "Zayed Intl",
-      image: "/placeholder.svg?height=50&width=50",
+      image: descriptImage,
     },
   ];
 
@@ -159,7 +190,6 @@ export default function SearchPad() {
       ) {
         setIsOpenArrival(false);
       }
-     
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -291,9 +321,7 @@ export default function SearchPad() {
 
   return (
     <div>
-      <main
-        className={``}
-      >
+      <main className={``}>
         {/* Search form */}
         <div className=" mx-auto ">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
@@ -498,274 +526,362 @@ export default function SearchPad() {
                 )}
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4  gap-2 relative">
-              <div className="col-span-2 flex gap-1 ">
-                <div className="relative" ref={dropdownRefDestination}>
-                  <div onClick={() => setIsOpenDestination(!isOpenDestination)}>
-                    <input
-                      type="text"
-                      placeholder="From ?"
-                      className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                    />
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                      <Airplane />
-                    </div>
-                  </div>
-                  {isOpenDestination ? (
-                    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] z-10">
-                      <div className="p-8 ">
-                        <ul className="space-y-4">
-                          {destinations.map((destination, index) => (
-                            <li
-                              key={index}
-                              className="flex items-center space-x-4 cursor-pointer"
-                              onClick={() =>
-                                setSelectedDestination(destination?.code)
-                              }
-                            >
-                              <Image
-                                src={destination.image}
-                                alt={destination.name}
-                                width={50}
-                                height={50}
-                                className="rounded-md"
-                              />
-                              <div className="flex-grow">
-                                <p className="font-semibold">
-                                  {destination.name}, {destination.code}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {destination.airport}
-                                </p>
-                              </div>
-                              <input type="checkbox" />
-                            </li>
-                          ))}
-                        </ul>
-
-                        <div className="mt-8">
-                          <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                            Recent Searches
-                            <button className="text-orange-500 hover:text-orange-600">
-                              Clear
-                            </button>
-                          </h3>
-                          <ul className="space-y-4">
-                            <li className="flex items-center space-x-4">
-                              <div className="bg-gray-100 p-2 rounded-full">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6 text-gray-600"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              </div>
-                              <div>
-                                <p className="font-semibold">
-                                  Dhaka (DAC) - Kuala Lumpur (KUL)
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  2024-10-12
-                                </p>
-                              </div>
-                            </li>
-                            <li className="flex items-center space-x-4">
-                              <div className="bg-gray-100 p-2 rounded-full">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6 text-gray-600"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                  />
-                                </svg>
-                              </div>
-                              <div>
-                                <p className="font-semibold text-orange-500">
-                                  Sign in / Sign Up
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  Access your searches on any device
-                                </p>
-                              </div>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    ""
-                  )}
-                </div>
-                <button className="py-3 px-4 bg-gray-100 rounded-md">
-                  <ArrowLeftRightIcon size={25} className="text-gray-600" />
-                </button>
-                <div className="relative" ref={dropdownRefArrival}>
-                  <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
-                    <input
-                      type="text"
-                      placeholder="To ?"
-                      className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                    />
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                      <Airplane />
-                    </div>
-                  </div>
-                  {isOpenArrival ? (
-                    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] z-10">
-                      <div className="p-8 ">
-                        <ul className="space-y-4">
-                          {arrivals.map((destination, index) => (
-                            <li
-                              key={index}
-                              className="flex items-center space-x-4 cursor-pointer"
-                              onClick={() =>
-                                setSelectedDestination(destination?.code)
-                              }
-                            >
-                              <Image
-                                src={destination.image}
-                                alt={destination.name}
-                                width={50}
-                                height={50}
-                                className="rounded-md"
-                              />
-                              <div className="flex-grow">
-                                <p className="font-semibold">
-                                  {destination.name}, {destination.code}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {destination.airport}
-                                </p>
-                              </div>
-                              <input type="checkbox" />
-                            </li>
-                          ))}
-                        </ul>
-
-                        <div className="mt-8">
-                          <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                            Recent Searches
-                            <button className="text-orange-500 hover:text-orange-600">
-                              Clear
-                            </button>
-                          </h3>
-                          <ul className="space-y-4">
-                            <li className="flex items-center space-x-4">
-                              <div className="bg-gray-100 p-2 rounded-full">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6 text-gray-600"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              </div>
-                              <div>
-                                <p className="font-semibold">
-                                  Dhaka (DAC) - Kuala Lumpur (KUL)
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  2024-10-12
-                                </p>
-                              </div>
-                            </li>
-                            <li className="flex items-center space-x-4">
-                              <div className="bg-gray-100 p-2 rounded-full">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6 text-gray-600"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                  />
-                                </svg>
-                              </div>
-                              <div>
-                                <p className="font-semibold text-orange-500">
-                                  Sign in / Sign Up
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  Access your searches on any device
-                                </p>
-                              </div>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    ""
-                  )}
-                </div>
-              </div>
-
-              <div className="col-span-2 flex gap-2">
-                <div
-                  className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                 
-                  onClick={() => setIsCalenderShow(!isCalenderShow)}
-                >
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                    <Calender />
-                  </div>
-                  {selectedDate && formatDate(selectedDate)}
-                  {isCalenderShow ? (
-                    <div className="bg-white p-4 rounded-lg shadow-lg max-w-3xl mx-auto absolute w-full md:w-[834px] right-2 z-10 top-14">
-                      <div className="flex justify-end items-center mb-4">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm">Departure</span>
-                          <span className="text-xs text-[#007799]">Exact</span>
-                        </div>
-                      </div>
-
-                      {renderTwoMonths()}
-                    </div>
-                  ) : (
-                    ""
-                  )}
-                </div>
-
-                <Link href={"/searchResult"}>
-                  <button
-                    className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
-                    type="submit"
+            {selectedWay == "multi_city" ? (
+              <>
+                {flightRows.map((row, index) => (
+                  <div
+                    key={row.id}
+                    className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-4 items-center"
                   >
-                    <div className="flex justify-center items-center w-full">
-                      <SearchIcon />
+                    <div className="bg-gray-100 p-2 rounded flex items-center">
+                      <PlaneTakeoff className="mr-2 h-5 w-5 text-gray-500" />
+                      <input
+                        className="bg-transparent w-full"
+                        placeholder="From?"
+                        value={row.from}
+                        onChange={(e) =>
+                          updateFlightRow(row.id, "from", e.target.value)
+                        }
+                      />
                     </div>
+                    <div className="bg-gray-100 p-2 rounded flex items-center">
+                      <PlaneLanding className="mr-2 h-5 w-5 text-gray-500" />
+                      <input
+                        className="bg-transparent w-full"
+                        placeholder="To?"
+                        value={row.to}
+                        onChange={(e) =>
+                          updateFlightRow(row.id, "to", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="bg-gray-100 p-2 rounded flex items-center">
+                      <Calendar className="mr-2 h-5 w-5 text-gray-500" />
+                      <input
+                        className="bg-transparent w-full"
+                        placeholder="Date"
+                        value={row.date}
+                        onChange={(e) =>
+                          updateFlightRow(row.id, "date", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center">
+                      <select
+                        className="bg-gray-100 p-2 rounded flex-grow"
+                        value={row.class}
+                        onChange={(e) =>
+                          updateFlightRow(row.id, "class", e.target.value)
+                        }
+                      >
+                        <option>Economy</option>
+                        <option>Business</option>
+                        <option>First Class</option>
+                      </select>
+                      {index >= 2 && (
+                        <button
+                          className="ml-2 p-2 bg-gray-200 rounded-full"
+                          onClick={() => removeFlightRow(row.id)}
+                        >
+                          <X className="h-5 w-5 text-gray-500" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex justify-between items-center">
+                  <button
+                    className="text-blue-600 font-semibold"
+                    onClick={addFlightRow}
+                  >
+                    + Add another flight
                   </button>
-                </Link>
+                  <button className="text-gray-500">clear all</button>
+                  <Link href={"/search-result"}>
+                    <button
+                      className="rounded-[10px] bg-[#FC660F] w-[54px] h-[50px] hover:bg-[#d67136]"
+                      type="submit"
+                    >
+                      <div className="flex justify-center items-center w-full">
+                        <SearchIcon />
+                      </div>
+                    </button>
+                  </Link>
+                </div>
+                <p className="text-gray-500 text-sm text-right mt-2">
+                  Direct flights only
+                </p>
+              </>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-4  gap-2 relative">
+                <div className="col-span-2 flex gap-1 ">
+                  <div className="relative" ref={dropdownRefDestination}>
+                    <div
+                      onClick={() => setIsOpenDestination(!isOpenDestination)}
+                    >
+                      <input
+                        type="text"
+                        placeholder="From ?"
+                        className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                      />
+                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                        <Airplane />
+                      </div>
+                    </div>
+                    {isOpenDestination ? (
+                      <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] z-10">
+                        <div className="p-8 ">
+                          <ul className="space-y-4">
+                            {destinations.map((destination, index) => (
+                              <li
+                                key={index}
+                                className="flex items-center space-x-4 cursor-pointer"
+                                onClick={() =>
+                                  setSelectedDestination(destination?.code)
+                                }
+                              >
+                                <Image
+                                  src={destination.image}
+                                  alt={destination.name}
+                                  width={50}
+                                  height={50}
+                                  className="rounded-md"
+                                />
+                                <div className="flex-grow">
+                                  <p className="font-semibold">
+                                    {destination.name}, {destination.code}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    {destination.airport}
+                                  </p>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+
+                          <div className="mt-8">
+                            <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                              Recent Searches
+                              <button className="text-orange-500 hover:text-orange-600">
+                                Clear
+                              </button>
+                            </h3>
+                            <ul className="space-y-4">
+                              <li className="flex items-center space-x-4">
+                                <div className="bg-gray-100 p-2 rounded-full">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-6 w-6 text-gray-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="font-semibold">
+                                    Dhaka (DAC) - Kuala Lumpur (KUL)
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    2024-10-12
+                                  </p>
+                                </div>
+                              </li>
+                              <li className="flex items-center space-x-4">
+                                <div className="bg-gray-100 p-2 rounded-full">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-6 w-6 text-gray-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                    />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-orange-500">
+                                    Sign in / Sign Up
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Access your searches on any device
+                                  </p>
+                                </div>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                  <button className="py-3 px-4 bg-gray-100 rounded-md">
+                    <ArrowLeftRightIcon size={25} className="text-gray-600" />
+                  </button>
+                  <div className="relative" ref={dropdownRefArrival}>
+                    <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
+                      <input
+                        type="text"
+                        placeholder="To ?"
+                        className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                      />
+                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                        <Airplane />
+                      </div>
+                    </div>
+                    {isOpenArrival ? (
+                      <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] z-10">
+                        <div className="p-8 ">
+                          <ul className="space-y-4">
+                            {arrivals.map((destination, index) => (
+                              <li
+                                key={index}
+                                className="flex items-center space-x-4 cursor-pointer"
+                                onClick={() =>
+                                  setSelectedDestination(destination?.code)
+                                }
+                              >
+                                <Image
+                                  src={destination.image}
+                                  alt={destination.name}
+                                  width={50}
+                                  height={50}
+                                  className="rounded-md"
+                                />
+                                <div className="flex-grow">
+                                  <p className="font-semibold">
+                                    {destination.name}, {destination.code}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    {destination.airport}
+                                  </p>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+
+                          <div className="mt-8">
+                            <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                              Recent Searches
+                              <button className="text-orange-500 hover:text-orange-600">
+                                Clear
+                              </button>
+                            </h3>
+                            <ul className="space-y-4">
+                              <li className="flex items-center space-x-4">
+                                <div className="bg-gray-100 p-2 rounded-full">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-6 w-6 text-gray-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="font-semibold">
+                                    Dhaka (DAC) - Kuala Lumpur (KUL)
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    2024-10-12
+                                  </p>
+                                </div>
+                              </li>
+                              <li className="flex items-center space-x-4">
+                                <div className="bg-gray-100 p-2 rounded-full">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-6 w-6 text-gray-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                    />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-orange-500">
+                                    Sign in / Sign Up
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Access your searches on any device
+                                  </p>
+                                </div>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-span-2 flex gap-2">
+                  <div
+                    className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                    onClick={() => setIsCalenderShow(!isCalenderShow)}
+                  >
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                      <Calender />
+                    </div>
+                    {selectedDate && formatDate(selectedDate)}
+                    {isCalenderShow ? (
+                      <div className="bg-white p-4 rounded-lg shadow-lg max-w-3xl mx-auto absolute w-full md:w-[834px] right-2 z-10 top-14">
+                        <div className="flex justify-end items-center mb-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm">Departure</span>
+                            <span className="text-xs text-[#007799]">
+                              Exact
+                            </span>
+                          </div>
+                        </div>
+
+                        {renderTwoMonths()}
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+
+                  <Link href={"/search-result"}>
+                    <button
+                      className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
+                      type="submit"
+                    >
+                      <div className="flex justify-center items-center w-full">
+                        <SearchIcon />
+                      </div>
+                    </button>
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
           </form>
         </div>
       </main>

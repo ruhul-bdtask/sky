@@ -1,10 +1,10 @@
 // app/components/Header.js
-import { useSidebar } from "@/app/sidebar-context";
 import { Menu, X, Heart } from "lucide-react";
 import logo from "@/public/images/logo.png";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSidebar } from "@/context/sidebar-context";
 
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar(); // Access the sidebar state
@@ -27,7 +27,7 @@ export default function Header() {
 
   return (
     <header
-      className={`bg-white shadow-sm z-40 left-0 right-0 h-20 border-b ${
+      className={`bg-white shadow-sm z-40 left-0 right-0 h-20 border-b  ${
         isScrolled ? "fixed top-0" : "relative"
       }`}
     >
@@ -37,16 +37,16 @@ export default function Header() {
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 rounded-md text-gray-500 hover:bg-gray-100 focus:outline-none  "
-            >
+            > 
               <span className="sr-only">Open sidebar</span>
               {isSidebarOpen ? (
                 <X className="h-6 w-6" />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="h-6 w-6" /> 
               )}
             </button>
             <Link href={"/"}>
-              <Image src={logo}></Image>
+              <Image alt="logo" src={logo}></Image>
             </Link>
           </div>
           <div className="flex items-center">

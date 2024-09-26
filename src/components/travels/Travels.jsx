@@ -122,8 +122,8 @@ export default function Travels() {
         }}
         modules={[Navigation]}
       >
-        {travelsData?.map((travel) => (
-          <SwiperSlide>
+        {travelsData?.map((travel, index) => (
+          <SwiperSlide key={index}>
             <div className="w-[300px] overflow-hidden">
               <div className="relative">
                 <Image

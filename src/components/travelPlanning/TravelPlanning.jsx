@@ -52,16 +52,22 @@ export default function TravelPlanning() {
     },
   ];
   return (
-    <div>
-      <div className="w-full grid grid-cols-1 md:grid-cols-3 p-4 gap-10 ">
+    <div className="py-10">
+      <div className="pb-6">
+        <h2 className="text-[24px] font-bold text-black">
+          Start your travel planning here
+        </h2>
+        <p className="text-[16px]">Search Flights</p>
+      </div>
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3  py-4 gap-10 ">
         <Accordion type="single" collapsible className="w-full">
           {destinations.map((destination, index) => (
             <AccordionItem value={destination.city} key={index}>
-              <AccordionTrigger className="text-left">
-                <div>
-                  <div className="font-semibold">{destination.city}</div>
-                  <div className="text-sm text-blue-500">FLIGHTS</div>
-                </div>
+              <div className="text-[16ox] font-semibold py-3">
+                {destination.city}
+              </div>
+              <AccordionTrigger className="text-left py-1">
+                <div className="text-[12px]  text-[#0C7C99]">FLIGHTS</div>
               </AccordionTrigger>
               <AccordionContent>
                 <ul className="space-y-2">
@@ -82,11 +88,11 @@ export default function TravelPlanning() {
         <Accordion type="single" collapsible className="w-full">
           {destinations.map((destination, index) => (
             <AccordionItem value={destination.city} key={index}>
-              <AccordionTrigger className="text-left">
-                <div>
-                  <div className="font-semibold">{destination.city}</div>
-                  <div className="text-sm text-blue-500">FLIGHTS</div>
-                </div>
+              <div className="text-[16ox] font-semibold py-3">
+                {destination.city}
+              </div>
+              <AccordionTrigger className="text-left py-1">
+                <div className="text-[12px]  text-[#0C7C99]">FLIGHTS</div>
               </AccordionTrigger>
               <AccordionContent>
                 <ul className="space-y-2">
@@ -107,11 +113,11 @@ export default function TravelPlanning() {
         <Accordion type="single" collapsible className="w-full">
           {destinations.map((destination, index) => (
             <AccordionItem value={destination.city} key={index}>
-              <AccordionTrigger className="text-left">
-                <div>
-                  <div className="font-semibold">{destination.city}</div>
-                  <div className="text-sm text-blue-500">FLIGHTS</div>
-                </div>
+              <div className="text-[16ox] font-semibold py-3">
+                {destination.city}
+              </div>
+              <AccordionTrigger className="text-left py-1">
+                <div className="text-[12px]  text-[#0C7C99]">FLIGHTS</div>
               </AccordionTrigger>
               <AccordionContent>
                 <ul className="space-y-2">

@@ -93,8 +93,8 @@ export default function WishlistTravels() {
           }}
           modules={[Navigation]}
         >
-          {travelsData?.map((travel) => (
-            <SwiperSlide>
+          {travelsData?.map((travel, index) => (
+            <SwiperSlide key={index}>
               <div className="w-full xl:w-[631px] overflow-hidden">
                 <div className="relative">
                   <Image
@@ -129,8 +129,8 @@ export default function WishlistTravels() {
           </p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {wishListData?.map((travel) => (
-            <div className="w-full xl:w-[631px] overflow-hidden">
+          {wishListData?.map((travel,index) => (
+            <div className="w-full xl:w-[631px] overflow-hidden" key={index}>
               <div className="relative">
                 <Image
                   src={travel?.image}
