@@ -64,7 +64,7 @@ export default function WishlistTravels() {
             Your Wishlist starts here
           </h2>
           <p className="text-[16px]">
-            Save destinations all in one place—even if you're not ready to book
+            Save destinations all in one place—even if you&apos;re not ready to book
           </p>
         </div>
         <div className="">
@@ -125,7 +125,7 @@ export default function WishlistTravels() {
             Your Wishlist starts here
           </h2>
           <p className="text-[16px]">
-            Save destinations all in one place—even if you're not ready to book
+            Save destinations all in one place—even if you&apos;re not ready to book
           </p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

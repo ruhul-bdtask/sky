@@ -20,8 +20,8 @@ export default function FlightFilter() {
 
   return (
     <div>
-      <div className="w-[300px] h-[208px] bg-white rounded-lg border p-4 flex flex-col justify-between">
-        <div>
+      <div className="hidden w-[300px] h-[208px] bg-white rounded-lg border p-4 md:flex flex-col justify-between  ">
+        <div className="">
           <h2 className="text-lg font-semibold mb-1">Our Advice</h2>
           <div className="flex items-center mb-2">
             <span className="text-green-600 font-bold mr-2">Buy Now</span>

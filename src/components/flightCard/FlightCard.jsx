@@ -4,8 +4,12 @@ import React from "react";
 import CardIcon from "@/public/icons/CardIcon";
 import { Heart, Share2, Users } from "lucide-react";
 import airAsia from "@/public/images/air-asia.png";
+import { useRouter } from "next/navigation";
 export default function FlightCard() {
-
+  const router = useRouter();
+  const handleRedirect = () => {
+    router.push("/bookingForm");
+  };
   return (
     <div className="w-full  bg-white rounded-[10px] shadow-md overflow-hidden mt-5 h-fit">
       <div className=" grid grid-cols-1 lg:grid-cols-7  ">
@@ -62,7 +66,10 @@ export default function FlightCard() {
             </p>
             <p className="text-xs text-[#1A2024] text-[14px]">Economy</p>
 
-            <button className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-lg w-[200px] h-[49px]">
+            <button
+              onClick={handleRedirect}
+              className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-lg w-[200px] h-[49px]"
+            >
               Select
             </button>
           </div>

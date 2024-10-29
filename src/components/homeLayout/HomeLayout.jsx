@@ -17,7 +17,7 @@ export default function HomeLayout({ children }) {
 
         {/* Main content */}
         <div
-          className={`flex-1 w-full overflow-y-auto transition-all duration-100 ease-in-out `}
+          className={`flex-1 w-full overflow-y-auto transition-all duration-100 ease-in-out mt-20`}
         >
           {/* Fixed Header */}
 

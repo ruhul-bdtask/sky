@@ -31,7 +31,7 @@ export default function Sidebar() {
       icon: <Love />,
       label: "Trips",
       shortCode: "trips",
-      link: "/blog/trip-tricks",
+      link: "/trips",
     },
     {
       icon: <Feedback />,
@@ -50,17 +50,16 @@ export default function Sidebar() {
       <div className="h-full p-2  overflow-y-auto  border-r w-full">
         <nav className="space-y-2 ">
           {navItems.map((item, index) => (
-            <Link href={item?.link}>
+            <Link href={item?.link} key={index}>
               <button
-                key={index}
                 onClick={() => setIsActive(item.shortCode)}
-                className={` rounded-sm hover:bg-gray-300 transition-all ease-in-out duration-200 w-full p-3 ${
-                  isActive == item?.shortCode ? " bg-gray-300" : ""
+                className={` rounded-sm hover:bg-[#E6EBEF] transition-all ease-in-out duration-200 w-full p-3 ${
+                  isActive == item?.shortCode ? " bg-[#E6EBEF]" : ""
                 }`}
               >
                 <div className="flex items-center  text-base font-normal w-full">
                   <span
-                    className={`me-6 ${
+                    className={`ms-0.5 me-6 ${
                       isActive == item?.shortCode
                         ? " text-black "
                         : "text-[var(--nav-color)]"
@@ -78,6 +77,7 @@ export default function Sidebar() {
                     {item.label}
                   </span>
                 </div>
+
                 {/* <span className="ml-2">{item.label}</span> */}
               </button>
             </Link>
@@ -85,5 +85,52 @@ export default function Sidebar() {
         </nav>
       </div>
     </aside>
+    // <aside
+    //   className={`hidden lg:block transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 ${
+    //     isSidebarOpen ? "w-64" : "w-16"
+    //   }`}
+    // >
+    //   <div className="h-full p-2 overflow-y-auto border-r w-full bg-gray-100">
+    //     <nav className="space-y-2">
+    //       {navItems.map((item, index) => (
+    //         <Link href={item.link} key={index}>
+    //           <button
+    //             onClick={() => setIsActive(item.shortCode)}
+    //             className={`rounded-sm hover:bg-[#E6EBEF] transition-all ease-in-out duration-200 w-full p-3 ${
+    //               isActive === item.shortCode ? "bg-[#E6EBEF]" : ""
+    //             }`}
+    //           >
+    //             <div
+    //               className={`flex items-center  ${
+    //                 isSidebarOpen ? "justify-start" : ""
+    //               }`}
+    //             >
+    //               <span
+    //                 className={`${
+    //                   isActive === item.shortCode
+    //                     ? "text-black"
+    //                     : "text-[var(--nav-color)]"
+    //                 } ${isSidebarOpen ? "mr-3" : ""}`}
+    //               >
+    //                 {item.icon}
+    //               </span>
+    //               {isSidebarOpen && (
+    //                 <span
+    //                   className={`line-clamp-1 text-[14px] ${
+    //                     isActive === item.shortCode
+    //                       ? "text-black font-semibold"
+    //                       : "text-[var(--nav-color)]"
+    //                   }`}
+    //                 >
+    //                   {item.label}
+    //                 </span>
+    //               )}
+    //             </div>
+    //           </button>
+    //         </Link>
+    //       ))}
+    //     </nav>
+    //   </div>
+    // </aside>
   );
 }

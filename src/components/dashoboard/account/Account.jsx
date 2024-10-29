@@ -106,7 +106,7 @@ export default function Account() {
                   </p>
                   <button className="bg-[#15844B] text-white px-3 py-2 rounded-[2px] text-[10px] font-medium hover:bg-green-700 ">
                     <div className="flex items-center gap-2">
-                      <Image src={google}></Image>
+                      <Image alt="google" src={google}></Image>
                       <p>Linked</p>
                     </div>
                   </button>
@@ -142,7 +142,7 @@ export default function Account() {
               backgroundPosition: "center",
             }}
           >
-            <div className="bg-gray-100 bg-opacity-70 p-4 rounded-lg">
+            <div className="bg-gray-100 bg-opacity-70 p-2 rounded-lg">
               <p className="mb-2 text-[24px] font-semibold">
                 Connect your inbox
               </p>
@@ -152,7 +152,7 @@ export default function Account() {
                 Organise your travel effortlessly.
               </p>
               <button className="bg-[#363F45] text-white text-[14px] font-semibold px-4 py-2 rounded">
-                View Trips
+                Connect
               </button>
             </div>
           </div>
@@ -177,7 +177,7 @@ export default function Account() {
               Automatically share trips
             </h2>
             <p className="text-[14px] text-black mb-4">
-              We'll share every trip you create with these emails.
+              We&apos;ll share every trip you create with these emails.
             </p>
             <button className="bg-[#363F45] text-white px-3 py-1 rounded-[2px] text-sm font-medium hover:bg-gray-700 ">
               Add an email
