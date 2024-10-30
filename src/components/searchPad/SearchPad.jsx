@@ -18,6 +18,7 @@ import {
   isSameMonth,
   isSameDay,
   isToday,
+  addDays,
 } from "date-fns";
 import { ArrowLeftRightIcon } from "lucide-react";
 import Image from "next/image";
@@ -26,6 +27,8 @@ import Calender from "@/public/icons/Calender";
 import SearchIcon from "@/public/icons/SearchIcon";
 import Link from "next/link";
 import descriptImage from "@/public/images/bangkok.png";
+import DatePicker from "../datePicker/DatePicker";
+import DatePickerOneWay from "../datePicker/DatePickerOneWay";
 
 export default function SearchPad() {
   const [isPassengerOpen, setIsPassengerOpen] = useState(false);
@@ -41,12 +44,18 @@ export default function SearchPad() {
   const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1)); // November 2024
   const [tripType, setTripType] = useState("round-trip");
   const [passengers, setPassengers] = useState("1 adult");
-  const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
   const [flightRows, setFlightRows] = useState([
     { id: 1, from: "", to: "", date: "", class: "Economy" },
     { id: 2, from: "", to: "", date: "", class: "Economy" },
   ]);
 
+  const [roundDate, setRoundDate] = useState({
+    from: new Date(),
+    to: addDays(new Date(), 2),
+  });
+  const [oneWayDate, setOneWayDate] = React.useState(new Date());
+
+  console.log("one way date", oneWayDate, "Round way date", roundDate);
   const addFlightRow = () => {
     const newId = Math.max(...flightRows.map((row) => row.id), 0) + 1;
     setFlightRows([
@@ -138,8 +147,6 @@ export default function SearchPad() {
   ];
 
   const dropdownRef = useRef(null);
-  const dropdownRefWay = useRef(null);
-  const dropdownRefClass = useRef(null);
   const dropdownRefDestination = useRef(null);
   const dropdownRefArrival = useRef(null);
 
@@ -163,18 +170,7 @@ export default function SearchPad() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsPassengerOpen(false);
       }
-      if (
-        dropdownRefWay.current &&
-        !dropdownRefWay.current.contains(event.target)
-      ) {
-        setIsWayOpen(false);
-      }
-      if (
-        dropdownRefClass.current &&
-        !dropdownRefClass.current.contains(event.target)
-      ) {
-        setIsClassOpen(false);
-      }
+
       if (
         dropdownRefDestination.current &&
         !dropdownRefDestination.current.contains(event.target)
@@ -194,122 +190,6 @@ export default function SearchPad() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const renderCalendar = (date) => {
-    const monthStart = startOfMonth(date);
-    const monthEnd = endOfMonth(date);
-    const startDate = new Date(monthStart);
-    startDate.setDate(startDate.getDate() - startDate.getDay());
-    const endDate = new Date(monthEnd);
-    endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
-
-    const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
-
-    return dateRange.map((day, dayIdx) => {
-      const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
-      const isCurrentMonth = isSameMonth(day, date);
-      const isDisabled = day < new Date();
-
-      return (
-        <button
-          key={day.toISOString()}
-          onClick={() => setSelectedDate(day)}
-          disabled={isDisabled}
-          className={`h-8 w-8 rounded-[4px] flex items-center justify-center text-sm
-            ${isSelected ? "bg-gray-900 text-white" : "hover:bg-gray-100"}
-            ${!isCurrentMonth ? "text-gray-300" : ""}
-            ${isDisabled ? "cursor-not-allowed" : ""}
-            ${isToday(day) ? "border border-gray-400" : ""}
-          `}
-        >
-          {format(day, "d")}
-        </button>
-      );
-    });
-  };
-
-  const formatDate = (date) => {
-    const options = { weekday: "short" }; // Get the abbreviated weekday name
-    const formattedDay = date.getDate(); // Get the day of the month
-    const formattedMonth = date.getMonth() + 1; // Get the month (0-based index)
-    const formattedDate = `${new Intl.DateTimeFormat("en-US", options).format(
-      date
-    )} ${formattedDay}/${formattedMonth}`;
-    return formattedDate;
-  };
-
-  const renderTwoMonths = () => {
-    const firstMonth = currentDate;
-    const secondMonth = addMonths(firstMonth, 1);
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 ">
-        {/* Left arrow for the first month */}
-        <div>
-          <div className="flex justify-between mb-4">
-            <button
-              onClick={prevMonth}
-              className="p-1 rounded-full hover:bg-gray-100"
-            >
-              <ChevronLeftIcon className="h-6 w-6" />
-            </button>
-            <div className="text-lg text-center font-semibold mb-2">
-              {format(firstMonth, "MMMM yyyy")}
-            </div>
-          </div>
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
-              <div
-                key={day}
-                className="h-8 w-8 flex items-center justify-center text-sm font-medium text-gray-500"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {renderCalendar(firstMonth)}
-          </div>
-        </div>
-
-        {/* Right arrow for the second month */}
-        <div>
-          <div className="flex justify-between mb-4">
-            <div className="text-lg text-center font-semibold mb-2">
-              {format(secondMonth, "MMMM yyyy")}
-            </div>
-            <button
-              onClick={nextMonth}
-              className="p-1 rounded-full hover:bg-gray-100"
-            >
-              <ChevronRightIcon className="h-6 w-6" />
-            </button>
-          </div>
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
-              <div
-                key={day}
-                className="h-8 w-8 flex items-center justify-center text-sm font-medium text-gray-500"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {renderCalendar(secondMonth)}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const nextMonth = () => {
-    setCurrentDate(addMonths(currentDate, 1));
-  };
-
-  const prevMonth = () => {
-    setCurrentDate(subMonths(currentDate, 1));
-  };
 
   const handleSubmitSearch = (e) => {
     e.preventDefault();
@@ -746,32 +626,13 @@ export default function SearchPad() {
                         ""
                       )}
                     </div>
-                    <div className="col-span-1 flex gap-2">
-                      <div
-                        className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        onClick={() => setIsCalenderShow(!isCalenderShow)}
-                      >
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Calender />
-                        </div>
-                        {selectedDate && formatDate(selectedDate)}
-                        {isCalenderShow ? (
-                          <div className="bg-white p-4 rounded-lg shadow-lg max-w-3xl mx-auto absolute w-full md:w-[834px] right-2 z-10 top-14">
-                            <div className="flex justify-end items-center mb-4">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm">Departure</span>
-                                <span className="text-xs text-[#007799]">
-                                  Exact
-                                </span>
-                              </div>
-                            </div>
 
-                            {renderTwoMonths()}
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                      </div>
+                    <div className="col-span-1 flex gap-2 justify-between">
+                      <DatePickerOneWay
+                        className={"w-full"}
+                        oneWayDate={oneWayDate}
+                        setOneWayDate={setOneWayDate}
+                      />
                     </div>
                     <div className="flex items-center">
                       <select
@@ -1050,32 +911,12 @@ export default function SearchPad() {
                     </div>
                   </div>
 
-                  <div className="col-span-2 flex gap-2">
-                    <div
-                      className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                      onClick={() => setIsCalenderShow(!isCalenderShow)}
-                    >
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                        <Calender />
-                      </div>
-                      {selectedDate && formatDate(selectedDate)}
-                      {isCalenderShow ? (
-                        <div className="bg-white p-4 rounded-lg shadow-lg max-w-3xl mx-auto absolute w-full md:w-[834px] right-2 z-10 top-14">
-                          <div className="flex justify-end items-center mb-4">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm">Departure</span>
-                              <span className="text-xs text-[#007799]">
-                                Exact
-                              </span>
-                            </div>
-                          </div>
-
-                          {renderTwoMonths()}
-                        </div>
-                      ) : (
-                        ""
-                      )}
-                    </div>
+                  <div className="col-span-2 flex gap-2 justify-between">
+                    <DatePickerOneWay
+                      className={"w-full"}
+                      setOneWayDate={setOneWayDate}
+                      oneWayDate={oneWayDate}
+                    />
 
                     <Link href={"/search-result"}>
                       <button
@@ -1327,7 +1168,7 @@ export default function SearchPad() {
                       </div>
                     </div>
 
-                    <div className="col-span-1 flex gap-2">
+                    {/* <div className="col-span-1 flex gap-2">
                       <div
                         className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
                         onClick={() => setIsCalenderShow(!isCalenderShow)}
@@ -1381,6 +1222,24 @@ export default function SearchPad() {
                         )}
                       </div>
 
+                      <Link href={"/search-result"}>
+                        <button
+                          className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
+                          type="submit"
+                        >
+                          <div className="flex justify-center items-center w-full">
+                            <SearchIcon />
+                          </div>
+                        </button>
+                      </Link>
+                    </div> */}
+                    <div className="col-span-2 flex gap-2 justify-between">
+                      <div>
+                        <DatePicker
+                          setRoundDate={setRoundDate}
+                          roundDate={roundDate}
+                        />
+                      </div>
                       <Link href={"/search-result"}>
                         <button
                           className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"

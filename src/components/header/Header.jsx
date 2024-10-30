@@ -190,8 +190,11 @@ export default function Header() {
                             </div>
                           </div>
 
-                          {[1, 2]?.map(() => (
-                            <div class="flex flex-col gap-4 mt-4 p-4 border-b">
+                          {[1, 2]?.map((data, index) => (
+                            <div
+                              class="flex flex-col gap-4 mt-4 p-4 border-b"
+                              key={index}
+                            >
                               <div class="flex items-center justify-between text-sm">
                                 <span class="font-medium text-gray-800">
                                   Batik Air / Malaysia Airline

@@ -1,0 +1,88 @@
+"use client";
+
+import * as React from "react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import Calender from "@/public/icons/Calender";
+
+export default function DatePickerOneWay({
+  className,
+  maxWidth,
+  setOneWayDate,
+  oneWayDate,
+}) {
+  return (
+    <div className={cn("grid gap-2", className)}>
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            id="date"
+            className={cn(
+              `justify-start text-left font-normal`,
+              !oneWayDate && "text-muted-foreground"
+            )}
+          >
+            <div className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+              <div className="absolute left-3 text-gray-400">
+                <Calender />
+              </div>
+              {oneWayDate ? (
+                format(oneWayDate, "LLL dd, y")
+              ) : (
+                <span>Pick a date</span>
+              )}
+            </div>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto bg-white p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={oneWayDate}
+            onSelect={setOneWayDate}
+            initialFocus
+            numberOfMonths={2}
+            className="p-3"
+            classNames={{
+              months:
+                "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+              month: "space-y-4",
+              caption: "flex justify-center pt-1 relative items-center",
+              caption_label: "text-sm font-medium",
+              nav: "space-x-1 flex items-center",
+              nav_button: cn(
+                "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+              ),
+              nav_button_previous: "absolute left-1",
+              nav_button_next: "absolute right-1",
+              table: "w-[300px] border-collapse space-y-1",
+              head_row: "flex",
+              head_cell:
+                "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem]",
+              row: "flex w-full mt-2",
+              cell: cn(
+                "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-green-200 [&:has([aria-selected].day-outside)]:bg-green-200/50",
+                "[&:has([aria-selected])]:rounded-md"
+              ),
+              day: cn(
+                "h-8 w-10 p-0 font-normal aria-selected:opacity-100",
+                "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+              ),
+              day_selected: "bg-primary text-primary-foreground",
+              day_today: "bg-gray-100 text-accent-foreground",
+              day_outside: "text-muted-foreground opacity-50",
+              day_disabled: "text-muted-foreground opacity-50",
+              day_hidden: "invisible",
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
