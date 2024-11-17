@@ -5,7 +5,6 @@ import React, { useState } from "react";
 
 export default function TopFilter() {
   const [topFilter, setTopFilter] = useState("cheapest");
-  console.log(topFilter);
   return (
     <div>
       <div className="hidden lg:block w-[985px] h-[100px] bg-white shadow-md  overflow-hidden rounded-[10px]">

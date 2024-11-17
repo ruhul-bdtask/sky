@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpRight } from "lucide-react";
-import { Switch } from "@radix-ui/react-switch";
 
 export default function FlightFilter() {
   const [takeoffTime, setTakeoffTime] = useState([0, 24]);
@@ -86,7 +85,7 @@ export default function FlightFilter() {
                 step={1}
                 value={takeoffTime}
                 onValueChange={setTakeoffTime}
-                className="w-full"
+                className="w-full "
               />
             </div>
             <div>

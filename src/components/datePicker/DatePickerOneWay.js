@@ -1,5 +1,4 @@
 "use client";
-
 import * as React from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -13,7 +12,6 @@ import Calender from "@/public/icons/Calender";
 
 export default function DatePickerOneWay({
   className,
-  maxWidth,
   setOneWayDate,
   oneWayDate,
 }) {

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Check, X, Download } from "lucide-react";
 
 export default function BookingConfirmationModal({ isOpen, onClose }) {

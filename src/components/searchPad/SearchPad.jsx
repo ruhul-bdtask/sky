@@ -29,7 +29,8 @@ import Link from "next/link";
 import descriptImage from "@/public/images/bangkok.png";
 import DatePicker from "../datePicker/DatePicker";
 import DatePickerOneWay from "../datePicker/DatePickerOneWay";
-
+import useAirlineStore from "../../../stores/airlineStore";
+import { useRouter } from "next/navigation";
 export default function SearchPad() {
   const [isPassengerOpen, setIsPassengerOpen] = useState(false);
   const [isWayOpen, setIsWayOpen] = useState(false);
@@ -41,9 +42,14 @@ export default function SearchPad() {
   const [isOpenArrival, setIsOpenArrival] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDestination, setSelectedDestination] = useState("");
+  const [selectedArrival, setSelectedArrival] = useState("");
+
   const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1)); // November 2024
   const [tripType, setTripType] = useState("round-trip");
-  const [passengers, setPassengers] = useState("1 adult");
+  const [destination, setDestination] = useState("");
+  const [arrival, setArrival] = useState("");
+  const [originalDate, setOriginalDate] = useState();
+  const router = useRouter();
   const [flightRows, setFlightRows] = useState([
     { id: 1, from: "", to: "", date: "", class: "Economy" },
     { id: 2, from: "", to: "", date: "", class: "Economy" },
@@ -53,9 +59,8 @@ export default function SearchPad() {
     from: new Date(),
     to: addDays(new Date(), 2),
   });
-  const [oneWayDate, setOneWayDate] = React.useState(new Date());
+  const [oneWayDate, setOneWayDate] = useState(new Date());
 
-  console.log("one way date", oneWayDate, "Round way date", roundDate);
   const addFlightRow = () => {
     const newId = Math.max(...flightRows.map((row) => row.id), 0) + 1;
     setFlightRows([
@@ -144,7 +149,40 @@ export default function SearchPad() {
       airport: "Zayed Intl",
       image: descriptImage,
     },
+    {
+      name: "Cox bazar",
+      code: "CXB",
+      airport: "Cox bazar",
+      image: descriptImage,
+    },
   ];
+
+  // Function to generate passengers from categories
+  const generatePassengersFromCategories = (categories) => {
+    const passengers = [];
+
+    // Adding adults
+    const adults = categories.find((cat) => cat.name === "Adults");
+    if (adults && adults.count > 0) {
+      passengers.push({ type: "ADT", quantity: adults.count });
+    }
+
+    // Adding children (2-11 years)
+    const children = categories.find((cat) => cat.name === "Children");
+    if (children && children.count > 0) {
+      passengers.push({ type: "C02", quantity: children.count });
+    }
+
+    // Adding infants on lap (under 2 years)
+    const infants = categories.find((cat) => cat.name === "Infants on lap");
+    if (infants && infants.count > 0) {
+      passengers.push({ type: "INF", quantity: infants.count });
+    }
+
+    return passengers;
+  };
+  // Generate passengers array from current categories state
+  const passengers = generatePassengersFromCategories(categories);
 
   const dropdownRef = useRef(null);
   const dropdownRefDestination = useRef(null);
@@ -190,10 +228,62 @@ export default function SearchPad() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  const {
+    setSearchData,
+    OriginDestinationInformation,
+    setOriginDestinationInformation,
+    setSelectedFlight,
+    setPassengerInformation,
+    setContactInformation,
+  } = useAirlineStore();
+
+  useEffect(() => {
+    const dateToUse = selectedWay === "one_way" ? oneWayDate : roundDate.from;
+    const date = new Date(dateToUse);
+
+    // Extract date components
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    // Format the date string
+    const formattedDateTimeOrigin = `${year}-${month}-${day}T00:00:00`;
+
+    setOriginalDate(formattedDateTimeOrigin);
+  }, [oneWayDate, roundDate, selectedWay]);
+  console.log(originalDate);
 
   const handleSubmitSearch = (e) => {
     e.preventDefault();
-    console.log(selectedClass, selectedWay, selectedDate, categories);
+    setSelectedFlight({});
+    setPassengerInformation({});
+    setContactInformation({});
+    const searchData = {
+      destination: selectedDestination,
+      arrival: selectedArrival,
+      tripType: selectedWay,
+      class: selectedClass,
+      passengers: passengers,
+      journeyDate: originalDate,
+      returnDate: selectedWay == "one_way" ? "" : roundDate?.to,
+    };
+    setSearchData(searchData);
+    setOriginDestinationInformation([
+      {
+        DepartureDateTime: originalDate,
+        OriginLocation: {
+          LocationCode: selectedDestination,
+          LocationType: "A",
+        },
+        DestinationLocation: {
+          LocationCode: selectedArrival,
+          LocationType: "A",
+        },
+        RPH: "0",
+      },
+    ]);
+
+    router.push(`/search-result`);
   };
 
   return (
@@ -317,9 +407,9 @@ export default function SearchPad() {
                             <span className="text-gray-900 w-8 text-center">
                               {category.count}
                             </span>
-                            <button
+                            <p
                               onClick={() => updateCount(index, 1)}
-                              className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                               aria-label={`Increase ${category.name}`}
                             >
                               <svg
@@ -336,7 +426,7 @@ export default function SearchPad() {
                                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                                 />
                               </svg>
-                            </button>
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -408,9 +498,10 @@ export default function SearchPad() {
                         onClick={() => setIsOpenDestination(!isOpenDestination)}
                       >
                         <input
+                          value={selectedDestination}
                           type="text"
                           placeholder="From ?"
-                          className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                          className="w-full pl-10 pr-4 py-4  focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
                         />
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                           <Airplane />
@@ -689,6 +780,7 @@ export default function SearchPad() {
                         onClick={() => setIsOpenDestination(!isOpenDestination)}
                       >
                         <input
+                          value={selectedDestination}
                           type="text"
                           placeholder="From ?"
                           className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
@@ -802,6 +894,7 @@ export default function SearchPad() {
                     <div className="relative" ref={dropdownRefArrival}>
                       <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
                         <input
+                          value={selectedArrival}
                           type="text"
                           placeholder="To ?"
                           className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
@@ -819,7 +912,7 @@ export default function SearchPad() {
                                   key={index}
                                   className="flex items-center space-x-4 cursor-pointer"
                                   onClick={() =>
-                                    setSelectedDestination(destination?.code)
+                                    setSelectedArrival(destination?.code)
                                   }
                                 >
                                   <Image
@@ -918,16 +1011,16 @@ export default function SearchPad() {
                       oneWayDate={oneWayDate}
                     />
 
-                    <Link href={"/search-result"}>
-                      <button
-                        className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
-                        type="submit"
-                      >
-                        <div className="flex justify-center items-center w-full">
-                          <SearchIcon />
-                        </div>
-                      </button>
-                    </Link>
+                    {/* <Link href={"/search-result"}> */}
+                    <button
+                      className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
+                      type="submit"
+                    >
+                      <div className="flex justify-center items-center w-full">
+                        <SearchIcon />
+                      </div>
+                    </button>
+                    {/* </Link> */}
                   </div>
                 </div>
               </>
