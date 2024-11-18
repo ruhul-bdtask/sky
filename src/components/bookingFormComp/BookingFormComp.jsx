@@ -100,7 +100,8 @@ export default function BookingFormComp({
       handleDetails(index);
     }
   };
-  console.log(passengerData);
+
+  console.log(passenger, passengerData);
   return (
     <div>
       <div className="py-6 px-16 shadow-custom_shadow">

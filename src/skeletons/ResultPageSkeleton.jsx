@@ -5,9 +5,9 @@ import Skeleton from "react-loading-skeleton";
 
 export default function ResultPageSkeleton() {
   return (
-    <div className="container_section_sm max-w-7xl mx-auto p-4 flex flex-row gap-4">
+    <div className="container_search max-w-5xl mx-auto p-4 flex flex-row gap-4">
       {/* Left Sidebar with Filters */}
-      <aside className=" w-64 space-y-4">
+      <aside className="hidden md:block w-64 space-y-4">
         <section
           aria-label="Advice"
           className="bg-white p-4 rounded-lg shadow-sm"
@@ -42,7 +42,7 @@ export default function ResultPageSkeleton() {
       {/* Main Content */}
       <main className="flex-1 space-y-4">
         {/* Filter Options */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
             <section
               key={i}
@@ -63,7 +63,7 @@ export default function ResultPageSkeleton() {
         {/* Flight Cards */}
         {[...Array(3)].map((_, i) => (
           <article key={i} className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex flex-col md:flex-row justify-between gap-4">
+            <div className="flex flex-row justify-between gap-4 flex-wrap">
               <div className="flex-1 space-y-4">
                 {/* Tags */}
                 <div className="flex gap-2">

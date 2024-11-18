@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import BookingFormComp from "@/components/bookingFormComp/BookingFormComp";
 import { ChevronLeft, Info } from "lucide-react";
 import Link from "next/link";
-
+import { isExpired, decodeToken } from "react-jwt";
 import {
   ChevronDown,
   ChevronUp,
@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/utils/api";
 import { useRouter } from "next/navigation";
 import { Oval } from "react-loader-spinner";
+import { formatFlightFare } from "@/lib/formatFlightFare";
 
 export default function BookingForm() {
   const [activeTab, setActiveTab] = useState("passengers");
@@ -41,8 +42,14 @@ export default function BookingForm() {
     contactInformation,
     setContactInformation,
     passengerInformation,
+    setSearchData,
+    setOriginDestinationInformation,
     setPassengerInformation,
+    setLegDescription,
+    setSelectedFlight,
   } = useAirlineStore();
+  const isMyTokenExpired = isExpired(token);
+
   const { passengers } = searchData;
   const [passengerData, setPassengerData] = useState([]);
 
@@ -103,6 +110,7 @@ export default function BookingForm() {
     const phoneRegex = /^\d{11}$/;
     return phoneRegex.test(phone);
   };
+  console.log(passengerData);
 
   const directFlightsOnly = false; // Replace with actual value
   const availableFlightsOnly = false; // Replace with actual value
@@ -149,10 +157,10 @@ export default function BookingForm() {
   });
 
   const registerPayload = {
-    first_name: passengerData?.[0]?.firstName,
-    last_name: passengerData?.[0]?.lastName,
-    email: contactInfo.email,
-    phone: contactInfo.phone,
+    first_name: passengerInformation?.[0]?.firstName,
+    last_name: passengerInformation?.[0]?.lastName,
+    email: contactInformation?.email,
+    phone: contactInformation?.phone,
     verify_by: "email",
   };
   const {
@@ -184,7 +192,12 @@ export default function BookingForm() {
       if (token == null || token == undefined || token == "") {
         refetchRegister();
       } else {
-        refetchBookingData();
+        if (isMyTokenExpired) {
+          setToken(null);
+          refetchRegister();
+        } else {
+          refetchBookingData();
+        }
       }
     }
   };
@@ -192,13 +205,21 @@ export default function BookingForm() {
   useEffect(() => {
     if (registerData?.success == true) {
       setToken(registerData?.authorization?.token);
-      refetchBookingData();
+      if (!isMyTokenExpired) {
+        refetchBookingData();
+      }
     }
   }, [registerData, token]);
 
   useEffect(() => {
     if (bookingData?.success == true) {
       router.push(bookingData?.data?.redirect_url);
+      setPassengerInformation([]);
+      setContactInformation({});
+      setOriginDestinationInformation([]);
+      setSearchData([]);
+      setLegDescription([]);
+      setSelectedFlight({});
     }
   }, [bookingData]);
 
@@ -312,16 +333,16 @@ export default function BookingForm() {
                             className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
                           />
                         </div>
-
-                        <div className="flex justify-center  md:justify-end ">
-                          <button
-                            onClick={handleContactInfo}
-                          
-                            className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
-                          >
-                            Save & Next
-                          </button>
-                        </div>
+                        {Object.keys(contactInformation).length == 0 && (
+                          <div className="flex justify-center  md:justify-end ">
+                            <button
+                              onClick={handleContactInfo}
+                              className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
+                            >
+                              Save & Next
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -348,15 +369,17 @@ export default function BookingForm() {
                     Back to home
                   </Link>
                 </div>
-                <div className="p-3 border rounded-[6px]">
-                  <button
-                    onClick={() => setActiveTab("payment")}
-                    // type="submit"
-                    className=" float-right bg-transparent text-[#717171] font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
-                  >
-                    Continue to Payment
-                  </button>
-                </div>
+                {passengerInformation?.length > 0 && (
+                  <div className="p-3 border rounded-[6px]">
+                    <button
+                      onClick={() => setActiveTab("payment")}
+                      // type="submit"
+                      className=" float-right bg-transparent text-[#717171] font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
+                    >
+                      Continue to Payment
+                    </button>
+                  </div>
+                )}
               </div>
             </form>
           </>
@@ -382,7 +405,10 @@ export default function BookingForm() {
             <div>
               <h2 className="text-[20px] font-[700]">
                 {" "}
-                Total : BDT {selectedFlight?.fare_details?.total_fare}{" "}
+                Total : BDT{" "}
+                {formatFlightFare(
+                  selectedFlight?.fare_details?.total_fare
+                )}{" "}
               </h2>
             </div>
           </div>
@@ -392,7 +418,8 @@ export default function BookingForm() {
                 For 1 Passenger (exclude fare,taxes,carrier charges)
               </span>
               <span className="font-bold">
-                Total : BDT {selectedFlight?.fare_details?.base_fare}
+                Total : BDT{" "}
+                {formatFlightFare(selectedFlight?.fare_details?.base_fare)}
               </span>
             </div>
 
@@ -417,7 +444,10 @@ export default function BookingForm() {
                   <p className="font-semibold">Class / Fare </p>
                   <p className="text-sm text-gray-500">
                     {" "}
-                    {selectedFlight?.passenger_infos[0]?.cabin_class}/ Saver
+                    {selectedFlight
+                      ? selectedFlight?.passenger_infos?.[0]?.cabin_class
+                      : ""}
+                    / Saver
                   </p>
                 </div>
               </div>

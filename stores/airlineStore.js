@@ -10,9 +10,15 @@ const useAirlineStore = create()(
         LegDescription: {},
         searchData: {},
         savedFlights: [],
-        token: "",
+        token: null,
         contactInformation: {},
-        passengerInformation: {},
+        passengerInformation: [],
+        isOpenSavedDialog: false,
+        recentSearchData: [],
+        airports: [],
+        setAirports: (airport) => set({ airports: airport }),
+        setRecentSearchData: (recent) => set({ recentSearchData: recent }),
+        setIsOpenSavedDialog: (open = true) => set({ isOpenSavedDialog: open }),
         setPassengerInformation: (info) => set({ passengerInformation: info }),
         setContactInformation: (contact) =>
           set({ contactInformation: contact }),
@@ -35,6 +41,9 @@ const useAirlineStore = create()(
           token: state.token,
           contactInformation: state.contactInformation,
           passengerInformation: state.passengerInformation,
+          isOpenSavedDialog: state.isOpenSavedDialog,
+          recentSearchData: state.recentSearchData,
+          airports: state.airports,
         }),
       }
     )

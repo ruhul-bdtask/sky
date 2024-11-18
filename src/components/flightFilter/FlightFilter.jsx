@@ -19,7 +19,7 @@ export default function FlightFilter() {
 
   return (
     <div>
-      <div className="hidden w-[300px] h-[208px] bg-white rounded-lg border p-4 md:flex flex-col justify-between  ">
+      <div className="hidden w-[260px] h-[160px] bg-white rounded-lg border p-4 md:flex flex-col justify-between  ">
         <div className="">
           <h2 className="text-lg font-semibold mb-1">Our Advice</h2>
           <div className="flex items-center mb-2">
@@ -36,7 +36,7 @@ export default function FlightFilter() {
           <Switch />
         </div> */}
       </div>
-      <div className="hidden md:block p-4 rounded-lg w-[300px]">
+      <div className="hidden md:block p-4 rounded-lg w-[260px]">
         <span className="text-[14px] font-semibold mb-4">68 of </span>
         <span className="text-[14px] text-[#FC660F]"> 283 flights</span>
 

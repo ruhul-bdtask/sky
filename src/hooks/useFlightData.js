@@ -9,8 +9,6 @@ export function useFlightData(searchParams) {
   const queryString = new URLSearchParams(searchParams).toString();
   const endpoint = `/flights?${queryString}`;
 
-
-  console.log(endpoint)
   const { data, error, isLoading } = useSWR(
     [endpoint, searchParams],
     swrFetcher,

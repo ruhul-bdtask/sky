@@ -31,6 +31,9 @@ import airAsia from "@/public/images/air-asia.png";
 
 import weather from "@/public/images/weather.png";
 import useAirlineStore from "../../../stores/airlineStore";
+import { isExpired } from "react-jwt";
+import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
+import { formatFlightFare } from "@/lib/formatFlightFare";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar(); // Access the sidebar state
   const [isScrolled, setIsScrolled] = useState(false);
@@ -42,7 +45,15 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedIn, setLoggedIn] = useState(null);
   const [isOpenSaved, setIsOpenSaved] = useState(false);
-  const { savedFlights } = useAirlineStore();
+  const {
+    savedFlights,
+    token,
+    setToken,
+    setIsOpenSavedDialog,
+    isOpenSavedDialog,
+  } = useAirlineStore();
+
+  const isMyTokenExpired = isExpired(token);
   const handleChange = (e, index) => {
     const newCode = [...code];
     newCode[index] = e.target.value;
@@ -75,7 +86,6 @@ export default function Header() {
     setIsLoggedIn(true);
     localStorage.setItem("logged_in", true);
 
-    // Redirect to the dashboard
     toast.success("Login successful");
     router.push("/dashboard");
   };
@@ -86,19 +96,25 @@ export default function Header() {
 
   const handleSignOut = () => {
     setIsLoggedIn(false);
-    localStorage.setItem("logged_in", JSON.stringify(false));
+    setToken(null);
     setIsOpenProfile(false);
-    router.push("/");
-    toast.success("User signed out"); // Implement sign-out logic here
+    toast.success("User signed out");
   };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Check if localStorage is available and get the logged_in value
-      const storedLoggedIn = localStorage.getItem("logged_in");
-      setLoggedIn(storedLoggedIn ? JSON.parse(storedLoggedIn) : null);
+      if (isMyTokenExpired) {
+        setToken(null);
+        setLoggedIn(false);
+      } else {
+        setLoggedIn(true);
+      }
     }
-  }, [handleSignOut]);
+  }, []);
+
+  const handleSaved = () => {
+    setIsOpenSavedDialog(!isOpenSavedDialog);
+  };
 
   return (
     <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
@@ -124,22 +140,22 @@ export default function Header() {
             <div className="relative">
               <button
                 className="p-2 rounded-full text-gray-400 hover:text-black focus:outline-none "
-                onClick={() => setIsOpenSaved(true)}
+                onClick={handleSaved}
               >
                 <span className="sr-only">View favorites</span>
                 <HeartIcon />
               </button>
-              {isOpenSaved && (
+              {isOpenSavedDialog && (
                 <div className="fixed inset-0 z-50 overflow-hidden">
                   <div
                     className="absolute inset-0 "
-                    onClick={() => setIsOpenSaved(false)}
+                    onClick={handleSaved}
                   ></div>
                   <div className="absolute right-0 top-0 h-full w-full max-w-[421px] overflow-y-auto bg-white shadow-xl transition-transform duration-300 ease-in-out">
                     <div className="sticky top-0 z-10 border-b bg-white p-4">
                       <div className="flex items-center justify-between">
                         <button
-                          onClick={() => setIsOpenSaved(false)}
+                          onClick={handleSaved}
                           className="text-black hover:text-gray-700 "
                         >
                           <X className="h-6 w-6" />
@@ -208,8 +224,11 @@ export default function Header() {
                               </div>
                               <div className="flex items-center gap-2 justify-between ">
                                 <div className="">
-                                  {flight?.schedules?.map((schedule,index) => (
-                                    <div class="mt-3 py-3 px-1  rounded-lg" key={index}>
+                                  {flight?.schedules?.map((schedule, index) => (
+                                    <div
+                                      class="mt-3 py-3 px-1  rounded-lg"
+                                      key={index}
+                                    >
                                       <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
                                         {flight?.departure_date}
                                       </div>
@@ -224,7 +243,9 @@ export default function Header() {
                                         />
                                         <div class="flex flex-col text-center">
                                           <span class="text-lg font-semibold">
-                                            {flight?.departure_time}
+                                            {unifyTimeFormat(
+                                              flight?.departure_time
+                                            )}
                                           </span>
                                           <span class="text-xs text-black">
                                             {flight?.origin_code}
@@ -238,7 +259,9 @@ export default function Header() {
                                         </div>
                                         <div class="flex flex-col text-center">
                                           <span class="text-lg font-semibold">
-                                            {flight?.arrival_time}
+                                            {unifyTimeFormat(
+                                              flight?.arrival_time
+                                            )}
                                           </span>
                                           <span class="text-xs text-black">
                                             {flight?.destination_code}
@@ -283,7 +306,10 @@ export default function Header() {
                                 </div>
                                 <div class="me-2">
                                   <div class="text-[18px] font-semibold text-black">
-                                    Tk {flight?.fare_details?.total_fare}
+                                    Tk .
+                                    {formatFlightFare(
+                                      flight?.fare_details?.total_fare
+                                    )}
                                   </div>
                                 </div>
                               </div>

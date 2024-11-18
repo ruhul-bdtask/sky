@@ -20,6 +20,7 @@ export default function DatePicker({ className, setRoundDate, roundDate }) {
           <div className="flex gap-2">
             <button
               id="date"
+              type="button"
               className={cn(
                 "w-full md:w-[280px] justify-start text-left font-normal ",
                 !roundDate && "text-muted-foreground"
@@ -42,6 +43,7 @@ export default function DatePicker({ className, setRoundDate, roundDate }) {
             </button>
             <button
               id="date"
+              type="button"
               className={cn(
                 "w-full md:w-[280px] justify-start text-left font-normal ",
                 !roundDate && "text-muted-foreground"
