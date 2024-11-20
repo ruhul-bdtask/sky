@@ -98,8 +98,8 @@ export default function SearchPad() {
       )
     );
   };
-  const [searchQueryArrival, setSearchQueryArrival] = useState("");
-  const [searchQueryDestination, setSearchQueryDestination] = useState("");
+  const [searchQueryArrival, setSearchQueryArrival] = useState("CXB");
+  const [searchQueryDestination, setSearchQueryDestination] = useState("DAC");
   const [ways, setWays] = useState([
     { name: "One-way", price: 50, shortCode: "one_way" },
     { name: "Return", price: 90, shortCode: "return" },

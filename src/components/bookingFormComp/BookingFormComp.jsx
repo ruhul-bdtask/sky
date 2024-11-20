@@ -136,7 +136,7 @@ export default function BookingFormComp({
                 <input
                   type="text"
                   placeholder="First Name"
-                  className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none "
+                  className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none"
                   value={passenger?.firstName}
                   onChange={(e) =>
                     updatePassengerData(index, "firstName", e.target.value)

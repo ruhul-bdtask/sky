@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpRight } from "lucide-react";
 
-export default function FlightFilter() {
+export default function FlightFilter({ sortedFlights, allFlights }) {
   const [takeoffTime, setTakeoffTime] = useState([0, 24]);
   const [landingTime, setLandingTime] = useState([0, 72]);
 
@@ -16,6 +16,7 @@ export default function FlightFilter() {
       .toString()
       .padStart(2, "0")}:00`;
   };
+
 
   return (
     <div>
@@ -37,8 +38,12 @@ export default function FlightFilter() {
         </div> */}
       </div>
       <div className="hidden md:block p-4 rounded-lg w-[260px]">
-        <span className="text-[14px] font-semibold mb-4">68 of </span>
-        <span className="text-[14px] text-[#FC660F]"> 283 flights</span>
+        <span className="text-[14px] font-semibold mb-4">
+          {sortedFlights?.length} of{" "}
+        </span>
+        <span className="text-[14px] text-[#FC660F]">
+          {allFlights?.length} flights
+        </span>
 
         <section className="mb-6 border-t pt-3 ">
           <span className="text-[14px] font-semibold ">Stops </span>

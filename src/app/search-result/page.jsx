@@ -130,7 +130,6 @@ export default function Page() {
         return allFlights.data.sortedItineraries;
     }
   };
-  console.log(sortCriteria);
   return (
     <>
       <div className="bg-[#F0F3F5] py-10">
@@ -141,7 +140,10 @@ export default function Page() {
           <>
             <div className="container_search max-w-5xl">
               <div className="flex gap-5">
-                <FlightFilter />
+                <FlightFilter
+                  allFlights={allFlights.data.sortedItineraries}
+                  sortedFlights={sortedFlights()}
+                />
                 <div className="flex-1">
                   <TopFilter
                     setSortCriteria={setSortCriteria}
