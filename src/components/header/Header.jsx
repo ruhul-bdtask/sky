@@ -51,6 +51,7 @@ export default function Header() {
     setToken,
     setIsOpenSavedDialog,
     isOpenSavedDialog,
+    setSearchData,
   } = useAirlineStore();
 
   const isMyTokenExpired = isExpired(token);
@@ -132,7 +133,7 @@ export default function Header() {
                 <Menu className="h-6 w-6" />
               )}
             </button>
-            <Link href={"/"}>
+            <Link href={"/"} onClick={() => setSearchData({})}>
               <Image className="mx-4 md:mx-0" alt="logo" src={logo}></Image>
             </Link>
           </div>

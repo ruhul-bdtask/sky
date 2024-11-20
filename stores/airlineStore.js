@@ -16,6 +16,10 @@ const useAirlineStore = create()(
         isOpenSavedDialog: false,
         recentSearchData: [],
         airports: [],
+        minPrice: 0,
+        maxPrice: Infinity,
+        setMinPrice: (min) => set({ minPrice: min }),
+        setMaxPrice: (max) => set({ maxPrice: max }),
         setAirports: (airport) => set({ airports: airport }),
         setRecentSearchData: (recent) => set({ recentSearchData: recent }),
         setIsOpenSavedDialog: (open = true) => set({ isOpenSavedDialog: open }),
@@ -44,6 +48,8 @@ const useAirlineStore = create()(
           isOpenSavedDialog: state.isOpenSavedDialog,
           recentSearchData: state.recentSearchData,
           airports: state.airports,
+          minPrice: state.minPrice,
+          maxPrice: state.maxPrice,
         }),
       }
     )

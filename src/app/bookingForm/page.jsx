@@ -64,6 +64,7 @@ export default function BookingForm() {
         country: "",
         dob: "",
         docNumber: "",
+        doc_expire_date: "",
       }))
     );
 
@@ -110,7 +111,6 @@ export default function BookingForm() {
     const phoneRegex = /^\d{11}$/;
     return phoneRegex.test(phone);
   };
-  console.log(passengerData);
 
   const directFlightsOnly = false; // Replace with actual value
   const availableFlightsOnly = false; // Replace with actual value
@@ -118,13 +118,13 @@ export default function BookingForm() {
   const PassengerInformation = {
     email: contactInfo?.email,
     phone_no: contactInfo?.phone,
-    pxn_type: passengerData?.map((p) => p.pxn_type), // Assuming all passengers are adults
+    pxn_type: passengerData?.map((p) => p.pxn_type),
     first_name: passengerData?.map((p) => p.firstName),
     last_name: passengerData?.map((p) => p.lastName),
-    dob: passengerData?.map((p) => p.dob || ""), // Default to empty string if DOB is missing
-    doc_type: passengerData?.map((p) => p.documentType || ""), // Default to empty string if document type is missing
+    dob: passengerData?.map((p) => p.dob || ""),
+    doc_type: passengerData?.map((p) => p.documentType || ""),
     doc_number: passengerData?.map((p) => p.docNumber || ""),
-    doc_expire_date: passengerData?.map(() => "2026-07-25"), // Assuming the same expiration date for all passengers
+    doc_expire_date: passengerData?.map((p) => p.doc_expire_date),
     doc_issue_country: passengerData?.map((p) => p.country || ""),
     nationality: passengerData?.map((p) => p.country || ""),
     ...passengerTitles, // Spread in the dynamically created titles
@@ -586,6 +586,7 @@ export default function BookingForm() {
                       width="20"
                       color="#fff"
                       ariaLabel="oval-loading"
+                      secondaryColor="#fff"
                       wrapperStyle={{
                         backgroundColor: "transparent",
                       }}

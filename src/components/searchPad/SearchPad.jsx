@@ -58,10 +58,19 @@ export default function SearchPad() {
     recentSearchData,
   } = useAirlineStore();
 
-  const [roundDate, setRoundDate] = useState({
-    from: new Date(),
-    to: addDays(new Date(), 2),
+  const [roundDate, setRoundDate] = useState(() => {
+    const twoDaysAhead = new Date();
+    twoDaysAhead.setDate(twoDaysAhead.getDate() + 2); // Increment by 2 days
+
+    const fourDaysAhead = new Date(twoDaysAhead);
+    fourDaysAhead.setDate(fourDaysAhead.getDate() + 2); // Increment by 4 days
+
+    return {
+      from: twoDaysAhead,
+      to: fourDaysAhead,
+    };
   });
+
   const [oneWayDate, setOneWayDate] = useState(() => {
     const twoDaysAhead = new Date();
     twoDaysAhead.setDate(twoDaysAhead.getDate() + 2); // Increment the day by 2
@@ -172,17 +181,26 @@ export default function SearchPad() {
 
   const filteredAirportsArrival = airportsData.filter(
     (airport) =>
-      airport.name.toLowerCase().includes(searchQueryArrival.toLowerCase()) ||
-      airport.value.toLowerCase().includes(searchQueryArrival.toLowerCase())
+      (airport.name.toLowerCase().includes(searchQueryArrival.toLowerCase()) ||
+        airport.value
+          .toLowerCase()
+          .includes(searchQueryArrival.toLowerCase())) &&
+      airport.name.toLowerCase() !== searchQueryDestination.toLowerCase() &&
+      airport.value.toLowerCase() !== searchQueryDestination.toLowerCase()
   );
 
   const filteredAirportsDestination = airportsData.filter(
     (airport) =>
-      airport.name
+      (airport.name
         .toLowerCase()
         .includes(searchQueryDestination.toLowerCase()) ||
-      airport.value.toLowerCase().includes(searchQueryDestination.toLowerCase())
+        airport.value
+          .toLowerCase()
+          .includes(searchQueryDestination.toLowerCase())) &&
+      airport.name.toLowerCase() !== searchQueryArrival.toLowerCase() &&
+      airport.value.toLowerCase() !== searchQueryArrival.toLowerCase()
   );
+
   // const {
   //   data: allAirports,
   //   error: allAirportsError,
@@ -201,7 +219,7 @@ export default function SearchPad() {
   //   }
   //   refetchAirports();
   // }, [allAirports]);
-  // Function to generate passengers from categories
+
   const generatePassengersFromCategories = (categories) => {
     const passengers = [];
 
@@ -287,6 +305,21 @@ export default function SearchPad() {
 
     setOriginalDate(formattedDateTimeOrigin);
   }, [oneWayDate, roundDate, selectedWay]);
+  const [originalArrivalData, setOriginalArrivalDate] = useState();
+  useEffect(() => {
+    const dateToUse = selectedWay === "one_way" ? "" : roundDate.to;
+    const date = new Date(dateToUse);
+
+    // Extract date components
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    // Format the date string
+    const formattedDateTimeOrigin = `${year}-${month}-${day}T00:00:00`;
+
+    setOriginalArrivalDate(formattedDateTimeOrigin);
+  }, [oneWayDate, roundDate, selectedWay]);
 
   const handleSubmitSearch = (e) => {
     e.preventDefault();
@@ -294,11 +327,11 @@ export default function SearchPad() {
     setPassengerInformation([]);
     setContactInformation({});
 
-    console.log(selectedDestination);
     if (
       /^[A-Z]{3}$/.test(searchQueryDestination) &&
       /^[A-Z]{3}$/.test(searchQueryArrival) &&
       selectedWay &&
+      passengers[0] &&
       selectedClass &&
       originalDate
     ) {
@@ -309,37 +342,65 @@ export default function SearchPad() {
         class: selectedClass,
         passengers: passengers,
         journeyDate: originalDate,
-        returnDate: selectedWay == "one_way" ? "" : roundDate?.to,
+        returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
       };
 
       setSearchData(searchData);
 
-      setOriginDestinationInformation([
+      const originDestinationInfo = [
         {
           DepartureDateTime: originalDate,
           OriginLocation: {
-            LocationCode: selectedDestination,
+            LocationCode: searchQueryDestination,
             LocationType: "A",
           },
           DestinationLocation: {
-            LocationCode: selectedArrival,
+            LocationCode: searchQueryArrival,
             LocationType: "A",
           },
           RPH: "0",
         },
-      ]);
+      ];
+
+      // If the trip is a return trip, add the return leg
+      if (selectedWay === "return" && roundDate?.to) {
+
+        originDestinationInfo.push({
+          DepartureDateTime: originalArrivalData, 
+          OriginLocation: {
+            LocationCode: searchQueryArrival, 
+            LocationType: "A",
+          },
+          DestinationLocation: {
+            LocationCode: searchQueryDestination, 
+            LocationType: "A",
+          },
+          RPH: "1", // Different RPH for return leg
+        });
+      } else {
+        console.log(
+          "Return trip not added, check if selectedWay is 'return' and roundDate?.to is valid"
+        );
+      }
+
+      setOriginDestinationInformation(originDestinationInfo);
 
       const updatedRecentSearches = [searchData, ...recentSearchData].slice(
         0,
         5
       );
-
       setRecentSearchData(updatedRecentSearches);
 
       router.push(`/search-result`);
     } else {
       toast.error("Please fill up all the required fields");
     }
+  };
+
+  const handleSwap = () => {
+    const temp = searchQueryDestination;
+    setSearchQueryDestination(searchQueryArrival);
+    setSearchQueryArrival(temp);
   };
 
   return (
@@ -440,6 +501,7 @@ export default function SearchPad() {
                           </div>
                           <div className="flex items-center space-x-2">
                             <button
+                              type="button"
                               onClick={() => updateCount(index, -1)}
                               disabled={category.count === 0}
                               className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
@@ -463,8 +525,9 @@ export default function SearchPad() {
                             <span className="text-gray-900 w-8 text-center">
                               {category.count}
                             </span>
-                            <p
+                            <button
                               onClick={() => updateCount(index, 1)}
+                              type="button"
                               className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                               aria-label={`Increase ${category.name}`}
                             >
@@ -482,7 +545,7 @@ export default function SearchPad() {
                                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                                 />
                               </svg>
-                            </p>
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -594,70 +657,57 @@ export default function SearchPad() {
                               ))}
                             </ul>
 
-                            <div className="mt-8">
-                              <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                Recent Searches
-                                <button className="text-orange-500 hover:text-orange-600">
-                                  Clear
-                                </button>
-                              </h3>
-                              <ul className="space-y-4">
-                                {recentSearchData?.map(() => (
-                                  <li className="flex items-center space-x-4">
-                                    <div className="bg-gray-100 p-2 rounded-full">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-gray-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
-                                    </div>
-                                    <div>
-                                      <p className="font-semibold">
-                                        Dhaka (DAC) - Kuala Lumpur (KUL)
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        2024-10-12
-                                      </p>
-                                    </div>
-                                  </li>
-                                ))}
-                                {/* <li className="flex items-center space-x-4">
-                                  <div className="bg-gray-100 p-2 rounded-full">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="h-6 w-6 text-gray-600"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
+                            {recentSearchData?.length > 0 ? (
+                              <div className="mt-8">
+                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                                  Recent Searches
+                                  <button
+                                    onClick={() => setRecentSearchData([])}
+                                    className="text-orange-500 hover:text-orange-600"
+                                  >
+                                    Clear
+                                  </button>
+                                </h3>
+                                <ul className="space-y-4">
+                                  {recentSearchData?.map((recent, index) => (
+                                    <li
+                                      key={index}
+                                      className="flex items-center space-x-4"
                                     >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold text-orange-500">
-                                      Sign in / Sign Up
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      Access your searches on any device
-                                    </p>
-                                  </div>
-                                </li> */}
-                              </ul>
-                            </div>
+                                      <div className="bg-gray-100 p-2 rounded-full">
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-6 w-6 text-gray-600"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 13l4 4L19 7"
+                                          />
+                                        </svg>
+                                      </div>
+                                      <div>
+                                        <p className="font-semibold">
+                                          {recent?.destination} -{" "}
+                                          {recent?.arrival}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {moment(recent?.journeyDate).format(
+                                            "MMMM Do, YYYY"
+                                          )}
+                                        </p>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              ""
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -707,68 +757,57 @@ export default function SearchPad() {
                               ))}
                             </ul>
 
-                            <div className="mt-8">
-                              <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                Recent Searches
-                                <button className="text-orange-500 hover:text-orange-600">
-                                  Clear
-                                </button>
-                              </h3>
-                              <ul className="space-y-4">
-                                <li className="flex items-center space-x-4">
-                                  <div className="bg-gray-100 p-2 rounded-full">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="h-6 w-6 text-gray-600"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
+                            {recentSearchData?.length > 0 ? (
+                              <div className="mt-8">
+                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                                  Recent Searches
+                                  <button
+                                    onClick={() => setRecentSearchData([])}
+                                    className="text-orange-500 hover:text-orange-600"
+                                  >
+                                    Clear
+                                  </button>
+                                </h3>
+                                <ul className="space-y-4">
+                                  {recentSearchData?.map((recent, index) => (
+                                    <li
+                                      key={index}
+                                      className="flex items-center space-x-4"
                                     >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M5 13l4 4L19 7"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">
-                                      Dhaka (DAC) - Kuala Lumpur (KUL)
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      2024-10-12
-                                    </p>
-                                  </div>
-                                </li>
-                                <li className="flex items-center space-x-4">
-                                  <div className="bg-gray-100 p-2 rounded-full">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="h-6 w-6 text-gray-600"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold text-orange-500">
-                                      Sign in / Sign Up
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      Access your searches on any device
-                                    </p>
-                                  </div>
-                                </li>
-                              </ul>
-                            </div>
+                                      <div className="bg-gray-100 p-2 rounded-full">
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-6 w-6 text-gray-600"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 13l4 4L19 7"
+                                          />
+                                        </svg>
+                                      </div>
+                                      <div>
+                                        <p className="font-semibold">
+                                          {recent?.destination} -{" "}
+                                          {recent?.arrival}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {moment(recent?.journeyDate).format(
+                                            "MMMM Do, YYYY"
+                                          )}
+                                        </p>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              ""
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -814,16 +853,15 @@ export default function SearchPad() {
                     + Add another flight
                   </button>
                   <button className="text-gray-500">clear all</button>
-                  <Link href={"/search-result"}>
-                    <button
-                      className="rounded-[10px] bg-[#FC660F] w-[54px] h-[50px] hover:bg-[#d67136]"
-                      type="submit"
-                    >
-                      <div className="flex justify-center items-center w-full">
-                        <SearchIcon />
-                      </div>
-                    </button>
-                  </Link>
+
+                  <button
+                    className="rounded-[10px] bg-[#FC660F] w-[54px] h-[50px] hover:bg-[#d67136]"
+                    type="submit"
+                  >
+                    <div className="flex justify-center items-center w-full">
+                      <SearchIcon />
+                    </div>
+                  </button>
                 </div>
                 <p className="text-gray-500 text-sm text-right mt-2">
                   Direct flights only
@@ -891,8 +929,11 @@ export default function SearchPad() {
                                   </button>
                                 </h3>
                                 <ul className="space-y-4">
-                                  {recentSearchData?.map((recent) => (
-                                    <li className="flex items-center space-x-4">
+                                  {recentSearchData?.map((recent, index) => (
+                                    <li
+                                      key={index}
+                                      className="flex items-center space-x-4"
+                                    >
                                       <div className="bg-gray-100 p-2 rounded-full">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
@@ -933,7 +974,11 @@ export default function SearchPad() {
                         ""
                       )}
                     </div>
-                    <button className="py-3 px-4 bg-gray-100 rounded-md">
+                    <button
+                      type="button"
+                      onClick={handleSwap}
+                      className="py-3 px-4 bg-gray-100 rounded-md"
+                    >
                       <ArrowLeftRightIcon size={25} className="text-gray-600" />
                     </button>
                     <div className="relative" ref={dropdownRefArrival}>
@@ -952,7 +997,7 @@ export default function SearchPad() {
                         </div>
                       </div>
                       {isOpenArrival ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
                           <div className="p-8 ">
                             <ul className="space-y-4">
                               {filteredAirportsArrival.map((arrival, index) => (
@@ -988,8 +1033,11 @@ export default function SearchPad() {
                                   </button>
                                 </h3>
                                 <ul className="space-y-4">
-                                  {recentSearchData?.map((recent) => (
-                                    <li className="flex items-center space-x-4">
+                                  {recentSearchData?.map((recent, index) => (
+                                    <li
+                                      key={index}
+                                      className="flex items-center space-x-4"
+                                    >
                                       <div className="bg-gray-100 p-2 rounded-full">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
@@ -1064,8 +1112,11 @@ export default function SearchPad() {
                           }
                         >
                           <input
-                            value={selectedDestination}
+                            value={searchQueryDestination}
                             type="text"
+                            onChange={(e) =>
+                              setSearchQueryDestination(e.target.value)
+                            }
                             placeholder="From ?"
                             className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
                           />
@@ -1074,105 +1125,97 @@ export default function SearchPad() {
                           </div>
                         </div>
                         {isOpenDestination ? (
-                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] z-10">
+                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
                             <div className="p-8 ">
                               <ul className="space-y-4">
-                                {destinations?.map((destination, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-center space-x-4 cursor-pointer"
-                                    onClick={() =>
-                                      setSelectedDestination(destination?.code)
-                                    }
-                                  >
-                                    <Image
-                                      src={destination.image}
-                                      alt={destination.name}
-                                      width={50}
-                                      height={50}
-                                      className="rounded-md"
-                                    />
-                                    <div className="flex-grow">
-                                      <p className="font-semibold">
-                                        {destination.name}, {destination.code}
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        {destination.airport}
-                                      </p>
-                                    </div>
-                                  </li>
-                                ))}
+                                {filteredAirportsDestination.map(
+                                  (destination, index) => (
+                                    <li
+                                      key={index}
+                                      className="flex items-center space-x-4 cursor-pointer"
+                                      onClick={() => {
+                                        setSearchQueryDestination(
+                                          destination.value
+                                        );
+                                        setIsOpenDestination(false);
+                                      }}
+                                    >
+                                      <div className="flex-grow">
+                                        <p className="font-semibold">
+                                          {destination.name},{" "}
+                                          {destination.value}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {destination.label}
+                                        </p>
+                                      </div>
+                                    </li>
+                                  )
+                                )}
                               </ul>
 
-                              <div className="mt-8">
-                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                  Recent Searches
-                                  <button className="text-orange-500 hover:text-orange-600">
-                                    Clear
-                                  </button>
-                                </h3>
-                                <ul className="space-y-4">
-                                  <li className="flex items-center space-x-4">
-                                    <div className="bg-gray-100 p-2 rounded-full">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-gray-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
+                              {recentSearchData?.length > 0 ? (
+                                <div className="mt-8">
+                                  <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                                    Recent Searches
+                                    <button
+                                      onClick={() => setRecentSearchData([])}
+                                      className="text-orange-500 hover:text-orange-600"
+                                    >
+                                      Clear
+                                    </button>
+                                  </h3>
+                                  <ul className="space-y-4">
+                                    {recentSearchData?.map((recent, index) => (
+                                      <li
+                                        key={index}
+                                        className="flex items-center space-x-4"
                                       >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
-                                    </div>
-                                    <div>
-                                      <p className="font-semibold">
-                                        Dhaka (DAC) - Kuala Lumpur (KUL)
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        2024-10-12
-                                      </p>
-                                    </div>
-                                  </li>
-                                  <li className="flex items-center space-x-4">
-                                    <div className="bg-gray-100 p-2 rounded-full">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-gray-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                        />
-                                      </svg>
-                                    </div>
-                                    <div>
-                                      <p className="font-semibold text-orange-500">
-                                        Sign in / Sign Up
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        Access your searches on any device
-                                      </p>
-                                    </div>
-                                  </li>
-                                </ul>
-                              </div>
+                                        <div className="bg-gray-100 p-2 rounded-full">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-6 w-6 text-gray-600"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M5 13l4 4L19 7"
+                                            />
+                                          </svg>
+                                        </div>
+                                        <div>
+                                          <p className="font-semibold">
+                                            {recent?.destination} -{" "}
+                                            {recent?.arrival}
+                                          </p>
+                                          <p className="text-sm text-gray-500">
+                                            {moment(recent?.journeyDate).format(
+                                              "MMMM Do, YYYY"
+                                            )}
+                                          </p>
+                                        </div>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : (
+                                ""
+                              )}
                             </div>
                           </div>
                         ) : (
                           ""
                         )}
                       </div>
-                      <button className="py-3 px-4 bg-gray-100 rounded-md">
+                      <button
+                        onClick={handleSwap}
+                        type="button"
+                        className="py-3 px-4 bg-gray-100 rounded-md"
+                      >
                         <ArrowLeftRightIcon
                           size={25}
                           className="text-gray-600"
@@ -1181,108 +1224,96 @@ export default function SearchPad() {
                       <div className="relative" ref={dropdownRefArrival}>
                         <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
                           <input
-                            value={selectedArrival}
+                            value={searchQueryArrival}
                             type="text"
+                            onChange={(e) =>
+                              setSearchQueryArrival(e.target.value)
+                            }
                             placeholder="To ?"
-                            className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                            className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
                           />
                           <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                             <Airplane />
                           </div>
                         </div>
                         {isOpenArrival ? (
-                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] z-10">
+                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
                             <div className="p-8 ">
                               <ul className="space-y-4">
-                                {arrivals.map((destination, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-center space-x-4 cursor-pointer"
-                                    onClick={() =>
-                                      setSelectedArrival(destination?.code)
-                                    }
-                                  >
-                                    <Image
-                                      src={destination.image}
-                                      alt={destination.name}
-                                      width={50}
-                                      height={50}
-                                      className="rounded-md"
-                                    />
-                                    <div className="flex-grow">
-                                      <p className="font-semibold">
-                                        {destination.name}, {destination.code}
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        {destination.airport}
-                                      </p>
-                                    </div>
-                                  </li>
-                                ))}
+                                {filteredAirportsArrival.map(
+                                  (arrival, index) => (
+                                    <li
+                                      key={index}
+                                      className="flex items-center space-x-4 cursor-pointer"
+                                      onClick={() => {
+                                        setSearchQueryArrival(arrival.value);
+                                        setIsOpenArrival(false);
+                                      }}
+                                    >
+                                      <div className="flex-grow">
+                                        <p className="font-semibold">
+                                          {arrival.name}, {arrival.value}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {arrival.label}
+                                        </p>
+                                      </div>
+                                    </li>
+                                  )
+                                )}
                               </ul>
 
-                              <div className="mt-8">
-                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                  Recent Searches
-                                  <button className="text-orange-500 hover:text-orange-600">
-                                    Clear
-                                  </button>
-                                </h3>
-                                <ul className="space-y-4">
-                                  <li className="flex items-center space-x-4">
-                                    <div className="bg-gray-100 p-2 rounded-full">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-gray-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
+                              {recentSearchData?.length > 0 ? (
+                                <div className="mt-8">
+                                  <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                                    Recent Searches
+                                    <button
+                                      onClick={() => setRecentSearchData([])}
+                                      className="text-orange-500 hover:text-orange-600"
+                                    >
+                                      Clear
+                                    </button>
+                                  </h3>
+                                  <ul className="space-y-4">
+                                    {recentSearchData?.map((recent, index) => (
+                                      <li
+                                        key={index}
+                                        className="flex items-center space-x-4"
                                       >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
-                                    </div>
-                                    <div>
-                                      <p className="font-semibold">
-                                        Dhaka (DAC) - Kuala Lumpur (KUL)
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        2024-10-12
-                                      </p>
-                                    </div>
-                                  </li>
-                                  <li className="flex items-center space-x-4">
-                                    <div className="bg-gray-100 p-2 rounded-full">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-gray-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                        />
-                                      </svg>
-                                    </div>
-                                    <div>
-                                      <p className="font-semibold text-orange-500">
-                                        Sign in / Sign Up
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        Access your searches on any device
-                                      </p>
-                                    </div>
-                                  </li>
-                                </ul>
-                              </div>
+                                        <div className="bg-gray-100 p-2 rounded-full">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-6 w-6 text-gray-600"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M5 13l4 4L19 7"
+                                            />
+                                          </svg>
+                                        </div>
+                                        <div>
+                                          <p className="font-semibold">
+                                            {recent?.destination} -{" "}
+                                            {recent?.arrival}
+                                          </p>
+                                          <p className="text-sm text-gray-500">
+                                            {moment(recent?.journeyDate).format(
+                                              "MMMM Do, YYYY"
+                                            )}
+                                          </p>
+                                        </div>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : (
+                                ""
+                              )}
                             </div>
                           </div>
                         ) : (
@@ -1363,16 +1394,15 @@ export default function SearchPad() {
                           roundDate={roundDate}
                         />
                       </div>
-                      <Link href={"/search-result"}>
-                        <button
-                          className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
-                          type="submit"
-                        >
-                          <div className="flex justify-center items-center w-full">
-                            <SearchIcon />
-                          </div>
-                        </button>
-                      </Link>
+
+                      <button
+                        className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
+                        type="submit"
+                      >
+                        <div className="flex justify-center items-center w-full">
+                          <SearchIcon />
+                        </div>
+                      </button>
                     </div>
                   </div>
                 </>

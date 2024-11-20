@@ -77,6 +77,7 @@ export default function BookingFormComp({
         toast.error(`Passenger ${i + 1}: Please select Document Type`);
         return false;
       }
+
       if (!passenger.country || passenger.country.trim() === "") {
         toast.error(`Passenger ${i + 1}: Please select Country`);
         return false;
@@ -104,7 +105,7 @@ export default function BookingFormComp({
   console.log(passenger, passengerData);
   return (
     <div>
-      <div className="py-6 px-16 shadow-custom_shadow">
+      <div className="py-6 px-4 md:px-16  shadow-custom_shadow">
         <label
           className={`block text-sm font-medium ${
             tabIndex === index ? "text-black" : "text-[#9A9A9A]"
@@ -130,18 +131,29 @@ export default function BookingFormComp({
             have completed your booking.
           </p>
           <form onSubmit={handlePassengerInfo}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-5">
-              <div>
+            <div className="flex flex-col gap-4 mt-4 ">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="text"
                   placeholder="First Name"
-                  className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none"
+                  className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none "
                   value={passenger?.firstName}
                   onChange={(e) =>
                     updatePassengerData(index, "firstName", e.target.value)
                   }
                 />
-                <div className="w-full my-5">
+                <input
+                  type="text"
+                  placeholder="Last Name"
+                  className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none"
+                  value={passenger.lastName}
+                  onChange={(e) =>
+                    updatePassengerData(index, "lastName", e.target.value)
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="w-full ">
                   <Select
                     styles={customStyles}
                     placeholder={"Select Document"}
@@ -158,40 +170,43 @@ export default function BookingFormComp({
                     }
                   />
                 </div>
-                <div className="border-2 border-gray-300 p-2.5 w-full rounded-[4px] focus:outline-none">
+                <div className="w-full">
+                  <input
+                    type="text"
+                    placeholder="Document number"
+                    className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none"
+                    value={passenger.docNumber}
+                    onChange={(e) =>
+                      updatePassengerData(index, "docNumber", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="w-full">
+                  <label htmlFor="">Document Expiry</label>
                   <Datetime
                     inputProps={{
-                      className: "outline-none focus:outline-none focus:ring-0",
+                      className:
+                        "border-2 border-gray-300 p-2.5 w-full rounded-[4px] focus:outline-none outline-none focus:outline-none focus:ring-0",
                     }}
                     dateFormat="DD-MM-YYYY"
                     timeFormat={false}
                     initialValue={moment().add(10, "day")}
                     // isValidDate={valid}
-                    value={passenger.dob ? moment(passenger.dob) : ""}
-                    onChange={(date) => updatePassengerData(index, "dob", date)}
+                    value={
+                      passenger.doc_expire_date
+                        ? moment(passenger.doc_expire_date)
+                        : ""
+                    }
+                    onChange={(date) =>
+                      updatePassengerData(index, "doc_expire_date", date)
+                    }
                   />
                 </div>
-              </div>
-              <div className="flex flex-col gap-[18px]">
-                <input
-                  type="text"
-                  placeholder="Last Name"
-                  className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none"
-                  value={passenger.lastName}
-                  onChange={(e) =>
-                    updatePassengerData(index, "lastName", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  placeholder="Document number"
-                  className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none"
-                  value={passenger.docNumber}
-                  onChange={(e) =>
-                    updatePassengerData(index, "docNumber", e.target.value)
-                  }
-                />
                 <div className="w-full">
+                  <label htmlFor="">Nationality</label>
+
                   <Select
                     styles={customStyles}
                     placeholder={"Select country"}
@@ -202,6 +217,23 @@ export default function BookingFormComp({
                     onChange={(selected) =>
                       updatePassengerData(index, "country", selected.shortCode)
                     }
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="w-full">
+                  <label htmlFor="">Date of birth</label>
+                  <Datetime
+                    inputProps={{
+                      className:
+                        "border-2 border-gray-300 p-2.5 w-full rounded-[4px] focus:outline-none outline-none focus:outline-none focus:ring-0",
+                    }}
+                    dateFormat="DD-MM-YYYY"
+                    timeFormat={false}
+                    initialValue={moment().add(10, "day")}
+                    // isValidDate={valid}
+                    value={passenger.dob ? moment(passenger.dob) : ""}
+                    onChange={(date) => updatePassengerData(index, "dob", date)}
                   />
                 </div>
               </div>
