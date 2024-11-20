@@ -30,6 +30,10 @@ import { Pencil, MoreVertical } from "lucide-react";
 import airAsia from "@/public/images/air-asia.png";
 
 import weather from "@/public/images/weather.png";
+import useAirlineStore from "../../../stores/airlineStore";
+import { isExpired } from "react-jwt";
+import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
+import { formatFlightFare } from "@/lib/formatFlightFare";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar(); // Access the sidebar state
   const [isScrolled, setIsScrolled] = useState(false);
@@ -41,6 +45,16 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedIn, setLoggedIn] = useState(null);
   const [isOpenSaved, setIsOpenSaved] = useState(false);
+  const {
+    savedFlights,
+    token,
+    setToken,
+    setIsOpenSavedDialog,
+    isOpenSavedDialog,
+    setSearchData,
+  } = useAirlineStore();
+
+  const isMyTokenExpired = isExpired(token);
   const handleChange = (e, index) => {
     const newCode = [...code];
     newCode[index] = e.target.value;
@@ -73,7 +87,6 @@ export default function Header() {
     setIsLoggedIn(true);
     localStorage.setItem("logged_in", true);
 
-    // Redirect to the dashboard
     toast.success("Login successful");
     router.push("/dashboard");
   };
@@ -84,19 +97,26 @@ export default function Header() {
 
   const handleSignOut = () => {
     setIsLoggedIn(false);
-    localStorage.setItem("logged_in", JSON.stringify(false));
+    setToken(null);
     setIsOpenProfile(false);
-    router.push("/");
-    toast.success("User signed out"); // Implement sign-out logic here
+    toast.success("User signed out");
   };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Check if localStorage is available and get the logged_in value
-      const storedLoggedIn = localStorage.getItem("logged_in");
-      setLoggedIn(storedLoggedIn ? JSON.parse(storedLoggedIn) : null);
+      if (isMyTokenExpired) {
+        setToken(null);
+        setLoggedIn(false);
+      } else {
+        setLoggedIn(true);
+      }
     }
-  }, [handleSignOut]);
+  }, []);
+
+  const handleSaved = () => {
+    setIsOpenSavedDialog(!isOpenSavedDialog);
+  };
+
   return (
     <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
       <div className="max-w-full sm:px-6 lg:px-2 h-full">
@@ -113,7 +133,7 @@ export default function Header() {
                 <Menu className="h-6 w-6" />
               )}
             </button>
-            <Link href={"/"}>
+            <Link href={"/"} onClick={() => setSearchData({})}>
               <Image className="mx-4 md:mx-0" alt="logo" src={logo}></Image>
             </Link>
           </div>
@@ -121,22 +141,22 @@ export default function Header() {
             <div className="relative">
               <button
                 className="p-2 rounded-full text-gray-400 hover:text-black focus:outline-none "
-                onClick={() => setIsOpenSaved(true)}
+                onClick={handleSaved}
               >
                 <span className="sr-only">View favorites</span>
                 <HeartIcon />
               </button>
-              {isOpenSaved && (
+              {isOpenSavedDialog && (
                 <div className="fixed inset-0 z-50 overflow-hidden">
                   <div
                     className="absolute inset-0 "
-                    onClick={() => setIsOpenSaved(false)}
+                    onClick={handleSaved}
                   ></div>
                   <div className="absolute right-0 top-0 h-full w-full max-w-[421px] overflow-y-auto bg-white shadow-xl transition-transform duration-300 ease-in-out">
                     <div className="sticky top-0 z-10 border-b bg-white p-4">
                       <div className="flex items-center justify-between">
                         <button
-                          onClick={() => setIsOpenSaved(false)}
+                          onClick={handleSaved}
                           className="text-black hover:text-gray-700 "
                         >
                           <X className="h-6 w-6" />
@@ -171,15 +191,18 @@ export default function Header() {
                         <h3 className="text-lg font-semibold">Flights</h3>
                       </div>
                       <div className="mb-4">
-                        <h4 className="mb-2 text-sm font-semibold">
-                          Saved Flights (4)
-                        </h4>
+                        {savedFlights?.length > 0 && (
+                          <h4 className="mb-2 text-sm font-semibold">
+                            Saved Flights ({savedFlights?.length})
+                          </h4>
+                        )}
 
                         <div class="w-[373px]  shadow-xl ">
                           <div class="flex justify-between items-center bg-[#F0F3F5]  rounded-t-[20px] p-6">
                             <div class="text-left">
                               <div class="text-lg font-semibold text-gray-800">
-                                DAC ↔ KUL
+                                {savedFlights[0]?.origin_code} -{" "}
+                                {savedFlights[0]?.destination_code}
                               </div>
                               <div class="text-sm text-black">12/9 - 15/9</div>
                             </div>
@@ -190,52 +213,66 @@ export default function Header() {
                             </div>
                           </div>
 
-                          {[1, 2]?.map((data, index) => (
+                          {savedFlights?.map((flight, index) => (
                             <div
                               class="flex flex-col gap-4 mt-4 p-4 border-b"
                               key={index}
                             >
                               <div class="flex items-center justify-between text-sm">
                                 <span class="font-medium text-gray-800">
-                                  Batik Air / Malaysia Airline
+                                  {flight?.airline_name}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 justify-between ">
                                 <div className="">
-                                  <div class="mt-3 py-3 px-1  rounded-lg">
-                                    <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
-                                      Thu, 3 Oct
-                                    </div>
+                                  {flight?.schedules?.map((schedule, index) => (
+                                    <div
+                                      class="mt-3 py-3 px-1  rounded-lg"
+                                      key={index}
+                                    >
+                                      <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
+                                        {flight?.departure_date}
+                                      </div>
 
-                                    <div class="flex items-center justify-between">
-                                      <Image
-                                        src={airAsia}
-                                        alt="Air Asia Logo"
-                                        class="h-8 w-8 object-contain"
-                                      />
-                                      <div class="flex flex-col text-center">
-                                        <span class="text-lg font-semibold">
-                                          00:50
-                                        </span>
-                                        <span class="text-xs text-black">
-                                          DAC
-                                        </span>
-                                      </div>
-                                      <div class="flex flex-col items-center text-xs text-black border-b">
-                                        <span>3H 50M</span>
-                                      </div>
-                                      <div class="flex flex-col text-center">
-                                        <span class="text-lg font-semibold">
-                                          06:55
-                                        </span>
-                                        <span class="text-xs text-black">
-                                          KUL
-                                        </span>
+                                      <div class="flex items-center justify-between">
+                                        <Image
+                                          width={50}
+                                          height={50}
+                                          src={flight?.airline_logo}
+                                          alt="Air line Logo"
+                                          class="h-8 w-8 object-contain"
+                                        />
+                                        <div class="flex flex-col text-center">
+                                          <span class="text-lg font-semibold">
+                                            {unifyTimeFormat(
+                                              flight?.departure_time
+                                            )}
+                                          </span>
+                                          <span class="text-xs text-black">
+                                            {flight?.origin_code}
+                                          </span>
+                                        </div>
+                                        <div class="flex flex-col items-center text-xs text-black border-b">
+                                          <span>
+                                            {" "}
+                                            {flight?.flight_duration}
+                                          </span>
+                                        </div>
+                                        <div class="flex flex-col text-center">
+                                          <span class="text-lg font-semibold">
+                                            {unifyTimeFormat(
+                                              flight?.arrival_time
+                                            )}
+                                          </span>
+                                          <span class="text-xs text-black">
+                                            {flight?.destination_code}
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
+                                  ))}
 
-                                  <div class="mt-1 py-3 px-1   rounded-lg">
+                                  {/* <div class="mt-1 py-3 px-1   rounded-lg">
                                     <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
                                       Thu, 6 Oct
                                     </div>
@@ -250,7 +287,7 @@ export default function Header() {
                                         <span class="text-lg font-semibold">
                                           00:50
                                         </span>
-                                        <span class="text-[18px] text-black">
+                                        <span class="text-xs text-black">
                                           DAC
                                         </span>
                                       </div>
@@ -266,11 +303,14 @@ export default function Header() {
                                         </span>
                                       </div>
                                     </div>
-                                  </div>
+                                  </div> */}
                                 </div>
                                 <div class="me-2">
                                   <div class="text-[18px] font-semibold text-black">
-                                    Tk 14,879
+                                    Tk .
+                                    {formatFlightFare(
+                                      flight?.fare_details?.total_fare
+                                    )}
                                   </div>
                                 </div>
                               </div>

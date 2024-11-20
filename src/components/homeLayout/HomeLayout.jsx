@@ -4,13 +4,28 @@ import Sidebar from "../sideBar/Sidebar";
 import Header from "../header/Header";
 import Footer from "../footer/Footer";
 import { useSidebar } from "@/context/sidebar-context";
+import LoadingBar from "react-top-loading-bar";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 export default function HomeLayout({ children }) {
   const { isSidebarOpen } = useSidebar();
+  const router = useRouter();
+  const ref = useRef(null);
+  useEffect(() => {
+    ref.current.continuousStart(); // Start the loading bar
+
+    // Simulate an API call
+    setTimeout(() => {
+      ref.current.complete(); // Complete the loading bar
+    }, 2000); // Simulate 2 seconds loading
+  }, []);
 
   return (
     <div>
       <Header />
+      <LoadingBar color="#f11946" height={2} ref={ref} />
+
       <div className="flex  w-full">
         {/* Sidebar */}
         <Sidebar />
