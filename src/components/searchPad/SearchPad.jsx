@@ -364,15 +364,14 @@ export default function SearchPad() {
 
       // If the trip is a return trip, add the return leg
       if (selectedWay === "return" && roundDate?.to) {
-
         originDestinationInfo.push({
-          DepartureDateTime: originalArrivalData, 
+          DepartureDateTime: originalArrivalData,
           OriginLocation: {
-            LocationCode: searchQueryArrival, 
+            LocationCode: searchQueryArrival,
             LocationType: "A",
           },
           DestinationLocation: {
-            LocationCode: searchQueryDestination, 
+            LocationCode: searchQueryDestination,
             LocationType: "A",
           },
           RPH: "1", // Different RPH for return leg
@@ -391,7 +390,12 @@ export default function SearchPad() {
       );
       setRecentSearchData(updatedRecentSearches);
 
-      router.push(`/search-result`);
+      const queryString = new URLSearchParams({
+        search: JSON.stringify(searchData),
+        originDestinationInfo: JSON.stringify(originDestinationInfo),
+      }).toString();
+
+      router.push(`/search-result?${queryString}`);
     } else {
       toast.error("Please fill up all the required fields");
     }

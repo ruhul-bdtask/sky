@@ -7,49 +7,55 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/utils/api";
 import useAirlineStore from "../../../stores/airlineStore";
 import ResultPageSkeleton from "@/skeletons/ResultPageSkeleton";
-import { useRouter } from "next/navigation";
 import LoadingBar from "react-top-loading-bar";
-export default function Page() {
+import { notFound } from "next/navigation";
+export default function Page({ searchParams }) {
   const ref = useRef(null);
   useEffect(() => {
-    ref.current.continuousStart(); // Start the loading bar
+    ref.current.continuousStart();
 
-    // Simulate an API call
     setTimeout(() => {
-      ref.current.complete(); // Complete the loading bar
-    }, 2000); // Simulate 2 seconds loading
+      ref.current?.complete();
+    }, 2000);
   }, []);
 
   const {
     OriginDestinationInformation,
     setLegDescription,
-    searchData,
     setMinPrice,
     setMaxPrice,
     minPrice,
     maxPrice,
   } = useAirlineStore();
 
-  const ticketClass = searchData?.class; // Replace with actual value
-  const directFlightsOnly = false; // Replace with actual value
-  const availableFlightsOnly = true; // Replace with actual value
+  const { search, originDestinationInfo } = searchParams;
+  let parsedSearchData;
+  try {
+    parsedSearchData = JSON.parse(search);
+  } catch (error) {
+    console.error("Error parsing searchData:", error);
+    notFound();
+  }
+
+  const ticketClass = parsedSearchData?.class;
+  const directFlightsOnly = false;
+  const availableFlightsOnly = true;
 
   const payload = {
     RequestLOG: true,
     RequireUTILS: false,
     RequestBody: {
-      OriginDestinationInformation: OriginDestinationInformation,
-      PassengerTypeQuantity: searchData?.passengers
-        ? searchData.passengers?.map((passenger) => ({
-            Code: passenger.type,
-            Quantity: passenger.quantity,
-            TPA_Extensions: {
-              VoluntaryChanges: {
-                Match: "Info",
-              },
-            },
-          }))
-        : [],
+      OriginDestinationInformation: JSON.parse(originDestinationInfo),
+      PassengerTypeQuantity: parsedSearchData?.passengers?.map((passenger) => ({
+        Code: passenger.type,
+        Quantity: passenger.quantity,
+        TPA_Extensions: {
+          VoluntaryChanges: {
+            Match: "Info",
+          },
+        },
+      })),
+
       TicketClass: ticketClass,
       DirectFlightsOnly: directFlightsOnly,
       AvailableFlightsOnly: availableFlightsOnly,
@@ -59,7 +65,7 @@ export default function Page() {
   const {
     data: allFlights,
     error: allFlightsError,
-    isLoading: allFlightsLoading,
+    isLoading: allFlightsLoading = true,
     refetch: refetchAllFlights,
   } = useQuery({
     queryKey: ["flights", payload],
@@ -70,17 +76,21 @@ export default function Page() {
   useEffect(() => {
     setLegDescription(allFlights?.data?.LegDescription);
     setMinPrice(
-      allFlights?.data.sortedItineraries[0]?.fare_details?.total_fare
+      allFlights?.data?.sortedItineraries[0]?.fare_details?.total_fare
     );
     setMaxPrice(
-      allFlights?.data.sortedItineraries[
-        allFlights?.data.sortedItineraries.length - 1
+      allFlights?.data?.sortedItineraries[
+        allFlights?.data?.sortedItineraries?.length - 1
       ]?.fare_details?.total_fare
     );
   }, [allFlights]);
 
   const [sortCriteria, setSortCriteria] = useState("cheapest");
 
+  const durationToMinutes = (duration) => {
+    const [hours, minutes] = duration.match(/\d+/g).map(Number);
+    return hours * 60 + minutes;
+  };
   const sortedFlights = () => {
     if (!allFlights?.data?.sortedItineraries) return [];
 
@@ -96,11 +106,6 @@ export default function Page() {
       // );
       case "quick":
         return [...allFlights.data.sortedItineraries].sort((a, b) => {
-          const durationToMinutes = (duration) => {
-            const [hours, minutes] = duration.match(/\d+/g).map(Number); // Extract numbers
-            return hours * 60 + minutes; // Convert to total minutes
-          };
-
           return (
             durationToMinutes(a.flight_duration) -
             durationToMinutes(b.flight_duration)
@@ -109,11 +114,6 @@ export default function Page() {
 
       case "best":
         return [...allFlights.data.sortedItineraries].sort((a, b) => {
-          const durationToMinutes = (duration) => {
-            const [hours, minutes] = duration.match(/\d+/g).map(Number);
-            return hours * 60 + minutes;
-          };
-
           const aScore =
             a.fare_details?.total_fare * 0.4 +
             durationToMinutes(a.flight_duration) * 0.4 +
@@ -141,7 +141,7 @@ export default function Page() {
             <div className="container_search max-w-5xl">
               <div className="flex gap-5">
                 <FlightFilter
-                  allFlights={allFlights.data.sortedItineraries}
+                  allFlights={allFlights?.data?.sortedItineraries}
                   sortedFlights={sortedFlights()}
                 />
                 <div className="flex-1">
