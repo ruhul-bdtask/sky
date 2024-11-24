@@ -12,7 +12,7 @@ import { Circles, Oval } from "react-loader-spinner";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import { normalizeSeatClass } from "@/lib/normalizeSeatClass";
 import { formatFlightFare } from "@/lib/formatFlightFare";
-import { FaFacebook, FaTwitter, FaYoutube } from "react-icons/fa";
+import { FaFacebook, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import LoadingBar from "react-top-loading-bar";
 import { convertMinutesToHours } from "@/lib/formatMinutes";
 export default function FlightCard({ flight }) {
@@ -136,6 +136,11 @@ export default function FlightCard({ flight }) {
         break;
       case "youtube":
         shareUrl = `https://www.youtube.com/watch?v=YOUR_VIDEO_ID`;
+        break;
+      case "whatsapp":
+        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+          `${shareText}\n${url}`
+        )}`;
         break;
       default:
         return;
@@ -282,7 +287,7 @@ export default function FlightCard({ flight }) {
       <div className="w-full bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit hover:border transition-all ease-in-out border-black cursor-pointer">
         <div className=" grid grid-cols-1 lg:grid-cols-8  ">
           <div className="  col-span-6 p-3 flex flex-col justify-between ">
-            <div className="flex justify-between items-center ">
+            <div className="flex justify-between items-center  flex-wrap">
               <div className="flex space-x-2">
                 <span className="bg-[#DFF9FF] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
                   Best
@@ -344,7 +349,7 @@ export default function FlightCard({ flight }) {
                     </p> */}
 
             {flight?.itinerary_leg_descs?.length == 1 ? (
-              <div className="flex justify-between items-center gap-5">
+              <div className="flex justify-between items-center gap-5 flex-wrap">
                 <div className="flex items-center gap-5">
                   <Image
                     width={50}
@@ -352,7 +357,11 @@ export default function FlightCard({ flight }) {
                     alt="air"
                     src={flight?.airline_logo}
                   ></Image>
+
                   <div>
+                    <p className="text-[13px]">
+                      {flight?.origin_code} - {flight?.destination_code}
+                    </p>
                     <p className="text-lg font-semibold">
                       {unifyTimeFormat(flight?.departure_time)} -{" "}
                       {unifyTimeFormat(flight?.arrival_time)}{" "}
@@ -361,6 +370,9 @@ export default function FlightCard({ flight }) {
                     <div>
                       <p className="text-[#5F6D77] text-[14px]">
                         {flight?.airline_name}
+                      </p>
+                      <p className="text-[#5F6D77] text-[14px]">
+                        {flight?.departure_date}
                       </p>
                     </div>
                   </div>
@@ -414,6 +426,13 @@ export default function FlightCard({ flight }) {
                     <p className="text-[12px]">Share to YouTube</p>
                   </button>
 
+                  <button
+                    className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                    onClick={() => handleShare("whatsapp")}
+                  >
+                    <FaWhatsapp className="w-4 h-4 text-green-500" />
+                    <p className="text-[12px]">Share to WhatsApp</p>
+                  </button>
                   <button
                     className="mt-4 w-full bg-gray-400 text-white py-2 px-4 rounded-md"
                     onClick={() => setIsShareModalOpen(false)} // Close modal
