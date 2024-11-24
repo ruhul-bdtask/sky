@@ -201,25 +201,6 @@ export default function SearchPad() {
       airport.value.toLowerCase() !== searchQueryArrival.toLowerCase()
   );
 
-  // const {
-  //   data: allAirports,
-  //   error: allAirportsError,
-  //   isLoading: allAirportsLoading,
-  //   refetch: refetchAirports,
-  // } = useQuery({
-  //   queryKey: ["airports"],
-  //   queryFn: () => fetchData("/gds/airports", "GET"),
-  //   retry: 2,
-  //   refetchOnWindowFocus: false,
-  // });
-
-  // useEffect(() => {
-  //   if (allAirports) {
-  //     // setAirports(allAirports?.data?.airports);
-  //   }
-  //   refetchAirports();
-  // }, [allAirports]);
-
   const generatePassengersFromCategories = (categories) => {
     const passengers = [];
 
@@ -621,8 +602,11 @@ export default function SearchPad() {
                         onClick={() => setIsOpenDestination(!isOpenDestination)}
                       >
                         <input
-                          value={selectedDestination}
+                          value={searchQueryDestination}
                           type="text"
+                          onChange={(e) =>
+                            setSearchQueryDestination(e.target.value)
+                          }
                           placeholder="From ?"
                           className="w-full pl-10 pr-4 py-4  focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
                         />
@@ -631,34 +615,32 @@ export default function SearchPad() {
                         </div>
                       </div>
                       {isOpenDestination ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] z-10">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
                           <div className="p-8 ">
                             <ul className="space-y-4">
-                              {destinations.map((destination, index) => (
-                                <li
-                                  key={index}
-                                  className="flex items-center space-x-4 cursor-pointer"
-                                  onClick={() =>
-                                    setSelectedDestination(destination?.code)
-                                  }
-                                >
-                                  <Image
-                                    src={destination.image}
-                                    alt={destination.name}
-                                    width={50}
-                                    height={50}
-                                    className="rounded-md"
-                                  />
-                                  <div className="flex-grow">
-                                    <p className="font-semibold">
-                                      {destination.name}, {destination.code}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      {destination.airport}
-                                    </p>
-                                  </div>
-                                </li>
-                              ))}
+                              {filteredAirportsDestination.map(
+                                (destination, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-center space-x-4 cursor-pointer"
+                                    onClick={() => {
+                                      setSearchQueryDestination(
+                                        destination.value
+                                      );
+                                      setIsOpenDestination(false);
+                                    }}
+                                  >
+                                    <div className="flex-grow">
+                                      <p className="font-semibold">
+                                        {destination.name}, {destination.value}
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        {destination.label}
+                                      </p>
+                                    </div>
+                                  </li>
+                                )
+                              )}
                             </ul>
 
                             {recentSearchData?.length > 0 ? (
@@ -722,39 +704,37 @@ export default function SearchPad() {
                     <div className="relative" ref={dropdownRefArrival}>
                       <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
                         <input
+                          value={searchQueryArrival}
                           type="text"
+                          onChange={(e) =>
+                            setSearchQueryArrival(e.target.value)
+                          }
                           placeholder="To ?"
-                          className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                          className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
                         />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                           <Airplane />
                         </div>
                       </div>
                       {isOpenArrival ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] z-10">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
                           <div className="p-8 ">
                             <ul className="space-y-4">
-                              {arrivals.map((destination, index) => (
+                              {filteredAirportsArrival.map((arrival, index) => (
                                 <li
                                   key={index}
                                   className="flex items-center space-x-4 cursor-pointer"
-                                  onClick={() =>
-                                    setSelectedDestination(destination?.code)
-                                  }
+                                  onClick={() => {
+                                    setSearchQueryArrival(arrival.value);
+                                    setIsOpenArrival(false);
+                                  }}
                                 >
-                                  <Image
-                                    src={destination.image}
-                                    alt={destination.name}
-                                    width={50}
-                                    height={50}
-                                    className="rounded-md"
-                                  />
                                   <div className="flex-grow">
                                     <p className="font-semibold">
-                                      {destination.name}, {destination.code}
+                                      {arrival.name}, {arrival.value}
                                     </p>
                                     <p className="text-sm text-gray-500">
-                                      {destination.airport}
+                                      {arrival.label}
                                     </p>
                                   </div>
                                 </li>
@@ -851,12 +831,15 @@ export default function SearchPad() {
                 ))}
                 <div className="flex justify-between items-center">
                   <button
+                    type="button"
                     className="text-blue-600 font-semibold"
                     onClick={addFlightRow}
                   >
                     + Add another flight
                   </button>
-                  <button className="text-gray-500">clear all</button>
+                  <button type="button" className="text-gray-500">
+                    clear all
+                  </button>
 
                   <button
                     className="rounded-[10px] bg-[#FC660F] w-[54px] h-[50px] hover:bg-[#d67136]"
