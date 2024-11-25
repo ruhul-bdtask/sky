@@ -1,19 +1,16 @@
 "use client";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import CardIcon from "@/public/icons/CardIcon";
 import { Heart, Share2, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import useAirlineStore from "../../../stores/airlineStore";
-import { toast } from "react-toastify";
 import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/utils/api";
-import { Circles, Oval } from "react-loader-spinner";
+import { Oval } from "react-loader-spinner";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import { normalizeSeatClass } from "@/lib/normalizeSeatClass";
 import { formatFlightFare } from "@/lib/formatFlightFare";
 import { FaFacebook, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
-import LoadingBar from "react-top-loading-bar";
 import { convertMinutesToHours } from "@/lib/formatMinutes";
 export default function FlightCard({ flight }) {
   const router = useRouter();
