@@ -36,7 +36,7 @@ export default function SearchPad() {
   const [selectedDestination, setSelectedDestination] = useState("");
   const [selectedArrival, setSelectedArrival] = useState("");
 
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1)); // November 2024
+  const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1));
   const [tripType, setTripType] = useState("round-trip");
   const [destination, setDestination] = useState("");
   const [arrival, setArrival] = useState("");
@@ -60,10 +60,10 @@ export default function SearchPad() {
 
   const [roundDate, setRoundDate] = useState(() => {
     const twoDaysAhead = new Date();
-    twoDaysAhead.setDate(twoDaysAhead.getDate() + 2); // Increment by 2 days
+    twoDaysAhead.setDate(twoDaysAhead.getDate() + 2);
 
     const fourDaysAhead = new Date(twoDaysAhead);
-    fourDaysAhead.setDate(fourDaysAhead.getDate() + 2); // Increment by 4 days
+    fourDaysAhead.setDate(fourDaysAhead.getDate() + 2);
 
     return {
       from: twoDaysAhead,
@@ -73,7 +73,7 @@ export default function SearchPad() {
 
   const [oneWayDate, setOneWayDate] = useState(() => {
     const twoDaysAhead = new Date();
-    twoDaysAhead.setDate(twoDaysAhead.getDate() + 2); // Increment the day by 2
+    twoDaysAhead.setDate(twoDaysAhead.getDate() + 2);
     return twoDaysAhead;
   });
 
@@ -117,68 +117,6 @@ export default function SearchPad() {
     { name: "First Class", price: 150, shortCode: "F" },
   ]);
 
-  const [fromAirports, setFromAirports] = useState();
-  const [toAirports, setToAirports] = useState();
-
-  const destinations = [
-    {
-      name: "Dhaka, Bangladesh",
-      code: "DAC",
-      airport: "Hazrat Shajalal Intl.",
-      image: descriptImage,
-    },
-    {
-      name: "Dharmasala, India",
-      code: "DHM",
-      airport: "Kangra",
-      image: descriptImage,
-    },
-    {
-      name: "Dharavandhoo, Maldives",
-      code: "DRV",
-      airport: "Dharavandhoo",
-      image: descriptImage,
-    },
-    {
-      name: "Abu Dhabi, Arab Emirates",
-      code: "AUH",
-      airport: "Zayed Intl",
-      image: descriptImage,
-    },
-  ];
-  const arrivals = [
-    {
-      name: "Dhaka, Bangladesh",
-      code: "DAC",
-      airport: "Hazrat Shajalal Intl.",
-      image: descriptImage,
-    },
-    {
-      name: "Dharmasala, India",
-      code: "DHM",
-      airport: "Kangra",
-      image: descriptImage,
-    },
-    {
-      name: "Dharavandhoo, Maldives",
-      code: "DRV",
-      airport: "Dharavandhoo",
-      image: descriptImage,
-    },
-    {
-      name: "Abu Dhabi, Arab Emirates",
-      code: "AUH",
-      airport: "Zayed Intl",
-      image: descriptImage,
-    },
-    {
-      name: "Cox bazar",
-      code: "CXB",
-      airport: "Cox bazar",
-      image: descriptImage,
-    },
-  ];
-
   const filteredAirportsArrival = airportsData.filter(
     (airport) =>
       (airport.name.toLowerCase().includes(searchQueryArrival.toLowerCase()) ||
@@ -204,19 +142,16 @@ export default function SearchPad() {
   const generatePassengersFromCategories = (categories) => {
     const passengers = [];
 
-    // Adding adults
     const adults = categories.find((cat) => cat.name === "Adults");
     if (adults && adults.count > 0) {
       passengers.push({ type: "ADT", quantity: adults.count });
     }
 
-    // Adding children (2-11 years)
     const children = categories.find((cat) => cat.name === "Children");
     if (children && children.count > 0) {
       passengers.push({ type: "C02", quantity: children.count });
     }
 
-    // Adding infants on lap (under 2 years)
     const infants = categories.find((cat) => cat.name === "Infants on lap");
     if (infants && infants.count > 0) {
       passengers.push({ type: "INF", quantity: infants.count });
@@ -224,7 +159,6 @@ export default function SearchPad() {
 
     return passengers;
   };
-  // Generate passengers array from current categories state
   const passengers = generatePassengersFromCategories(categories);
 
   const dropdownRef = useRef(null);
@@ -276,12 +210,10 @@ export default function SearchPad() {
     const dateToUse = selectedWay === "one_way" ? oneWayDate : roundDate.from;
     const date = new Date(dateToUse);
 
-    // Extract date components
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
 
-    // Format the date string
     const formattedDateTimeOrigin = `${year}-${month}-${day}T00:00:00`;
 
     setOriginalDate(formattedDateTimeOrigin);
@@ -290,13 +222,9 @@ export default function SearchPad() {
   useEffect(() => {
     const dateToUse = selectedWay === "one_way" ? "" : roundDate.to;
     const date = new Date(dateToUse);
-
-    // Extract date components
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
-
-    // Format the date string
     const formattedDateTimeOrigin = `${year}-${month}-${day}T00:00:00`;
 
     setOriginalArrivalDate(formattedDateTimeOrigin);
@@ -343,7 +271,6 @@ export default function SearchPad() {
         },
       ];
 
-      // If the trip is a return trip, add the return leg
       if (selectedWay === "return" && roundDate?.to) {
         originDestinationInfo.push({
           DepartureDateTime: originalArrivalData,
@@ -355,7 +282,7 @@ export default function SearchPad() {
             LocationCode: searchQueryDestination,
             LocationType: "A",
           },
-          RPH: "1", // Different RPH for return leg
+          RPH: "1", 
         });
       } else {
         console.log(
@@ -391,7 +318,6 @@ export default function SearchPad() {
   return (
     <div>
       <main className={``}>
-        {/* Search form */}
         <div className=" mx-auto ">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
             Where do you want to go?
