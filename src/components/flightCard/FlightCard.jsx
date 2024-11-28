@@ -12,9 +12,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BsFillPlugFill } from "react-icons/bs";
 import { FaFacebook, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
-import { IoWifi } from "react-icons/io5";
-import { MdKeyboardArrowDown, MdOndemandVideo } from "react-icons/md";
 import { GiCommercialAirplane } from "react-icons/gi";
+import { IoWifi } from "react-icons/io5";
+import {
+  MdKeyboardArrowDown,
+  MdOndemandVideo,
+  MdOutlineKeyboardArrowUp,
+} from "react-icons/md";
 import { Oval } from "react-loader-spinner";
 import useAirlineStore from "../../../stores/airlineStore";
 export default function FlightCard({ flight }) {
@@ -285,9 +289,13 @@ export default function FlightCard({ flight }) {
   };
 
   const [isShowDetail, setIsShowDetail] = useState(false);
+  const [isShowIconDetail, setIsShowIconDetail] = useState(false);
 
   const handleFlightDetailToggler = (e) => {
     setIsShowDetail(!isShowDetail);
+  };
+  const handleIconDetailToggler = (e) => {
+    setIsShowIconDetail(!isShowIconDetail);
   };
 
   return (
@@ -502,7 +510,7 @@ export default function FlightCard({ flight }) {
         {isShowDetail && (
           <div
             onClick={(e) => e.stopPropagation()}
-            className="m-5 border rounded-xl cursor-default"
+            className="m-5 border rounded-xl cursor-default "
           >
             <div className="flex justify-between border-b p-3">
               <b>Depart • Wed, Dec 25</b>
@@ -545,15 +553,47 @@ export default function FlightCard({ flight }) {
                 </div>
               </div>
               <div className="">
-                <div className="flex p-2 bg-slate-200 rounded-full space-x-1">
-                  <IoWifi />
-                  <MdOndemandVideo />
-                  <BsFillPlugFill />
-                  <MdKeyboardArrowDown onClick={() => console.log("gg")} />
-                </div>
+                {!isShowIconDetail ? (
+                  <div className="flex p-2 bg-slate-100 rounded-full space-x-1 ">
+                    <IoWifi />
+                    <MdOndemandVideo />
+                    <BsFillPlugFill />
+                    <button
+                      onClick={(e) => {
+                        handleIconDetailToggler(!isShowIconDetail);
+                      }}
+                    >
+                      <MdKeyboardArrowDown />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-start p-2 bg-slate-100 rounded-xl space-x-1 ">
+                    <ul className="mt-3">
+                      <li className="flex space-x-2 items-center text-sm">
+                        <IoWifi />
+                        <span> Wifi Facilities</span>
+                      </li>
+                      <li className="flex space-x-2 items-center text-sm">
+                        <MdOndemandVideo /> <span> TV Facilities</span>
+                      </li>
+                      <li className="flex space-x-2 items-center text-sm">
+                        <BsFillPlugFill />
+                        <span> Mobile Charging Port</span>
+                      </li>
+                    </ul>
+
+                    <button
+                      onClick={(e) => {
+                        handleIconDetailToggler(!isShowIconDetail);
+                      }}
+                    >
+                      <MdOutlineKeyboardArrowUp />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="border-y">hello world</div>
+            <div className="">hello world</div>
           </div>
         )}
       </div>
