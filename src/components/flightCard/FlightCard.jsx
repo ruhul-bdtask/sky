@@ -1,17 +1,22 @@
 "use client";
-import Image from "next/image";
-import React, { useEffect, useState } from "react";
-import { Heart, Share2, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
-import useAirlineStore from "../../../stores/airlineStore";
-import { useQuery } from "@tanstack/react-query";
-import { fetchData } from "@/utils/api";
-import { Oval } from "react-loader-spinner";
-import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
-import { normalizeSeatClass } from "@/lib/normalizeSeatClass";
 import { formatFlightFare } from "@/lib/formatFlightFare";
-import { FaFacebook, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import { convertMinutesToHours } from "@/lib/formatMinutes";
+import { normalizeSeatClass } from "@/lib/normalizeSeatClass";
+import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
+import airAsia from "@/public/images/air-asia.png";
+import { fetchData } from "@/utils/api";
+import { useQuery } from "@tanstack/react-query";
+import { Heart, Share2 } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { BsFillPlugFill } from "react-icons/bs";
+import { FaFacebook, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
+import { IoWifi } from "react-icons/io5";
+import { MdKeyboardArrowDown, MdOndemandVideo } from "react-icons/md";
+import { GiCommercialAirplane } from "react-icons/gi";
+import { Oval } from "react-loader-spinner";
+import useAirlineStore from "../../../stores/airlineStore";
 export default function FlightCard({ flight }) {
   const router = useRouter();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -279,9 +284,18 @@ export default function FlightCard({ flight }) {
     );
   };
 
+  const [isShowDetail, setIsShowDetail] = useState(false);
+
+  const handleFlightDetailToggler = (e) => {
+    setIsShowDetail(!isShowDetail);
+  };
+
   return (
     <>
-      <div className="w-full bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit hover:border transition-all ease-in-out border-black cursor-pointer">
+      <div
+        onClick={handleFlightDetailToggler}
+        className="w-full bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit hover:border transition-all ease-in-out border-black cursor-pointer"
+      >
         <div className=" grid grid-cols-1 lg:grid-cols-8  ">
           <div className="  col-span-6 p-3 flex flex-col justify-between ">
             <div className="flex justify-between items-center  flex-wrap">
@@ -484,6 +498,64 @@ export default function FlightCard({ flight }) {
             </div>
           </div>
         </div>
+
+        {isShowDetail && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="m-5 border rounded-xl cursor-default"
+          >
+            <div className="flex justify-between border-b p-3">
+              <b>Depart • Wed, Dec 25</b>
+              <span>31h 55m</span>
+            </div>
+
+            <div className="px-4 py-1 flex justify-between ">
+              <div className="">
+                <div className="space-x-2 flex items-center">
+                  <Image src={airAsia} width={25} height={25} alt="logo" />
+                  <span>IndiGo 1104</span>
+                  <input
+                    className="border p-1 rounded focus:outline-none max-w-32"
+                    type="text"
+                    value="IndiGo"
+                  />
+                </div>
+
+                <div className="my-3">
+                  <div className="space-x-5 flex">
+                    <span className="ml-2">
+                      <span className="h-2 w-2 bg-white border rounded-full border-gray-400 flex"></span>
+                      <span className="h-full w-0.5 bg-gray-400 flex ml-[3px]"></span>
+                    </span>
+                    <b>9:00 pm</b>
+                    <span>Dhaka Hazrat Shahjalal Intl (DAC)</span>
+                  </div>
+                  <div className="flex space-x-2 items-center mt-2 ">
+                    <GiCommercialAirplane size={25} />
+                    <span>2h 50m</span>
+                  </div>
+                  <div className="space-x-5 flex">
+                    <span className="ml-2">
+                      <span className="h-full w-0.5 bg-gray-400 flex ml-[3px]"></span>
+                      <span className="h-2 w-2 bg-white border rounded-full border-gray-400 flex"></span>
+                    </span>
+                    <b>9:00 pm</b>
+                    <span>Dhaka Hazrat Shahjalal Intl (DAC)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="">
+                <div className="flex p-2 bg-slate-200 rounded-full space-x-1">
+                  <IoWifi />
+                  <MdOndemandVideo />
+                  <BsFillPlugFill />
+                  <MdKeyboardArrowDown onClick={() => console.log("gg")} />
+                </div>
+              </div>
+            </div>
+            <div className="border-y">hello world</div>
+          </div>
+        )}
       </div>
     </>
   );
