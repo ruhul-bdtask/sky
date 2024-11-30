@@ -5,19 +5,13 @@ import device from "@/public/images/device.png";
 import google from "@/public/images/google.png";
 import apple from "@/public/images/apple.png";
 import verify from "@/public/images/verify.png";
-
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSidebar } from "@/context/sidebar-context";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import AvatarIcon from "@/public/icons/AvatarIcon";
 import HeartIcon from "@/public/icons/HeartIcon";
 import { useRouter } from "next/navigation";
@@ -27,20 +21,18 @@ import LinkIcon from "@/public/icons/LinkIcon";
 import ActiveIcon from "@/public/icons/ActiveIcon";
 import UserIcon from "@/public/icons/UserIcon";
 import { Pencil, MoreVertical } from "lucide-react";
-import airAsia from "@/public/images/air-asia.png";
-
 import weather from "@/public/images/weather.png";
 import useAirlineStore from "../../../stores/airlineStore";
 import { isExpired } from "react-jwt";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import { formatFlightFare } from "@/lib/formatFlightFare";
 export default function Header() {
-  const { isSidebarOpen, setIsSidebarOpen } = useSidebar(); // Access the sidebar state
+  const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [modalPage, setModalPage] = useState("google");
   const router = useRouter();
-  const [code, setCode] = useState(["", "", "", "", "", ""]); // State to hold the code input
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isOpenProfile, setIsOpenProfile] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedIn, setLoggedIn] = useState(null);

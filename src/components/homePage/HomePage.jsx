@@ -7,6 +7,7 @@ import WishlistTravels from "../wishlistTravels/WishlistTravels";
 export default function HomePage() {
   return (
     <div className={`container_section_home mx-auto  max-w-7xl py-10 `}>
+      
       <SearchPad />
       <Services />
       <Travels />
