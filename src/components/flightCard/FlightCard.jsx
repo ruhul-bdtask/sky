@@ -3,24 +3,17 @@ import { formatFlightFare } from "@/lib/formatFlightFare";
 import { convertMinutesToHours } from "@/lib/formatMinutes";
 import { normalizeSeatClass } from "@/lib/normalizeSeatClass";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
-import airAsia from "@/public/images/air-asia.png";
 import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import { Heart, Share2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BsFillPlugFill } from "react-icons/bs";
 import { FaFacebook, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
-import { GiCommercialAirplane } from "react-icons/gi";
-import { IoWifi } from "react-icons/io5";
-import {
-  MdKeyboardArrowDown,
-  MdOndemandVideo,
-  MdOutlineKeyboardArrowUp,
-} from "react-icons/md";
 import { Oval } from "react-loader-spinner";
 import useAirlineStore from "../../../stores/airlineStore";
+import FlightDetails from "./FlightDetails";
+
 export default function FlightCard({ flight }) {
   const router = useRouter();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -34,6 +27,10 @@ export default function FlightCard({ flight }) {
     isOpenSavedDialog,
     setIsOpenSavedDialog,
   } = useAirlineStore();
+
+  const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
+  const handleFlightDetailsToggler = (e) =>
+    setIsShowFlightDetails(!isShowFlightDetails);
 
   const directFlightsOnly = false;
   const availableFlightsOnly = false;
@@ -288,20 +285,10 @@ export default function FlightCard({ flight }) {
     );
   };
 
-  const [isShowDetail, setIsShowDetail] = useState(false);
-  const [isShowIconDetail, setIsShowIconDetail] = useState(false);
-
-  const handleFlightDetailToggler = (e) => {
-    setIsShowDetail(!isShowDetail);
-  };
-  const handleIconDetailToggler = (e) => {
-    setIsShowIconDetail(!isShowIconDetail);
-  };
-
   return (
     <>
       <div
-        onClick={handleFlightDetailToggler}
+        onClick={handleFlightDetailsToggler}
         className="w-full bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit hover:border transition-all ease-in-out border-black cursor-pointer"
       >
         <div className=" grid grid-cols-1 lg:grid-cols-8  ">
@@ -480,7 +467,10 @@ export default function FlightCard({ flight }) {
               </p>
 
               <button
-                onClick={() => handleRevalidate()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRevalidate();
+                }}
                 disabled={allFlightsLoading}
                 className={` bg-[#FC660F] text-white py-2 font-semibold hover:bg-orange-600 transition duration-300 rounded-md w-[160px] h-full `}
               >
@@ -507,95 +497,7 @@ export default function FlightCard({ flight }) {
           </div>
         </div>
 
-        {isShowDetail && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="m-5 border rounded-xl cursor-default "
-          >
-            <div className="flex justify-between border-b p-3">
-              <b>Depart • Wed, Dec 25</b>
-              <span>31h 55m</span>
-            </div>
-
-            <div className="px-4 py-1 flex justify-between ">
-              <div className="">
-                <div className="space-x-2 flex items-center">
-                  <Image src={airAsia} width={25} height={25} alt="logo" />
-                  <span>IndiGo 1104</span>
-                  <input
-                    className="border p-1 rounded focus:outline-none max-w-32"
-                    type="text"
-                    value="IndiGo"
-                  />
-                </div>
-
-                <div className="my-3">
-                  <div className="space-x-5 flex">
-                    <span className="ml-2">
-                      <span className="h-2 w-2 bg-white border rounded-full border-gray-400 flex"></span>
-                      <span className="h-full w-0.5 bg-gray-400 flex ml-[3px]"></span>
-                    </span>
-                    <b>9:00 pm</b>
-                    <span>Dhaka Hazrat Shahjalal Intl (DAC)</span>
-                  </div>
-                  <div className="flex space-x-2 items-center mt-2 ">
-                    <GiCommercialAirplane size={25} />
-                    <span>2h 50m</span>
-                  </div>
-                  <div className="space-x-5 flex">
-                    <span className="ml-2">
-                      <span className="h-full w-0.5 bg-gray-400 flex ml-[3px]"></span>
-                      <span className="h-2 w-2 bg-white border rounded-full border-gray-400 flex"></span>
-                    </span>
-                    <b>9:00 pm</b>
-                    <span>Dhaka Hazrat Shahjalal Intl (DAC)</span>
-                  </div>
-                </div>
-              </div>
-              <div className="">
-                {!isShowIconDetail ? (
-                  <div className="flex p-2 bg-slate-100 rounded-full space-x-1 ">
-                    <IoWifi />
-                    <MdOndemandVideo />
-                    <BsFillPlugFill />
-                    <button
-                      onClick={(e) => {
-                        handleIconDetailToggler(!isShowIconDetail);
-                      }}
-                    >
-                      <MdKeyboardArrowDown />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-start p-2 bg-slate-100 rounded-xl space-x-1 ">
-                    <ul className="mt-3">
-                      <li className="flex space-x-2 items-center text-sm">
-                        <IoWifi />
-                        <span> Wifi Facilities</span>
-                      </li>
-                      <li className="flex space-x-2 items-center text-sm">
-                        <MdOndemandVideo /> <span> TV Facilities</span>
-                      </li>
-                      <li className="flex space-x-2 items-center text-sm">
-                        <BsFillPlugFill />
-                        <span> Mobile Charging Port</span>
-                      </li>
-                    </ul>
-
-                    <button
-                      onClick={(e) => {
-                        handleIconDetailToggler(!isShowIconDetail);
-                      }}
-                    >
-                      <MdOutlineKeyboardArrowUp />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="">hello world</div>
-          </div>
-        )}
+        {isShowFlightDetails && <FlightDetails flight={flight} />}
       </div>
     </>
   );
