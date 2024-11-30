@@ -58,8 +58,8 @@ export default function BlogTypeCard() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-20">
-        {blogTypeData?.map((type) => (
-          <div className="w-[410px] h-[588px]">
+        {blogTypeData?.map((type, index) => (
+          <div className="w-[410px] h-[588px]" key={index}>
             <Image
               src={type?.image}
               alt="Tropical destination"

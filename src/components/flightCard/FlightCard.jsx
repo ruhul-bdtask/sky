@@ -1,73 +1,504 @@
 "use client";
+import { formatFlightFare } from "@/lib/formatFlightFare";
+import { convertMinutesToHours } from "@/lib/formatMinutes";
+import { normalizeSeatClass } from "@/lib/normalizeSeatClass";
+import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
+import { fetchData } from "@/utils/api";
+import { useQuery } from "@tanstack/react-query";
+import { Heart, Share2 } from "lucide-react";
 import Image from "next/image";
-import React from "react";
-import CardIcon from "@/public/icons/CardIcon";
-import { Heart, Share2, Users } from "lucide-react";
-import airAsia from "@/public/images/air-asia.png";
-export default function FlightCard() {
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FaFacebook, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
+import { Oval } from "react-loader-spinner";
+import useAirlineStore from "../../../stores/airlineStore";
+import FlightDetails from "./FlightDetails";
+
+export default function FlightCard({ flight }) {
+  const router = useRouter();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const {
+    searchData,
+    OriginDestinationInformation,
+    setLegDescription,
+    LegDescription,
+    setSelectedFlight,
+    selectedFlight,
+    isOpenSavedDialog,
+    setIsOpenSavedDialog,
+  } = useAirlineStore();
+
+  const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
+  const handleFlightDetailsToggler = (e) =>
+    setIsShowFlightDetails(!isShowFlightDetails);
+
+  const directFlightsOnly = false;
+  const availableFlightsOnly = false;
+
+  const payload = {
+    RequestLOG: true,
+    RequireUTILS: false,
+    RequestBody: {
+      OriginDestinationInformation: OriginDestinationInformation,
+      TargetItinerary: flight,
+      LegDescription: LegDescription,
+      DirectFlightsOnly: directFlightsOnly,
+      AvailableFlightsOnly: availableFlightsOnly,
+    },
+  };
+  const {
+    data: allFlights,
+    error: allFlightsError,
+    isLoading: allFlightsLoading,
+    refetch: refetchAllFlights,
+  } = useQuery({
+    queryKey: ["flights", payload],
+    queryFn: () => fetchData("/gds/revalidate", "POST", payload),
+    enabled: false,
+  });
+
+  const handleRevalidate = () => {
+    refetchAllFlights();
+  };
+
+  useEffect(() => {
+    if (allFlights?.success === true) {
+      setSelectedFlight(allFlights?.data?.sortedItineraries);
+    }
+    if (selectedFlight && Object.keys(selectedFlight).length > 0) {
+      router.push("/bookingForm");
+    }
+  }, [allFlights, selectedFlight]);
+
+  const { savedFlights, setSavedFlights } = useAirlineStore();
+
+  const handleSavedFlights = (id) => {
+    const isFlightSaved = savedFlights.some(
+      (savedFlight) =>
+        savedFlight.air_pricing_solution_key === flight.air_pricing_solution_key
+    );
+
+    if (isFlightSaved) {
+      setSavedFlights(
+        savedFlights.filter(
+          (savedFlight) =>
+            savedFlight.air_pricing_solution_key !==
+            flight.air_pricing_solution_key
+        )
+      );
+      // toast.success("Flight removed from saved!", {
+      //   position: "top-center",
+      //   autoClose: 5000,
+      //   hideProgressBar: false,
+      //   closeOnClick: true,
+      //   pauseOnHover: true,
+      //   draggable: true,
+      //   progress: undefined,
+      //   theme: "colored",
+      // });
+    } else {
+      setSavedFlights([...savedFlights, flight]);
+      setIsOpenSavedDialog(true);
+      // toast.success("Flight saved successfully!", {
+      //   position: "top-center",
+      //   autoClose: 5000,
+      //   hideProgressBar: false,
+      //   closeOnClick: true,
+      //   pauseOnHover: true,
+      //   draggable: true,
+      //   progress: undefined,
+      //   theme: "colored",
+      // });
+    }
+  };
+
+  const handleShare = (platform) => {
+    const shareText = `Check out this amazing flight on ${
+      flight?.airline_name
+    }: ${flight?.origin_code} to ${
+      flight?.destination_code
+    } for BDT ${formatFlightFare(flight?.fare_details?.total_fare)} total.`;
+
+    const url = window.location.href;
+    const flightImageUrl = flight?.airline_logo || "DEFAULT_IMAGE_URL";
+
+    let shareUrl;
+
+    switch (platform) {
+      case "facebook":
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+          url
+        )}&quote=${encodeURIComponent(shareText)}&picture=${encodeURIComponent(
+          flightImageUrl
+        )}`;
+        break;
+      case "twitter":
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+          shareText
+        )}&url=${encodeURIComponent(url)}`;
+        break;
+      case "youtube":
+        shareUrl = `https://www.youtube.com/watch?v=YOUR_VIDEO_ID`;
+        break;
+      case "whatsapp":
+        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+          `${shareText}\n${url}`
+        )}`;
+        break;
+      default:
+        return;
+    }
+
+    window.open(shareUrl, "_blank");
+    setIsShareModalOpen(false);
+  };
+
+  let customFlightFilter = [];
+  OriginDestinationInformation.map((item) => {
+    customFlightFilter.push(item?.OriginLocation.LocationCode);
+  });
+
+  const generateComp = (schedules) => {
+    const dacToJfkStart = schedules.findIndex(
+      (flight) => flight.departure_airport === customFlightFilter[0]
+    );
+    const dacToJfkEnd =
+      schedules.findIndex(
+        (flight) => flight.arrival_airport === customFlightFilter[1]
+      ) + 1;
+
+    const jfkToDacStart = schedules.findIndex(
+      (flight) => flight.departure_airport === customFlightFilter[1]
+    );
+    const jfkToDacEnd =
+      schedules.findIndex(
+        (flight) => flight.arrival_airport === customFlightFilter[0]
+      ) + 1;
+
+    // Slicing the arrays
+    const departureHereToThere = schedules.slice(dacToJfkStart, dacToJfkEnd);
+    const departureThereToHere = schedules.slice(jfkToDacStart, jfkToDacEnd);
+
+    let departureElapsedTime = departureHereToThere
+      .map(
+        (item) =>
+          parseInt(item.elapsed_time) +
+          parseInt(item.layover_time ? item.layover_time : 0)
+      )
+      .reduce((a, b) => a + b, 0);
+
+    let arrivalElapsedTime = departureThereToHere
+      .map(
+        (item) =>
+          parseInt(item.elapsed_time) +
+          parseInt(item.layover_time ? item.layover_time : 0)
+      )
+      .reduce((a, b) => a + b, 0);
+
+    return (
+      <>
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-between items-center gap-5 mt-2">
+            <div className="flex items-center gap-5">
+              <Image
+                width={50}
+                height={50}
+                alt="air"
+                src={flight?.airline_logo}
+              ></Image>
+              <div>
+                <p className="text-[13px]">
+                  {departureHereToThere[0]?.departure_airport} -{" "}
+                  {
+                    departureHereToThere[departureHereToThere.length - 1]
+                      ?.arrival_airport
+                  }
+                </p>
+                <p className="text-lg font-semibold">
+                  {unifyTimeFormat(departureHereToThere[0]?.departure_time)} -{" "}
+                  {unifyTimeFormat(
+                    departureHereToThere[departureHereToThere.length - 1]
+                      ?.arrival_time
+                  )}{" "}
+                </p>
+
+                <div>
+                  <p className="text-[#5F6D77] text-[12px]">
+                    {flight?.airline_name}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-5">
+              <p className="text-sm font-semibold text-start">
+                {flight?.schedules.length > 1 ? "Multi stop" : "Direct"}
+              </p>
+              <p className="text-sm font-semibold text-start">
+                {convertMinutesToHours(departureElapsedTime)}
+              </p>
+            </div>
+          </div>
+
+          {/* second */}
+          <div className="flex justify-between items-center gap-5">
+            <div className="flex items-center gap-5">
+              <Image
+                width={50}
+                height={50}
+                alt="air"
+                src={flight?.airline_logo}
+              ></Image>
+              <div>
+                <p className="text-[13px]">
+                  {departureThereToHere[0]?.departure_airport} -{" "}
+                  {
+                    departureThereToHere[departureThereToHere.length - 1]
+                      ?.arrival_airport
+                  }
+                </p>
+                <p className="text-lg font-semibold">
+                  {unifyTimeFormat(departureThereToHere[0]?.departure_time)} -{" "}
+                  {unifyTimeFormat(
+                    departureThereToHere[departureThereToHere.length - 1]
+                      ?.arrival_time
+                  )}{" "}
+                </p>
+
+                <div>
+                  <p className="text-[#5F6D77] text-[12px]">
+                    {flight?.airline_name}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-5">
+              <p className="text-sm font-semibold text-start">
+                {flight?.schedules.length > 1 ? "Multi stop" : "Direct"}
+              </p>
+              <p className="text-sm font-semibold text-start">
+                {convertMinutesToHours(arrivalElapsedTime)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
 
   return (
-    <div className="w-full  bg-white rounded-[10px] shadow-md overflow-hidden mt-5 h-fit">
-      <div className=" grid grid-cols-1 lg:grid-cols-7  ">
-        <div className=" mb-4 col-span-3 p-8 flex flex-col justify-between gap-7">
-          <div className="flex justify-between items-center mb-4 ">
-            <div className="flex space-x-2">
-              <span className="bg-[#DFF9FF] text-black px-5 py-2 rounded-lg text-[12px] font-semibold">
-                Best
-              </span>
-              <span className="bg-[#CCFFE5] text-black px-5 py-2 rounded-lg text-[12px] font-semibold">
-                Cheapest
-              </span>
+    <>
+      <div
+        onClick={handleFlightDetailsToggler}
+        className="w-full bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit hover:border transition-all ease-in-out border-black cursor-pointer"
+      >
+        <div className=" grid grid-cols-1 lg:grid-cols-8  ">
+          <div className="  col-span-6 p-3 flex flex-col justify-between ">
+            <div className="flex justify-between items-center  flex-wrap">
+              <div className="flex space-x-2">
+                <span className="bg-[#DFF9FF] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
+                  Best
+                </span>
+                <span className="bg-[#CCFFE5] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
+                  Cheapest
+                </span>
+              </div>
+              <div className="text-right col-span-3">
+                <div className="flex justify-end  gap-5 p-2">
+                  <div
+                    className={`text-gray-600 hover:text-gray-800 flex flex-col gap-10 `}
+                  >
+                    <button
+                      className={`border px-2 py-1 flex items-center gap-2 rounded-lg ${
+                        savedFlights.some(
+                          (savedFlight) =>
+                            savedFlight.air_pricing_solution_key ===
+                            flight.air_pricing_solution_key
+                        )
+                          ? "bg-black text-white"
+                          : "bg-transparent"
+                      }`}
+                      onClick={() =>
+                        handleSavedFlights(flight.air_pricing_solution_key)
+                      }
+                    >
+                      <Heart className="w-3 h-3" />
+
+                      {savedFlights.some(
+                        (savedFlight) =>
+                          savedFlight.air_pricing_solution_key ===
+                          flight.air_pricing_solution_key
+                      ) ? (
+                        <p className="text-[12px] ">Saved</p>
+                      ) : (
+                        <p className="text-[12px]">Save</p>
+                      )}
+                    </button>
+                  </div>
+                  <div className="text-gray-600 hover:text-gray-800 flex flex-col gap-10">
+                    <button
+                      className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                      onClick={() => setIsShareModalOpen(true)}
+                    >
+                      <Share2 className="w-3 h-3" />
+                      <p className="text-[12px]">Share</p>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex  items-center gap-5">
-            <Image alt="air" src={airAsia}></Image>
+            {/* 
+            <p className="text-sm font-semibold text-start">
+                      {flight?.flight_duration}
+                    </p>
+                    <p className="text-sm font-semibold text-start">
+                      {flight?.schedules.length > 1 ? "Multi city" : "Direct"}
+                    </p> */}
+
+            {flight?.itinerary_leg_descs?.length == 1 ? (
+              <div className="flex justify-between items-center gap-5 flex-wrap">
+                <div className="flex items-center gap-5">
+                  <Image
+                    width={50}
+                    height={50}
+                    alt="air"
+                    src={flight?.airline_logo}
+                  ></Image>
+
+                  <div>
+                    <p className="text-[13px]">
+                      {flight?.origin_code} - {flight?.destination_code}
+                    </p>
+                    <p className="text-lg font-semibold">
+                      {unifyTimeFormat(flight?.departure_time)} -{" "}
+                      {unifyTimeFormat(flight?.arrival_time)}{" "}
+                    </p>
+
+                    <div>
+                      <p className="text-[#5F6D77] text-[14px]">
+                        {flight?.airline_name}
+                      </p>
+                      <p className="text-[#5F6D77] text-[14px]">
+                        {flight?.departure_date}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-5">
+                  <p className="text-sm font-semibold text-start">
+                    {flight?.flight_duration}
+                  </p>
+                  <p className="text-sm font-semibold text-start">
+                    {flight?.schedules.length > 1 ? "Multi city" : "Direct"}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>{generateComp(flight?.schedules)}</>
+            )}
+
             <div>
-              <p className="text-lg font-semibold">3:30 - 4:45 </p>
-              <p className="text-sm text-gray-600">Biman Bangladesh</p>
+              <p className="text-[#5F6D77] text-[14px]">{flight?.gds}</p>
             </div>
           </div>
-          <div>
-            <p className="text-[#5F6D77] text-[14px]">Air asia airlines</p>
-          </div>
-        </div>
-        <div className="text-right col-span-2">
-          <div className="flex space-x-2 justify-around p-6">
-            <div className="text-gray-600 hover:text-gray-800 flex flex-col gap-10 ">
-              <button className="border px-2 py-1 flex items-center gap-2 rounded-lg">
-                <Heart className="w-5 h-5" />
-                <p>Save</p>
-              </button>
-              <p className="text-sm font-semibold text-start">Direct</p>
+
+          {isShareModalOpen && (
+            <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
+              <div className="bg-white rounded-lg p-6 w-80">
+                <h3 className="text-lg font-semibold text-center mb-4">
+                  Share this flight
+                </h3>
+                <div className="text-gray-600 hover:text-gray-800 flex flex-col gap-5">
+                  <button
+                    className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                    onClick={() => handleShare("facebook")}
+                  >
+                    <FaFacebook className="w-4 h-4 text-blue-600" />
+                    <p className="text-[12px]">Share to Facebook</p>
+                  </button>
+
+                  <button
+                    className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                    onClick={() => handleShare("twitter")}
+                  >
+                    <FaTwitter className="w-4 h-4 text-blue-400" />
+                    <p className="text-[12px]">Share to Twitter</p>
+                  </button>
+
+                  <button
+                    className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                    onClick={() => handleShare("youtube")}
+                  >
+                    <FaYoutube className="w-4 h-4 text-red-600" />
+                    <p className="text-[12px]">Share to YouTube</p>
+                  </button>
+
+                  <button
+                    className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                    onClick={() => handleShare("whatsapp")}
+                  >
+                    <FaWhatsapp className="w-4 h-4 text-green-500" />
+                    <p className="text-[12px]">Share to WhatsApp</p>
+                  </button>
+                  <button
+                    className="mt-4 w-full bg-gray-400 text-white py-2 px-4 rounded-md"
+                    onClick={() => setIsShareModalOpen(false)} // Close modal
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="text-gray-600 hover:text-gray-800 flex flex-col gap-10 ">
-              <button className="border px-2 py-1 flex items-center gap-2 rounded-lg">
-                <Share2 className="w-5 h-5" />
-                <p>Share</p>
+          )}
+
+          <div className="flex justify-between items-center col-span-2 border-0 lg:border-s">
+            <div className=" p-2 text-start flex flex-col gap-2">
+              {/* <CardIcon /> */}
+              <span className="text-[20px] font-bold ">
+                TK.{formatFlightFare(flight?.fare_details?.base_fare)}
+              </span>
+              <p className="text-sm text-[#1A2024] text[14px] font-semibold">
+                /Person
+              </p>
+              <p className="text-xs text-[#1A2024] text-[14px]  font-semibold">
+                Tk.{formatFlightFare(flight?.fare_details?.total_fare)} total
+              </p>
+              <p className="text-xs text-[#1A2024] text-[14px]">
+                {normalizeSeatClass(flight?.passenger_infos[0]?.cabin_class)}
+              </p>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRevalidate();
+                }}
+                disabled={allFlightsLoading}
+                className={` bg-[#FC660F] text-white py-2 font-semibold hover:bg-orange-600 transition duration-300 rounded-md w-[160px] h-full `}
+              >
+                {allFlightsLoading ? (
+                  <div className="flex justify-center items-center ">
+                    <Oval
+                      visible={true}
+                      height="20"
+                      width="20"
+                      color="#fff"
+                      secondaryColor="#fff"
+                      ariaLabel="oval-loading"
+                      wrapperStyle={{
+                        backgroundColor: "transparent",
+                      }}
+                      wrapperClass=""
+                    />
+                  </div>
+                ) : (
+                  <span>Select</span>
+                )}
               </button>
-              <p className="text-sm font-semibold text-start">3h 55m</p>
             </div>
           </div>
         </div>
 
-        <div className="flex justify-between items-center col-span-2 border-0 lg:border-s">
-          <div className=" p-6 text-start flex flex-col gap-2">
-            <CardIcon />
-            <span className="text-[31px] font-bold ">TK.23,404</span>
-            <p className="text-sm text-[#1A2024] text[14px] font-semibold">
-              Person
-            </p>
-            <p className="text-xs text-[#1A2024] text-[14px]  font-semibold">
-              Tk.46,808 total
-            </p>
-            <p className="text-xs text-[#1A2024] text-[14px]">Economy</p>
-
-            <button className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-lg w-[200px] h-[49px]">
-              Select
-            </button>
-          </div>
-        </div>
+        {isShowFlightDetails && <FlightDetails flight={flight} />}
       </div>
-    </div>
+    </>
   );
 }
