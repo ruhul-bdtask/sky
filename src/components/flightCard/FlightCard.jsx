@@ -16,7 +16,6 @@ import FlightDetails from "./FlightDetails";
 
 export default function FlightCard({ flight }) {
   const router = useRouter();
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const {
     searchData,
     OriginDestinationInformation,
@@ -28,8 +27,9 @@ export default function FlightCard({ flight }) {
     setIsOpenSavedDialog,
   } = useAirlineStore();
 
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
-  const handleFlightDetailsToggler = (e) =>
+  const toggleFlightDetails = (e) =>
     setIsShowFlightDetails(!isShowFlightDetails);
 
   const directFlightsOnly = false;
@@ -288,7 +288,7 @@ export default function FlightCard({ flight }) {
   return (
     <>
       <div
-        onClick={handleFlightDetailsToggler}
+        onClick={toggleFlightDetails}
         className="w-full bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit hover:border transition-all ease-in-out border-black cursor-pointer"
       >
         <div className=" grid grid-cols-1 lg:grid-cols-8  ">
