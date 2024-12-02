@@ -10,7 +10,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSidebar } from "@/context/sidebar-context";
 export default function Sidebar() {
-  const { isSidebarOpen } = useSidebar(); // Access the sidebar state
+  const { isSidebarOpen } = useSidebar(); 
   const [isActive, setIsActive] = useState("flight");
 
   const navItems = [
@@ -43,7 +43,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`hidden lg:block  transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 ${
+      className={`hidden lg:block transition-all duration-300 ease-in-out fixed top-20 left-0 bottom-0 ${
         isSidebarOpen ? "w-64" : "w-16"
       }`}
     >
@@ -57,7 +57,7 @@ export default function Sidebar() {
                   isActive == item?.shortCode ? " bg-[#E6EBEF]" : ""
                 }`}
               >
-                <div className="flex items-center  text-base font-normal w-full">
+                <div className="flex items-center text-base font-normal w-full">
                   <span
                     className={`ms-0.5 me-6 ${
                       isActive == item?.shortCode
@@ -77,8 +77,6 @@ export default function Sidebar() {
                     {item.label}
                   </span>
                 </div>
-
-                {/* <span className="ml-2">{item.label}</span> */}
               </button>
             </Link>
           ))}

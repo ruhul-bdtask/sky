@@ -1,6 +1,6 @@
 [
   {
-    "name": "Zia Intl",
+    "name": "Hazrat Shahjalal Intl Airport",
     "label": "Dhaka, Bangladesh (DAC)",
     "value": "DAC"
   },
@@ -14,7 +14,6 @@
     "label": "Chittagong, Bangladesh (CGP)",
     "value": "CGP"
   },
-
   {
     "name": "Jessore",
     "label": "Jessore, Bangladesh (JSR)",
@@ -22,7 +21,7 @@
   },
   {
     "name": "Shah Mokhdum",
-    "label": "Rajshahi, Bangladesh (RJH)",
+    "label": "Rajshahi, Bangladesh (RJH)", 
     "value": "RJH"
   },
   {

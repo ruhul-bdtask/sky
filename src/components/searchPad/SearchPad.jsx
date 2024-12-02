@@ -15,7 +15,6 @@ import Airplane from "@/public/icons/Airplane";
 import Calender from "@/public/icons/Calender";
 import SearchIcon from "@/public/icons/SearchIcon";
 import Link from "next/link";
-import descriptImage from "@/public/images/bangkok.png";
 import DatePicker from "../datePicker/DatePicker";
 import DatePickerOneWay from "../datePicker/DatePickerOneWay";
 import useAirlineStore from "../../../stores/airlineStore";
@@ -209,16 +208,18 @@ export default function SearchPad() {
   useEffect(() => {
     const dateToUse = selectedWay === "one_way" ? oneWayDate : roundDate.from;
     const date = new Date(dateToUse);
-
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
-
     const formattedDateTimeOrigin = `${year}-${month}-${day}T00:00:00`;
-
+    
     setOriginalDate(formattedDateTimeOrigin);
   }, [oneWayDate, roundDate, selectedWay]);
+
+
+
   const [originalArrivalData, setOriginalArrivalDate] = useState();
+
   useEffect(() => {
     const dateToUse = selectedWay === "one_way" ? "" : roundDate.to;
     const date = new Date(dateToUse);
@@ -282,7 +283,7 @@ export default function SearchPad() {
             LocationCode: searchQueryDestination,
             LocationType: "A",
           },
-          RPH: "1", 
+          RPH: "1",
         });
       } else {
         console.log(
