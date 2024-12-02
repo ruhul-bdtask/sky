@@ -5,14 +5,24 @@ import { normalizeSeatClass } from "@/lib/normalizeSeatClass";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
+import { RxCross2 } from "react-icons/rx";
+
 import { Heart, Share2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FaFacebook, FaTwitter, FaWhatsapp, FaYoutube } from "react-icons/fa";
+import {
+  FaCross,
+  FaFacebook,
+  FaLink,
+  FaTwitter,
+  FaWhatsapp,
+  FaYoutube,
+} from "react-icons/fa";
 import { Oval } from "react-loader-spinner";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
+import { toast } from "react-toastify";
 
 export default function FlightCard({ flight }) {
   const router = useRouter();
@@ -31,7 +41,7 @@ export default function FlightCard({ flight }) {
   const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
   const toggleFlightDetails = (e) =>
     setIsShowFlightDetails(!isShowFlightDetails);
-
+  const [sharedInfo, setSharedInfo] = useState();
   const directFlightsOnly = false;
   const availableFlightsOnly = false;
 
@@ -131,27 +141,57 @@ export default function FlightCard({ flight }) {
         )}&quote=${encodeURIComponent(shareText)}&picture=${encodeURIComponent(
           flightImageUrl
         )}`;
+        window.open(shareUrl, "_blank");
+
         break;
       case "twitter":
         shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
           shareText
         )}&url=${encodeURIComponent(url)}`;
+        window.open(shareUrl, "_blank");
+
         break;
       case "youtube":
         shareUrl = `https://www.youtube.com/watch?v=YOUR_VIDEO_ID`;
+        window.open(shareUrl, "_blank");
+
         break;
       case "whatsapp":
         shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
           `${shareText}\n${url}`
         )}`;
+        window.open(shareUrl, "_blank");
+        break;
+
+      case "copyUrl":
+        navigator.clipboard.writeText(url);
+        toast.success("Copied to clipboard");
         break;
       default:
         return;
     }
 
-    window.open(shareUrl, "_blank");
     setIsShareModalOpen(false);
+
+    const existingDepartureTime = searchParams.get("departure_time");
+    const existingArrivalTime = searchParams.get("arrival_time");
+    const filterInfo = {
+      departure_time: existingDepartureTime,
+      arrival_time: existingArrivalTime,
+    };
+    setSharedInfo(filterInfo);
   };
+
+  useEffect(() => {
+    const existingDepartureTime = searchParams.get("departure_time");
+    const existingArrivalTime = searchParams.get("arrival_time");
+    const filterInfo = {
+      departure_time: existingDepartureTime,
+      arrival_time: existingArrivalTime,
+    };
+    setSharedInfo(filterInfo);
+  }, [router]);
+  console.log(sharedInfo);
 
   let customFlightFilter = [];
   OriginDestinationInformation.map((item) => {
@@ -285,14 +325,40 @@ export default function FlightCard({ flight }) {
     );
   };
 
+  const searchParams = useSearchParams();
+  const handleShareFilter = (departure_time, arrival_time) => {
+    const currentParams = new URLSearchParams(searchParams.toString());
+
+    const newFilter = {
+      departure_time,
+      arrival_time,
+    };
+    if (newFilter.departure_time && newFilter.arrival_time) {
+      Object.entries(newFilter).forEach(([key, value]) => {
+        currentParams.set(key, value);
+      });
+
+      const queryString = currentParams.toString();
+
+      setIsShareModalOpen(true);
+      router.push(`/search-result?${queryString}`);
+    }
+  };
+
   return (
     <>
       <div
         onClick={toggleFlightDetails}
         className="w-full bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit hover:border transition-all ease-in-out border-black cursor-pointer"
       >
+        {sharedInfo?.departure_time == flight?.departure_time &&
+          sharedInfo?.arrival_time == flight?.arrival_time && (
+            <div className="border-b w-full p-3">
+              <p className="text-[15px]">Shared flight</p>
+            </div>
+          )}
         <div className=" grid grid-cols-1 lg:grid-cols-8  ">
-          <div className="  col-span-6 p-3 flex flex-col justify-between ">
+          <div className="  col-span-6 p-3 flex flex-col justify-between">
             <div className="flex justify-between items-center  flex-wrap">
               <div className="flex space-x-2">
                 <span className="bg-[#DFF9FF] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
@@ -337,7 +403,12 @@ export default function FlightCard({ flight }) {
                   <div className="text-gray-600 hover:text-gray-800 flex flex-col gap-10">
                     <button
                       className="border px-2 py-1 flex items-center gap-2 rounded-lg"
-                      onClick={() => setIsShareModalOpen(true)}
+                      onClick={() =>
+                        handleShareFilter(
+                          flight?.departure_time,
+                          flight?.arrival_time
+                        )
+                      }
                     >
                       <Share2 className="w-3 h-3" />
                       <p className="text-[12px]">Share</p>
@@ -403,48 +474,80 @@ export default function FlightCard({ flight }) {
 
           {isShareModalOpen && (
             <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
-              <div className="bg-white rounded-lg p-6 w-80">
-                <h3 className="text-lg font-semibold text-center mb-4">
-                  Share this flight
-                </h3>
-                <div className="text-gray-600 hover:text-gray-800 flex flex-col gap-5">
+              <div className="bg-white rounded-lg p-6 max-w-full  md:max-w-[450px] py-8 flex flex-col gap-5">
+                <div className="flex justify-between flex-wrap">
+                  <h3 className="text-xl font-semibold text-center ">
+                    Share this flight
+                  </h3>
+                  <p onClick={() => setIsShareModalOpen(false)}>
+                    <RxCross2 />
+                  </p>
+                </div>
+                <div className="bg-white shadow-custom_shadow px-3 mx-2 rounded-[10px] py-3 flex items-center justify-between flex-wrap">
+                  <div className="flex gap-3">
+                    <Image
+                      width={50}
+                      height={50}
+                      alt="air"
+                      src={flight?.airline_logo}
+                    ></Image>
+                    <div>
+                      <p className="text-[17px] font-semibold">
+                        {flight?.origin_code} - {flight?.destination_code}
+                      </p>
+                      <p className="text-[12px] ">
+                        {unifyTimeFormat(flight?.departure_time)} -{" "}
+                        {unifyTimeFormat(flight?.arrival_time)}{" "}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[16px] font-bold ">
+                      TK.{formatFlightFare(flight?.fare_details?.base_fare)}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-gray-600 hover:text-gray-800 flex gap-5 md:gap-10 flex-wrap">
                   <button
-                    className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                    className=" px-2 py-1 flex items-center gap-2 rounded-lg"
+                    onClick={() => handleShare("copyUrl")}
+                  >
+                    <FaLink className="w-8 h-8 text-gray-600" />
+                  </button>
+                  <button
+                    className=" px-2 py-1 flex items-center gap-2 rounded-lg"
                     onClick={() => handleShare("facebook")}
                   >
-                    <FaFacebook className="w-4 h-4 text-blue-600" />
-                    <p className="text-[12px]">Share to Facebook</p>
+                    <FaFacebook className="w-8 h-8 text-blue-600" />
                   </button>
 
                   <button
-                    className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                    className=" px-2 py-1 flex items-center gap-2 rounded-lg"
                     onClick={() => handleShare("twitter")}
                   >
-                    <FaTwitter className="w-4 h-4 text-blue-400" />
-                    <p className="text-[12px]">Share to Twitter</p>
+                    <FaTwitter className="w-8 h-8 text-blue-400" />
                   </button>
 
                   <button
-                    className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                    className=" px-2 py-1 flex items-center gap-2 rounded-lg"
                     onClick={() => handleShare("youtube")}
                   >
-                    <FaYoutube className="w-4 h-4 text-red-600" />
-                    <p className="text-[12px]">Share to YouTube</p>
+                    <FaYoutube className="w-8 h-8 text-red-600" />
                   </button>
 
                   <button
-                    className="border px-2 py-1 flex items-center gap-2 rounded-lg"
+                    className=" px-2 py-1 flex items-center gap-2 rounded-lg"
                     onClick={() => handleShare("whatsapp")}
                   >
-                    <FaWhatsapp className="w-4 h-4 text-green-500" />
-                    <p className="text-[12px]">Share to WhatsApp</p>
+                    <FaWhatsapp className="w-8 h-8 text-green-500" />
                   </button>
-                  <button
+
+                  {/* <button
                     className="mt-4 w-full bg-gray-400 text-white py-2 px-4 rounded-md"
-                    onClick={() => setIsShareModalOpen(false)} // Close modal
+                    
                   >
                     Close
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
