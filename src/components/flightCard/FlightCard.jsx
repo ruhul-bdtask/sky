@@ -191,7 +191,6 @@ export default function FlightCard({ flight }) {
     };
     setSharedInfo(filterInfo);
   }, [router]);
-  console.log(sharedInfo);
 
   let customFlightFilter = [];
   OriginDestinationInformation.map((item) => {
