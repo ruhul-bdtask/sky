@@ -80,6 +80,20 @@ export default function FlightCard({ flight }) {
     }
   }, [allFlights, selectedFlight]);
 
+  useEffect(() => {
+    const existingDepartureTime = searchParams.get("departure_time");
+    const existingArrivalTime = searchParams.get("arrival_time");
+    const flight_number = searchParams.get("flight_number");
+    const operating_code = searchParams.get("operating_code");
+    const filterInfo = {
+      departure_time: existingDepartureTime,
+      arrival_time: existingArrivalTime,
+      flight_number,
+      operating_code,
+    };
+    setSharedInfo(filterInfo);
+  }, [router]);
+
   const { savedFlights, setSavedFlights } = useAirlineStore();
 
   const handleSavedFlights = (id) => {
@@ -175,28 +189,64 @@ export default function FlightCard({ flight }) {
 
     const existingDepartureTime = searchParams.get("departure_time");
     const existingArrivalTime = searchParams.get("arrival_time");
+    const flight_number = searchParams.get("flight_number");
+    const operating_code = searchParams.get("operating_code");
+
     const filterInfo = {
       departure_time: existingDepartureTime,
       arrival_time: existingArrivalTime,
+      flight_number,
+      operating_code,
     };
     setSharedInfo(filterInfo);
   };
 
-  useEffect(() => {
-    const existingDepartureTime = searchParams.get("departure_time");
-    const existingArrivalTime = searchParams.get("arrival_time");
-    const filterInfo = {
-      departure_time: existingDepartureTime,
-      arrival_time: existingArrivalTime,
-    };
-    setSharedInfo(filterInfo);
-  }, [router]);
+  const searchParams = useSearchParams();
 
   let customFlightFilter = [];
   OriginDestinationInformation.map((item) => {
     customFlightFilter.push(item?.OriginLocation.LocationCode);
   });
 
+  const scheduleInfo = flight.schedules.map((schedule) => {
+    return {
+      flight_number: schedule.flight_number,
+      operating_code: schedule.operating_code,
+    };
+  });
+
+  const handleShareFilter = (departure_time, arrival_time) => {
+    const currentParams = new URLSearchParams(searchParams.toString());
+    const newFilter = {
+      departure_time,
+      arrival_time,
+      flight_number: scheduleInfo.map((pro) => pro.flight_number),
+      operating_code: scheduleInfo.map((pro) => pro.operating_code),
+    };
+    if (
+      newFilter.departure_time &&
+      newFilter.arrival_time &&
+      newFilter.flight_number &&
+      newFilter.operating_code
+    ) {
+      Object.entries(newFilter).forEach(([key, value]) => {
+        currentParams.set(key, value);
+      });
+
+      const queryString = currentParams.toString();
+
+      setIsShareModalOpen(true);
+      router.push(`/search-result?${queryString}`);
+    }
+  };
+  const shareConditions = flight?.schedules?.map((schedule, i) => {
+    return (
+      sharedInfo?.flight_number?.includes(String(schedule.flight_number)) &&
+      sharedInfo.operating_code?.includes(String(schedule.operating_code))
+    );
+  });
+
+  const condition = shareConditions.every((inc) => inc === true);
   const generateComp = (schedules) => {
     const dacToJfkStart = schedules.findIndex(
       (flight) => flight.departure_airport === customFlightFilter[0]
@@ -324,26 +374,6 @@ export default function FlightCard({ flight }) {
     );
   };
 
-  const searchParams = useSearchParams();
-  const handleShareFilter = (departure_time, arrival_time) => {
-    const currentParams = new URLSearchParams(searchParams.toString());
-
-    const newFilter = {
-      departure_time,
-      arrival_time,
-    };
-    if (newFilter.departure_time && newFilter.arrival_time) {
-      Object.entries(newFilter).forEach(([key, value]) => {
-        currentParams.set(key, value);
-      });
-
-      const queryString = currentParams.toString();
-
-      setIsShareModalOpen(true);
-      router.push(`/search-result?${queryString}`);
-    }
-  };
-
   return (
     <>
       <div
@@ -351,7 +381,8 @@ export default function FlightCard({ flight }) {
         className="w-full bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit hover:border transition-all ease-in-out border-black cursor-pointer"
       >
         {sharedInfo?.departure_time == flight?.departure_time &&
-          sharedInfo?.arrival_time == flight?.arrival_time && (
+          sharedInfo?.arrival_time == flight?.arrival_time &&
+          condition && (
             <div className="border-b w-full p-3">
               <p className="text-[15px]">Shared flight</p>
             </div>
