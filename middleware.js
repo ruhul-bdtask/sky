@@ -1,0 +1,36 @@
+import { NextResponse } from "next/server";
+import { jwtVerify } from "jose";
+
+export async function middleware(request) {
+  const token = request.cookies.get("auth-token")?.value;
+
+  if (!token && request.nextUrl.pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (token) {
+    try {
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+      await jwtVerify(token, secret);
+
+      if (
+        request.nextUrl.pathname === "/login" ||
+        request.nextUrl.pathname === "/sign-up"
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+    } catch (error) {
+      console.error("Token verification failed:", error);
+
+      if (request.nextUrl.pathname.startsWith("/dashboard")) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+    }
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/dashboard/:path*", "/login", "/sign-up"],
+};

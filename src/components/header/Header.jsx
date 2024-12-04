@@ -26,6 +26,7 @@ import useAirlineStore from "../../../stores/airlineStore";
 import { isExpired } from "react-jwt";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import { formatFlightFare } from "@/lib/formatFlightFare";
+import Cookies from "js-cookie";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -37,6 +38,7 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedIn, setLoggedIn] = useState(null);
   const [isOpenSaved, setIsOpenSaved] = useState(false);
+
   const {
     savedFlights,
     token,
@@ -45,6 +47,16 @@ export default function Header() {
     isOpenSavedDialog,
     setSearchData,
   } = useAirlineStore();
+
+  // useEffect(() => {
+  //   const authToken = Cookies.get("auth-token");
+  //   setToken(authToken);
+  // }, []);
+  const handleLogOut = () => {
+    Cookies.remove("auth-token");
+    setToken(null);
+    router.push("/login");
+  };
 
   const isMyTokenExpired = isExpired(token);
   const handleChange = (e, index) => {
@@ -87,28 +99,13 @@ export default function Header() {
     setIsOpenProfile(!isOpenProfile);
   };
 
-  const handleSignOut = () => {
-    setIsLoggedIn(false);
-    setToken(null);
-    setIsOpenProfile(false);
-    toast.success("User signed out");
-  };
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (isMyTokenExpired) {
-        setToken(null);
-        setLoggedIn(false);
-      } else {
-        setLoggedIn(true);
-      }
-    }
-  }, []);
-
   const handleSaved = () => {
     setIsOpenSavedDialog(!isOpenSavedDialog);
   };
 
+  const handleRoute = () => {
+    router.push("/dashboard");
+  };
   return (
     <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
       <div className="max-w-full sm:px-6 lg:px-2 h-full">
@@ -317,7 +314,7 @@ export default function Header() {
             </div>
 
             <ToastContainer />
-            {loggedIn ? (
+            {/* {loggedIn ? (
               <>
                 <div className="relative inline-block text-left">
                   <div>
@@ -387,19 +384,33 @@ export default function Header() {
               </>
             ) : (
               <>
+              </>
+            )} */}
+            {token ? (
+              <>
                 <button
                   className="flex items-center gap-2 p-3 border border-[#9BA8B0] justify-center rounded-[10px] "
-                  onClick={() => setIsOpen(true)}
+                  onClick={handleLogOut}
+                >
+                  <AvatarIcon />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link href={"/login"}>
+                <button
+                  className="flex items-center gap-2 p-3 border border-[#9BA8B0] justify-center rounded-[10px] "
+                  onClick={handleRoute}
                 >
                   <AvatarIcon />
                   Sign in
                 </button>
-              </>
+              </Link>
             )}
           </div>
         </div>
 
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        {/* <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogContent className="sm:max-w-[490px] top-[12%] translate-y-0 px-8 py-4 rounded-[11px] bg-white">
             {modalPage == "google" && (
               <>
@@ -545,7 +556,7 @@ export default function Header() {
               </div>
             )}
           </DialogContent>
-        </Dialog>
+        </Dialog> */}
       </div>
     </header>
   );
