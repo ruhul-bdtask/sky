@@ -10,7 +10,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSidebar } from "@/context/sidebar-context";
 export default function Sidebar() {
-  const { isSidebarOpen } = useSidebar(); 
+  const { isSidebarOpen } = useSidebar();
   const [isActive, setIsActive] = useState("flight");
 
   const navItems = [
@@ -47,13 +47,13 @@ export default function Sidebar() {
         isSidebarOpen ? "w-64" : "w-16"
       }`}
     >
-      <div className="h-full p-2  overflow-y-auto  border-r w-full">
+      <div className="h-full p-2 overflow-y-auto border-r w-full">
         <nav className="space-y-2 ">
           {navItems.map((item, index) => (
             <Link href={item?.link} key={index}>
               <button
                 onClick={() => setIsActive(item.shortCode)}
-                className={` rounded-sm hover:bg-[#E6EBEF] transition-all ease-in-out duration-200 w-full p-3 ${
+                className={`rounded-sm hover:bg-[#E6EBEF] transition-all ease-in-out duration-200 w-full p-3 ${
                   isActive == item?.shortCode ? " bg-[#E6EBEF]" : ""
                 }`}
               >

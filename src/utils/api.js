@@ -28,7 +28,9 @@ export const fetchData = async (
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(
-      errorData.message || "An error occurred during the fetch operation"
+      errorData.message ||
+        errorData.errors?.[0] ||
+        "An error occurred during the fetch operation"
     );
   }
 
