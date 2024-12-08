@@ -5,7 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-export default function page() {
+export default function Page() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
