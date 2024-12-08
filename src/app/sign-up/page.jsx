@@ -17,7 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Oval } from "react-loader-spinner";
 import Cookies from "js-cookie";
 import useAirlineStore from "../../../stores/airlineStore";
-export default function page() {
+export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");

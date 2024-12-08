@@ -14,7 +14,7 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import useAirlineStore from "../../../stores/airlineStore";
 import Link from "next/link";
-export default function page() {
+export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -213,7 +213,7 @@ export default function page() {
           </button>
         </div>
         <p className="text-[12px] mt-2 text-center">
-          Do you haven't any account ?{" "}
+          Do you haven&apos;t any account ?{" "}
           <Link href="/sign-up" className="text-[#f06a3d]">
             Sign up
           </Link>{" "}
