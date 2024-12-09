@@ -7,7 +7,7 @@ export const fetchData = async (
   token = null
 ) => {
   const API_BASE_URL =
-    process.env.NEXT_API_BASE_URL || "https://subah.bdtask-demo.com/b2c/api";
+    process.env.NEXT_API_BASE_URL || "http://143.110.191.53/b2c/api";
 
   const url = `${API_BASE_URL}${endpoint}`;
 

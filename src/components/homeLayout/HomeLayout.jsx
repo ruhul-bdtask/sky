@@ -13,17 +13,17 @@ export default function HomeLayout({ children }) {
   const router = useRouter();
   const ref = useRef(null);
   let timeoutId = useRef(null);
-  useEffect(() => {
-    ref.current.continuousStart(); // Start the loading bar
+  // useEffect(() => {
+  //   ref.current.continuousStart(); // Start the loading bar
 
-    // Simulate an API call
-    timeoutId = setTimeout(() => {
-      ref.current.complete(); // Complete the loading bar
-    }, 2000); // Simulate 2 seconds loading
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, []);
+  //   // Simulate an API call
+  //   timeoutId = setTimeout(() => {
+  //     ref.current.complete(); // Complete the loading bar
+  //   }, 2000); // Simulate 2 seconds loading
+  //   return () => {
+  //     clearTimeout(timeoutId);
+  //   };
+  // }, []);
 
   return (
     <div>

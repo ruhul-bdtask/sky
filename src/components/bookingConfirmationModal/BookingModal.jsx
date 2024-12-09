@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, X, Download } from "lucide-react";
+import Image from "next/image";
 
 export default function BookingConfirmationModal({ isOpen, onClose }) {
   if (!isOpen) return null;
@@ -46,7 +47,7 @@ export default function BookingConfirmationModal({ isOpen, onClose }) {
 
             <div className="border-t border-gray-200 pt-4">
               <div className="flex items-center mb-4">
-                <img
+                <Image
                   src="https://cdn.airpaz.com/cdn-cgi/image/w=1024,h=1024,f=webp,fit=scale-down/rel-0275/airlines/201x201/AK.png"
                   alt="Air Asia Logo"
                   className="w-10 h-10 mr-4"
