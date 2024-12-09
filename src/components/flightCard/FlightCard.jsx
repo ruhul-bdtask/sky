@@ -67,18 +67,18 @@ export default function FlightCard({ flight }) {
     enabled: false,
   });
 
-  const handleRevalidate = () => {
-    refetchAllFlights();
+  const handleRevalidate = async () => {
+    const res = await refetchAllFlights();
+    if (res?.status === "success") {
+      setSelectedFlight(res?.data?.data?.sortedItineraries);
+    }
   };
 
   useEffect(() => {
-    if (allFlights?.success === true) {
-      setSelectedFlight(allFlights?.data?.sortedItineraries);
-    }
     if (selectedFlight && Object.keys(selectedFlight).length > 0) {
       router.push("/bookingForm");
     }
-  }, [allFlights, selectedFlight]);
+  }, [allFlights]);
 
   useEffect(() => {
     const existingDepartureTime = searchParams.get("departure_time");
@@ -95,19 +95,19 @@ export default function FlightCard({ flight }) {
   }, [router]);
 
   const { savedFlights, setSavedFlights } = useAirlineStore();
-
   const handleSavedFlights = (id) => {
     const isFlightSaved = savedFlights.some(
       (savedFlight) =>
-        savedFlight.air_pricing_solution_key === flight.air_pricing_solution_key
+        savedFlight?.trip_data?.air_pricing_solution_key ===
+        flight?.air_pricing_solution_key
     );
 
     if (isFlightSaved) {
       setSavedFlights(
         savedFlights.filter(
           (savedFlight) =>
-            savedFlight.air_pricing_solution_key !==
-            flight.air_pricing_solution_key
+            savedFlight?.trip_data?.air_pricing_solution_key !==
+            flight?.air_pricing_solution_key
         )
       );
       // toast.success("Flight removed from saved!", {
@@ -121,7 +121,7 @@ export default function FlightCard({ flight }) {
       //   theme: "colored",
       // });
     } else {
-      setSavedFlights([...savedFlights, flight]);
+      setSavedFlights([...savedFlights, { trip_data: flight }]);
       setIsOpenSavedDialog(true);
       // toast.success("Flight saved successfully!", {
       //   position: "top-center",
@@ -407,8 +407,8 @@ export default function FlightCard({ flight }) {
                       className={`border px-2 py-1 flex items-center gap-2 rounded-lg ${
                         savedFlights.some(
                           (savedFlight) =>
-                            savedFlight.air_pricing_solution_key ===
-                            flight.air_pricing_solution_key
+                            savedFlight?.trip_data?.air_pricing_solution_key ===
+                            flight?.air_pricing_solution_key
                         )
                           ? "bg-black text-white"
                           : "bg-transparent"
@@ -421,8 +421,8 @@ export default function FlightCard({ flight }) {
 
                       {savedFlights.some(
                         (savedFlight) =>
-                          savedFlight.air_pricing_solution_key ===
-                          flight.air_pricing_solution_key
+                          savedFlight?.trip_data?.air_pricing_solution_key ===
+                          flight?.air_pricing_solution_key
                       ) ? (
                         <p className="text-[12px] ">Saved</p>
                       ) : (
