@@ -214,57 +214,68 @@ export default function Header() {
                             >
                               <div class="flex items-center justify-between text-sm">
                                 <span class="font-medium text-gray-800">
-                                  {flight?.airline_name}
+                                  {flight?.trip_data?.airline_name}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 justify-between ">
                                 <div className="">
-                                  {flight?.schedules?.map((schedule, index) => (
-                                    <div
-                                      class="mt-3 py-3 px-1  rounded-lg"
-                                      key={index}
-                                    >
-                                      <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
-                                        {flight?.departure_date}
-                                      </div>
+                                  {flight?.trip_data?.schedules?.map(
+                                    (schedule, index) => (
+                                      <div
+                                        class="mt-3 py-3 px-1  rounded-lg"
+                                        key={index}
+                                      >
+                                        <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
+                                          {flight?.trip_data?.departure_date}
+                                        </div>
 
-                                      <div class="flex items-center justify-between">
-                                        <Image
-                                          width={50}
-                                          height={50}
-                                          src={flight?.airline_logo}
-                                          alt="Air line Logo"
-                                          class="h-8 w-8 object-contain"
-                                        />
-                                        <div class="flex flex-col text-center">
-                                          <span class="text-lg font-semibold">
-                                            {unifyTimeFormat(
-                                              flight?.departure_time
-                                            )}
-                                          </span>
-                                          <span class="text-xs text-black">
-                                            {flight?.origin_code}
-                                          </span>
-                                        </div>
-                                        <div class="flex flex-col items-center text-xs text-black border-b">
-                                          <span>
-                                            {" "}
-                                            {flight?.flight_duration}
-                                          </span>
-                                        </div>
-                                        <div class="flex flex-col text-center">
-                                          <span class="text-lg font-semibold">
-                                            {unifyTimeFormat(
-                                              flight?.arrival_time
-                                            )}
-                                          </span>
-                                          <span class="text-xs text-black">
-                                            {flight?.destination_code}
-                                          </span>
+                                        <div class="flex items-center justify-between">
+                                          <Image
+                                            width={50}
+                                            height={50}
+                                            src={
+                                              flight?.trip_data?.airline_logo
+                                            }
+                                            alt="Air line Logo"
+                                            class="h-8 w-8 object-contain"
+                                          />
+                                          <div class="flex flex-col text-center">
+                                            <span class="text-lg font-semibold">
+                                              {unifyTimeFormat(
+                                                flight?.trip_data
+                                                  ?.departure_time
+                                              )}
+                                            </span>
+                                            <span class="text-xs text-black">
+                                              {flight?.trip_data?.origin_code}
+                                            </span>
+                                          </div>
+                                          <div class="flex flex-col items-center text-xs text-black border-b">
+                                            <span>
+                                              {" "}
+                                              {
+                                                flight?.trip_data
+                                                  ?.flight_duration
+                                              }
+                                            </span>
+                                          </div>
+                                          <div class="flex flex-col text-center">
+                                            <span class="text-lg font-semibold">
+                                              {unifyTimeFormat(
+                                                flight?.trip_data?.arrival_time
+                                              )}
+                                            </span>
+                                            <span class="text-xs text-black">
+                                              {
+                                                flight?.trip_data
+                                                  ?.destination_code
+                                              }
+                                            </span>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  ))}
+                                    )
+                                  )}
 
                                   {/* <div class="mt-1 py-3 px-1   rounded-lg">
                                     <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
@@ -303,7 +314,8 @@ export default function Header() {
                                   <div class="text-[18px] font-semibold text-black">
                                     Tk .
                                     {formatFlightFare(
-                                      flight?.fare_details?.total_fare
+                                      flight?.trip_data?.fare_details
+                                        ?.total_fare
                                     )}
                                   </div>
                                 </div>
@@ -435,7 +447,7 @@ export default function Header() {
                       Sign in or create an account
                     </h2>
                     <p className="text-[12px] ">
-                      Track prices, organise travel plans and access member-only
+                      Track prices, organize travel plans and access member-only
                       deals with your ticketing account.
                     </p>
                   </div>

@@ -6,7 +6,7 @@ import Footer from "../footer/Footer";
 import { useSidebar } from "@/context/sidebar-context";
 import LoadingBar from "react-top-loading-bar";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function HomeLayout({ children }) {
   const { isSidebarOpen } = useSidebar();

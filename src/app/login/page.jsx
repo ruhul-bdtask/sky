@@ -1,38 +1,44 @@
 "use client";
 
-import Image from "next/image";
-import React, { useEffect, useState } from "react";
-import logo from "@/public/images/logo.png";
+import apple from "@/public/images/apple.png";
 import device from "@/public/images/device.png";
 import google from "@/public/images/google.png";
-import apple from "@/public/images/apple.png";
-import { toast } from "react-toastify";
+import logo from "@/public/images/logo.png";
 import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
-import { Oval } from "react-loader-spinner";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
-import useAirlineStore from "../../../stores/airlineStore";
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Oval } from "react-loader-spinner";
+import { toast } from "react-toastify";
+import useAirlineStore from "../../../stores/airlineStore";
+import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
+
 export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { token, setToken } = useAirlineStore();
+  const [payload, setPayload] = useState(null);
+  const { token, setToken, savedFlights, setSavedFlights } = useAirlineStore();
+
   const handleClick = () => {};
 
-  //   const {
-  //     data: loginData,
-  //     error: loginDataError,
-  //     isLoading: loginDataLoading,
-  //     refetch: loginDataRefetch,
-  //   } = useQuery({
-  //     queryKey: ["login", payload],
-  //     queryFn: () => fetchData("/user/login", "POST", payload),
+  const { syncSavedFlights } = useSyncSavedFlights();
 
-  //     enabled: false,
-  //   });
+  const {
+    data: saveTripsData,
+    error: saveTripsError,
+    isLoading: saveTripsLoading,
+    refetch: saveTripsRefetch,
+  } = useQuery({
+    queryKey: ["saveTrips", payload],
+    queryFn: () => fetchData("/gds/save-trips", "GET", payload, token),
+    enabled: false,
+  });
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -40,24 +46,19 @@ export default function Page() {
 
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
-
+    // Basic validations
     if (!trimmedEmail) {
-      toast.error("Email is required.");
-      return;
+      return toast.error("Email is required.");
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      toast.error("Please enter a valid email address.");
-      return;
+      return toast.error("Please enter a valid email address.");
     }
-
     if (!trimmedPassword) {
-      toast.error("Password is required.");
-      return;
+      return toast.error("Password is required.");
     }
     if (trimmedPassword.length < 8) {
-      toast.error("Password must be at least 8 characters long.");
-      return;
+      return toast.error("Password must be at least 8 characters long.");
     }
 
     const payload = {
@@ -65,19 +66,27 @@ export default function Page() {
       password: trimmedPassword,
     };
 
-    if (payload) {
+    if (trimmedEmail && trimmedPassword) {
       try {
+        setIsLoading(true);
         const data = await fetchData("/user/login", "POST", payload);
-        Cookies.set("auth-token", data.authorization?.token);
-        setToken(data.authorization?.token);
+        const token = data.authorization?.token;
+
+        if (!token) throw new Error("No token received from the server.");
+
+        Cookies.set("auth-token", token);
+        setToken(token);
+        await syncSavedFlights(token);
+
         router.push("/dashboard");
       } catch (err) {
         console.error("Error during login:", err);
         setError(err.message || "Login failed.");
-        setIsLoading(false);
       } finally {
         setIsLoading(false);
       }
+    } else {
+      setError("Email and password are required.");
     }
   };
 
@@ -85,7 +94,7 @@ export default function Page() {
     if (token) {
       router.push("/dashboard");
     }
-  }, [token,router]);
+  }, [token, router]);
 
   return (
     <div className="max-w-[400px] sm:max-w-[490px] top-[12%] px-8 py-4 rounded-[11px] bg-white mx-auto">
