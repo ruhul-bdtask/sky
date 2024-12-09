@@ -159,7 +159,12 @@ export default function Header() {
                     <div className="p-4">
                       <div className="mb-6 flex items-start justify-between">
                         <div className="flex items-center gap-4">
-                          <Image width={80} height={80} src={weather}></Image>
+                          <Image
+                            alt="image"
+                            width={80}
+                            height={80}
+                            src={weather}
+                          ></Image>
                           <div>
                             <h2 className="text-lg font-bold">
                               Kuala Lumpur Trip

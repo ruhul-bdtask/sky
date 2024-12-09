@@ -85,7 +85,7 @@ export default function Page() {
     if (token) {
       router.push("/dashboard");
     }
-  }, [token]);
+  }, [token,router]);
 
   return (
     <div className="max-w-[400px] sm:max-w-[490px] top-[12%] px-8 py-4 rounded-[11px] bg-white mx-auto">

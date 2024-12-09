@@ -20,6 +20,7 @@ import { fetchData } from "@/utils/api";
 import { useRouter } from "next/navigation";
 import { Oval } from "react-loader-spinner";
 import { formatFlightFare } from "@/lib/formatFlightFare";
+import Image from "next/image";
 
 export default function BookingForm() {
   const [activeTab, setActiveTab] = useState("passengers");
@@ -99,7 +100,7 @@ export default function BookingForm() {
     if (activeTab == "confirm") {
       setIsModalOpen(true);
     }
-  }, [activeTab, handleConfirmModal]);
+  }, [activeTab]);
 
   // Validation functions
   const validateEmail = (email) => {
@@ -205,9 +206,8 @@ export default function BookingForm() {
   useEffect(() => {
     if (registerData?.success == true) {
       setToken(registerData?.authorization?.token);
-      if (!isMyTokenExpired) {
-        refetchBookingData();
-      }
+
+      refetchBookingData();
     }
   }, [registerData, token]);
 
@@ -425,10 +425,12 @@ export default function BookingForm() {
 
             <div className="py-4 shadow-lg relative ">
               <div className="flex items-center mb-4 border-b px-10 py-5">
-                <img
+                <Image
                   src={selectedFlight?.airline_logo}
                   alt="Air Asia Logo"
-                  className="w-10 h-10 mr-4"
+                  className="mr-4"
+                  width={50}
+                  height={50}
                 />
                 <div>
                   <h3 className="font-semibold">

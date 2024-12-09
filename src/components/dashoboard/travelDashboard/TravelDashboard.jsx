@@ -44,7 +44,11 @@ export default function TravelDashboard() {
                   View Trips
                 </button>
               </div>
-              <Image className="w-[382px] h-[182px]" src={accountImg}></Image>
+              <Image
+                alt="image"
+                className="w-[382px] h-[182px]"
+                src={accountImg}
+              ></Image>
             </div>
           </div>
         </section>
