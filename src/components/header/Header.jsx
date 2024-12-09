@@ -435,7 +435,7 @@ export default function Header() {
                       Sign in or create an account
                     </h2>
                     <p className="text-[12px] ">
-                      Track prices, organise travel plans and access member-only
+                      Track prices, organize travel plans and access member-only
                       deals with your ticketing account.
                     </p>
                   </div>
