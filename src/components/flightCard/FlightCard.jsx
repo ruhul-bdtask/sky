@@ -239,14 +239,14 @@ export default function FlightCard({ flight }) {
       router.push(`/search-result?${queryString}`);
     }
   };
-  const shareConditions = flight?.schedules?.map((schedule, i) => {
+  const shareExtraConditions = flight?.schedules?.map((schedule, i) => {
     return (
       sharedInfo?.flight_number?.includes(String(schedule.flight_number)) &&
       sharedInfo.operating_code?.includes(String(schedule.operating_code))
     );
   });
 
-  const condition = shareConditions.every((inc) => inc === true);
+  const condition = shareExtraConditions.every((inc) => inc === true);
   const generateComp = (schedules) => {
     const dacToJfkStart = schedules.findIndex(
       (flight) => flight.departure_airport === customFlightFilter[0]
