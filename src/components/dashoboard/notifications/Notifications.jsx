@@ -1,7 +1,7 @@
 import React from "react";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-export default function Notifications() {
+export default function Notifications({ userData, userDataLoading }) {
   return (
     <section>
       <div className="w-full  ">
@@ -10,7 +10,8 @@ export default function Notifications() {
             Email preferences
           </h2>
           <p className="text-[14px] text-black mb-2">
-            We&apos;ll send the selected emails to mdtouhidulislam3219@gmail.com.
+            We&apos;ll send the selected emails
+            to mdtouhidulislam3219@gmail.com.
           </p>
 
           <div className="divide-y divide-gray-200">
@@ -97,8 +98,8 @@ export default function Notifications() {
           </div>
 
           <p className="mt-6 text-[14px] font-[300] text-gray-500">
-            Don&apos;t need our help finding the best travel deals, destinations and
-            insights? Unsubscribe from all
+            Don&apos;t need our help finding the best travel deals, destinations
+            and insights? Unsubscribe from all
           </p>
         </div>
       </div>
