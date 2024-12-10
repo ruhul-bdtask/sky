@@ -1,7 +1,11 @@
 import React from "react";
 import { X } from "lucide-react";
+import Cookies from "js-cookie";
 
 export default function Preferences() {
+  const token = Cookies.get("auth-token");
+  console.log(token);
+
   return (
     <section>
       <div className="w-full mx-auto flex flex-col gap-10 ">
