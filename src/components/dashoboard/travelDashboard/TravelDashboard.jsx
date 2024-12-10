@@ -15,10 +15,48 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import Cookies from "js-cookie";
+import { fetchData } from "@/utils/api";
 
 export default function TravelDashboard({ userData, userDataLoading }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isOpen, setIsOpen] = useState(false);
+  const [base64, setBase64] = useState("");
+  const token = Cookies.get("auth-token");
+
+  const mutation = useMutation({
+    mutationFn: (payload) =>
+      fetchData("/user/profile-pic-update", "POST", payload, token),
+    onSuccess: (data) => {
+      toast.success(data?.message);
+      setIsOpen(false);
+    },
+    onError: (error) => {
+      console.error("Mutation failed", error);
+      toast.error(error?.message);
+      setIsOpen(false);
+    },
+  });
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const payload = {
+          user_id: userData?.data?.id,
+          img: reader.result,
+        };
+
+        mutation.mutate(payload);
+
+        setBase64(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const tabContent = {
     dashboard: (
@@ -178,7 +216,7 @@ export default function TravelDashboard({ userData, userDataLoading }) {
                   >
                     <button className="mb-2 bg-[#363F45] p-3 rounded-[2px]">
                       <span className="text-white text-[14px] font-[600]">
-                        Upload from Computer
+                        <input type="file" onChange={handleFileChange} />
                       </span>
                     </button>
                     <p className="mb-2 text-sm text-black">
