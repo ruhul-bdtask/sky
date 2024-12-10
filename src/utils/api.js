@@ -10,7 +10,6 @@ export const fetchData = async (
     process.env.NEXT_API_BASE_URL || "http://143.110.191.53/b2c/api";
 
   const url = `${API_BASE_URL}${endpoint}`;
-
   const options = {
     method,
     headers: {
