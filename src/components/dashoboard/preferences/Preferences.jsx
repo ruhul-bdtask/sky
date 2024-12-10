@@ -7,7 +7,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import airportsData from "../../../../public/utils/airports.json";
 import { toast } from "react-toastify";
 
-export default function Preferences() {
+export default function Preferences({ userData, userDataLoading }) {
   const token = Cookies.get("auth-token");
   const [homeAirport, setHomeAirport] = useState();
   const [tempSecondaryAir, setTempSecondaryAir] = useState("");
@@ -18,20 +18,20 @@ export default function Preferences() {
   const dropdownRefHome = useRef(null);
   const dropdownRefSecondary = useRef(null);
 
-  const userToken = {
+  const userPayload = {
     document_type: "NID",
   };
 
-  const {
-    data: userData,
-    error: userDataError,
-    isLoading: userDataLoading,
-    refetch: refetchUserData,
-  } = useQuery({
-    queryKey: ["user", userToken],
-    queryFn: () => fetchData("/user/me", "POST", userToken, token),
-    enabled: true,
-  });
+  // const {
+  //   data: userData,
+  //   error: userDataError,
+  //   isLoading: userDataLoading,
+  //   refetch: refetchUserData,
+  // } = useQuery({
+  //   queryKey: ["user", userPayload],
+  //   queryFn: () => fetchData("/user/me", "POST", userPayload, token),
+  //   enabled: true,
+  // });
 
   const mutation = useMutation({
     mutationFn: (payload) =>

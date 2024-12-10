@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Travelers() {
+export default function Travelers({ userData, userDataLoading }) {
   return (
     <section>
       <h2 className="text-[24px] font-bold text-black mb-5">Travelers</h2>
@@ -21,7 +21,7 @@ export default function Travelers() {
                   M
                 </div>
                 <span className="text-[14px] text-black">
-                  myname2346@gmail.com
+                  {userData?.data?.email}
                 </span>
               </div>
             </div>
@@ -33,19 +33,26 @@ export default function Travelers() {
                     <label className="block text-[14px] text-black mb-1 font-[500]">
                       First name
                     </label>
-                    <div className="text-sm text-black">-</div>
+                    <div className="text-sm text-black">
+                      {" "}
+                      {userData?.data?.first_name}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-[14px] text-black mb-1 font-[500]">
                       Middle name
                     </label>
-                    <div className="text-sm text-black">-</div>
+                    <div className="text-sm text-black">
+                      {userData?.data?.last_name}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-[14px] text-black mb-1 font-[500]">
                       Surname
                     </label>
-                    <div className="text-sm text-black">-</div>
+                    <div className="text-sm text-black">
+                      {userData?.data?.first_name}
+                    </div>
                   </div>
                 </div>
 
@@ -54,13 +61,19 @@ export default function Travelers() {
                     <label className="block text-[14px] text-black mb-1 font-[500]">
                       Date of birth
                     </label>
-                    <div className="text-sm text-black">-</div>
+                    <div className="text-sm text-black">
+                      {userData?.data?.date_of_birth
+                        ? userData?.data?.date_of_birth
+                        : "-"}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-[14px] text-black mb-1 font-[500]">
                       Gender
                     </label>
-                    <div className="text-sm text-black">-</div>
+                    <div className="text-sm text-black">
+                      {userData?.data?.gender ? userData?.data?.gender : "-"}
+                    </div>
                   </div>
                 </div>
 
@@ -68,7 +81,9 @@ export default function Travelers() {
                   <label className="block text-[14px] text-black mb-1 font-[500]">
                     Mobile number
                   </label>
-                  <div className="text-sm text-black">-</div>
+                  <div className="text-sm text-black">
+                    {userData?.data?.phone ? userData?.data?.phone : "-"}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">

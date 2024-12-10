@@ -1,9 +1,11 @@
 import React from "react";
 
-export default function Payment() {
+export default function Payment({ userData, userDataLoading }) {
   return (
     <section>
-      <h2 className="text-[24px]  font-bold pt-8 pb-5">Saved payment methods</h2>
+      <h2 className="text-[24px]  font-bold pt-8 pb-5">
+        Saved payment methods
+      </h2>
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
         <h2 className="text-[16px]  font-semibold text-black mb-2">
           Saved payment methods

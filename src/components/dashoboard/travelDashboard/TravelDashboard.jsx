@@ -16,9 +16,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export default function TravelDashboard() {
+export default function TravelDashboard({ userData, userDataLoading }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isOpen, setIsOpen] = useState(false);
+
   const tabContent = {
     dashboard: (
       <>
@@ -86,11 +87,17 @@ export default function TravelDashboard() {
         </section>
       </>
     ),
-    account: <Account />,
-    preferences: <Preferences />,
-    travelers: <Travelers />,
-    payment: <Payment />,
-    notifications: <Notifications />,
+    account: <Account userData={userData} userDataLoading={userDataLoading} />,
+    preferences: (
+      <Preferences userData={userData} userDataLoading={userDataLoading} />
+    ),
+    travelers: (
+      <Travelers userData={userData} userDataLoading={userDataLoading} />
+    ),
+    payment: <Payment userData={userData} userDataLoading={userDataLoading} />,
+    notifications: (
+      <Notifications userData={userData} userDataLoading={userDataLoading} />
+    ),
   };
 
   return (
@@ -100,12 +107,16 @@ export default function TravelDashboard() {
           <header className="flex  justify-between">
             <div className="flex justify-between items-end gap-20 flex-wrap col-span-7">
               <div>
-                <h1 className="text-[40px] font-bold mb-5">Welcome</h1>
-                <p className="text-[12px] font-semibold text-[#3E4346]">
+                <h1 className="text-[40px] font-bold mb-2">Welcome</h1>
+                <p className="font-bold">
+                  {" "}
+                  {userData?.data?.first_name + userData?.data?.last_name}
+                </p>
+                <p className="text-[12px] font-semibold text-[#3E4346] mt-2">
                   Account Email
                 </p>
                 <p className="text-[16px] font-semibold text-black">
-                  mynameI2345@gmail.com
+                  {userData?.data?.email}
                 </p>
               </div>
               <div className="flex items-center">
@@ -115,7 +126,7 @@ export default function TravelDashboard() {
                   </span>
                   <br />
                   <span className="text-[16px] font-semibold text-black">
-                    Dhaka, Bangladesh - Hazrat Shahjalal Intl
+                    {userData?.data?.home_airport}
                   </span>
                 </p>
               </div>
@@ -126,10 +137,14 @@ export default function TravelDashboard() {
               onClick={() => setIsOpen(true)}
             >
               <div className="relative">
-                <div className="w-[100px] lg:w-[192px] h-[100px] lg:h-[192px] bg-orange-500 rounded-full flex items-center justify-center text-white text-[96px] font-bold">
-                  M
+                <div className="w-[100px] lg:w-[192px] h-[100px] lg:h-[192px]  ">
+                  <img
+                    className="rounded-full h-full w-full"
+                    src={userData?.data?.profile_pic}
+                    alt=""
+                  />
                 </div>
-                <button className="ml-2 text-gray-600 w-[30px] md:w-[59px]  h-[30px] md:h-[59px] flex justify-center items-center absolute -bottom-1  md:bottom-1 left-14 md:left-32 border-2 border-white bg-[#212121] rounded-full">
+                <button className="ml-2 text-gray-600 w-[30px] md:w-[59px]  h-[30px] md:h-[59px] flex justify-center items-center absolute -bottom-1  md:bottom-2 left-14 md:left-[120px] border-2 border-white bg-[#212121] rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-4 md:h-7 w-5 md:w-7 text-white"

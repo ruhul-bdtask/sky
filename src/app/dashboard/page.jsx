@@ -1,5 +1,7 @@
 "use client";
 import TravelDashboard from "@/components/dashoboard/travelDashboard/TravelDashboard";
+import { fetchData } from "@/utils/api";
+import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
@@ -9,6 +11,8 @@ export default function Page() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const token = Cookies.get("auth-token");
+
   useEffect(() => {
     const checkAuth = () => {
       const token = Cookies.get("auth-token");
@@ -30,7 +34,22 @@ export default function Page() {
     checkAuth();
   }, [router]);
 
-  if (isLoading) {
+  const userPayload = {
+    document_type: "NID",
+  };
+
+  const {
+    data: userData,
+    error: userDataError,
+    isLoading: userDataLoading,
+    refetch: refetchUserData,
+  } = useQuery({
+    queryKey: ["user", token],
+    queryFn: () => fetchData("/user/me", "POST", userPayload, token),
+    enabled: true,
+  });
+
+  if (isLoading || userDataLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -40,9 +59,10 @@ export default function Page() {
       </div>
     );
   }
+
   return (
     <div>
-      <TravelDashboard />
+      <TravelDashboard userData={userData} userDataLoading={userDataLoading} />
       <div className="leading-10 text-[14px] max-w-[1300px] mx-auto py-8">
         <p className="text-[#0B7C9E] hover:underline cursor-pointer">
           Top International Flight Routes.
