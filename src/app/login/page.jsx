@@ -23,7 +23,7 @@ export default function Page() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [payload, setPayload] = useState(null);
-  const { token, setToken, savedFlights, setSavedFlights } = useAirlineStore();
+  const { token, setToken, setUserData, userData } = useAirlineStore();
 
   const handleClick = () => {};
 
@@ -76,6 +76,7 @@ export default function Page() {
 
         Cookies.set("auth-token", token);
         setToken(token);
+        setUserData(data?.user);
         await syncSavedFlights(token);
 
         router.push("/dashboard");
@@ -96,6 +97,7 @@ export default function Page() {
     }
   }, [token, router]);
 
+  console.log(userData);
   return (
     <div className="max-w-[400px] sm:max-w-[490px] top-[12%] px-8 py-4 rounded-[11px] bg-white mx-auto">
       <div>

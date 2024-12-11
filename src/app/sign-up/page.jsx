@@ -27,7 +27,7 @@ export default function Page() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
 
-  const { token, setToken } = useAirlineStore();
+  const { token, setToken, setUserData } = useAirlineStore();
   const handleClick = () => {};
 
   const {
@@ -118,6 +118,7 @@ export default function Page() {
       Cookies.set("auth-token", registerData?.authorization?.token);
       setPayload(null);
       setToken(registerData?.authorization?.token);
+      setUserData(registerData?.user);
       router.push("/dashboard");
     } else if (registerDataError) {
       const errorMessage =

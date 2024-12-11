@@ -18,6 +18,8 @@ const useAirlineStore = create()(
         airports: [],
         minPrice: 0,
         maxPrice: Infinity,
+        userData: {},
+        setUserData: (user) => set({ userData: user }),
         setMinPrice: (min) => set({ minPrice: min }),
         setMaxPrice: (max) => set({ maxPrice: max }),
         setAirports: (airport) => set({ airports: airport }),
@@ -50,6 +52,7 @@ const useAirlineStore = create()(
           airports: state.airports,
           minPrice: state.minPrice,
           maxPrice: state.maxPrice,
+          userData: state.userData,
         }),
       }
     )

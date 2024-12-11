@@ -25,12 +25,14 @@ export default function TravelDashboard({ userData, userDataLoading }) {
   const [isOpen, setIsOpen] = useState(false);
   const [base64, setBase64] = useState("");
   const token = Cookies.get("auth-token");
+  const [imageUploadedData, setImageUploadedData] = useState();
 
   const mutation = useMutation({
     mutationFn: (payload) =>
       fetchData("/user/profile-pic-update", "POST", payload, token),
     onSuccess: (data) => {
       toast.success(data?.message);
+      setImageUploadedData(data?.data);
       setIsOpen(false);
     },
     onError: (error) => {
@@ -42,12 +44,14 @@ export default function TravelDashboard({ userData, userDataLoading }) {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+        const [prefix, data] = reader.result.split(/,(.+)/);
         const payload = {
           user_id: userData?.data?.id,
-          img: reader.result,
+          img: data,
         };
 
         mutation.mutate(payload);
@@ -57,6 +61,8 @@ export default function TravelDashboard({ userData, userDataLoading }) {
       reader.readAsDataURL(file);
     }
   };
+
+  console.log(imageUploadedData);
 
   const tabContent = {
     dashboard: (
@@ -142,28 +148,30 @@ export default function TravelDashboard({ userData, userDataLoading }) {
     <div className="min-h-screen bg-white container_section_sm">
       <div className="max-w-[1012px] mx-auto py-8 ">
         <div className="">
-          <header className="flex  justify-between">
-            <div className="flex justify-between items-end gap-20 flex-wrap col-span-7">
+          <header className="flex justify-between flex-col-reverse md:flex-row gap-7 md:gap-0">
+            <div className="flex justify-between items-end gap-5 md:gap-20 flex-wrap col-span-7">
               <div>
-                <h1 className="text-[40px] font-bold mb-2">Welcome</h1>
-                <p className="font-bold">
+                <h1 className="text-[25px] md:text-[40px] font-bold mb-0 md:mb-2">
+                  Welcome
+                </h1>
+                <p className="text-[15px] md:text-[20px] font-bold">
                   {" "}
                   {userData?.data?.first_name + userData?.data?.last_name}
                 </p>
-                <p className="text-[12px] font-semibold text-[#3E4346] mt-2">
+                <p className="text-[10px] md:text-[12px] font-semibold text-[#3E4346] mt-2">
                   Account Email
                 </p>
-                <p className="text-[16px] font-semibold text-black">
+                <p className="text-[12px] md:text-[16px] font-semibold text-black">
                   {userData?.data?.email}
                 </p>
               </div>
               <div className="flex items-center">
                 <p className="text-sm text-gray-600 mr-2 ">
-                  <span className="text-[12px] font-semibold text-[#3E4346]">
+                  <span className="text-[10px] md:text-[12px] font-semibold text-[#3E4346]">
                     Home Airport
                   </span>
                   <br />
-                  <span className="text-[16px] font-semibold text-black">
+                  <span className="text-[12px] md:text-[16px] font-semibold text-black">
                     {userData?.data?.home_airport}
                   </span>
                 </p>
@@ -175,10 +183,14 @@ export default function TravelDashboard({ userData, userDataLoading }) {
               onClick={() => setIsOpen(true)}
             >
               <div className="relative">
-                <div className="w-[100px] lg:w-[192px] h-[100px] lg:h-[192px]  ">
+                <div className="w-[100px] lg:w-[192px] h-[100px] lg:h-[192px] ">
                   <img
-                    className="rounded-full h-full w-full"
-                    src={userData?.data?.profile_pic}
+                    className="rounded-full h-full w-full  object-cover"
+                    src={
+                      imageUploadedData?.profile_pic
+                        ? imageUploadedData?.profile_pic
+                        : userData?.data?.profile_pic
+                    }
                     alt=""
                   />
                 </div>

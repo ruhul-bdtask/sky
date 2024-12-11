@@ -6,12 +6,15 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import useAirlineStore from "../../../stores/airlineStore";
 
 export default function Page() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const token = Cookies.get("auth-token");
+
+  const { setUserData } = useAirlineStore();
 
   useEffect(() => {
     const checkAuth = () => {
@@ -48,6 +51,12 @@ export default function Page() {
     queryFn: () => fetchData("/user/me", "POST", userPayload, token),
     enabled: true,
   });
+
+  useEffect(() => {
+    if (userData?.success == true) {
+      setUserData(userData?.data);
+    }
+  }, [userData]);
 
   if (isLoading || userDataLoading) {
     return (

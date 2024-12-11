@@ -6,6 +6,7 @@ import { fetchData } from "@/utils/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import airportsData from "../../../../public/utils/airports.json";
 import { toast } from "react-toastify";
+import useAirlineStore from "../../../../stores/airlineStore";
 
 export default function Preferences({ userData, userDataLoading }) {
   const token = Cookies.get("auth-token");
@@ -17,6 +18,7 @@ export default function Preferences({ userData, userDataLoading }) {
   const [secondaryOpen, setSecondaryOpen] = useState(false);
   const dropdownRefHome = useRef(null);
   const dropdownRefSecondary = useRef(null);
+  const { setUserData } = useAirlineStore();
 
   const userPayload = {
     document_type: "NID",
@@ -39,6 +41,7 @@ export default function Preferences({ userData, userDataLoading }) {
     onSuccess: (data) => {
       console.log("Mutation successful", data);
       toast.success(data?.message);
+      setUserData(data?.data);
     },
     onError: (error) => {
       console.error("Mutation failed", error);
