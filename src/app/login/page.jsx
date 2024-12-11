@@ -1,10 +1,16 @@
 "use client";
 
+import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
 import apple from "@/public/images/apple.png";
 import device from "@/public/images/device.png";
 import google from "@/public/images/google.png";
 import logo from "@/public/images/logo.png";
 import { fetchData } from "@/utils/api";
+import {
+  GoogleLogin,
+  GoogleOAuthProvider,
+  useGoogleLogin,
+} from "@react-oauth/google";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import Image from "next/image";
@@ -14,7 +20,7 @@ import { useEffect, useState } from "react";
 import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
-import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -91,11 +97,49 @@ export default function Page() {
     }
   };
 
-  useEffect(() => {
-    if (token) {
-      router.push("/dashboard");
-    }
-  }, [token, router]);
+  // useEffect(() => {
+  //   if (token) {
+  //     router.push("/dashboard");
+  //   }
+  // }, [token, router]);
+
+  // Google login hook
+  const login = useGoogleLogin({
+    // flow: "auth-code",
+    // flow: "implicit",
+    onSuccess: async (credentialResponse) => {
+      try {
+        setIsLoading(true);
+        console.log(credentialResponse);
+        const token = credentialResponse?.credential;
+        const data = await fetchData("/user/login", "POST", payload);
+        console.log(data);
+
+        if (!token) {
+          throw new Error("Failed to retrieve token from Google response.");
+        }
+
+        // Save token securely in cookies
+        Cookies.set("auth-token", token);
+        // console.log(token);
+
+        console.log("Login Successful!", token);
+        setToken(token);
+
+        router.push("/dashboard");
+      } catch (error) {
+        console.error("Login Error:", error);
+        Cookies.remove("auth-token");
+        router.push("/login");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+
+    onError: () => {
+      console.error("Google Login Failed");
+    },
+  });
 
   console.log(userData);
   return (
@@ -196,10 +240,26 @@ export default function Page() {
           <div className="w-full h-px bg-gray-300"></div>
         </div>
         <div className="grid grid-cols-2 gap-6">
+          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                const token = credentialResponse.credential;
+                console.log(credentialResponse);
+                if (token) {
+                  Cookies.set("auth-token", token);
+                  setToken(token);
+                  router.push("/dashboard");
+                }
+              }}
+              onError={() => {
+                console.error("Login Failed");
+              }}
+            />
+          </GoogleOAuthProvider>
           <button
             className="flex items-center gap-2 p-3 border border-gray-400 justify-center rounded-[10px]"
             type="button"
-            onClick={handleClick}
+            onClick={login}
           >
             <Image
               alt="Sign in with Google"
