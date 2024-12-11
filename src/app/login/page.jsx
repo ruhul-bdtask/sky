@@ -1,10 +1,17 @@
 "use client";
 
+import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
 import apple from "@/public/images/apple.png";
 import device from "@/public/images/device.png";
 import google from "@/public/images/google.png";
 import logo from "@/public/images/logo.png";
 import { fetchData } from "@/utils/api";
+import {
+  GoogleLogin,
+  GoogleOAuthProvider,
+  useGoogleLogin,
+} from "@react-oauth/google";
+import FacebookLogin from "react-facebook-login";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import Image from "next/image";
@@ -14,7 +21,6 @@ import { useEffect, useState } from "react";
 import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
-import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -26,6 +32,7 @@ export default function Page() {
   const { token, setToken, setUserData, userData } = useAirlineStore();
 
   const handleClick = () => {};
+  const FACEBOOK_CLIENT_ID = process.env.NEXT_PUBLIC_FACEBOOK_CLIENT_ID;
 
   const { syncSavedFlights } = useSyncSavedFlights();
 
@@ -91,13 +98,80 @@ export default function Page() {
     }
   };
 
-  useEffect(() => {
-    if (token) {
-      router.push("/dashboard");
-    }
-  }, [token, router]);
+  // useEffect(() => {
+  //   if (token) {
+  //     router.push("/dashboard");
+  //   }
+  // }, [token, router]);
 
-  console.log(userData);
+  // Google login hook
+  const googleLoginHandler = useGoogleLogin({
+    // flow: "auth-code",
+    // flow: "implicit",
+    onSuccess: async (credentialResponse) => {
+      try {
+        setIsLoading(true);
+        const access_token = credentialResponse?.access_token;
+        const response = await fetchData("/user/login-with-social", "POST", {
+          provider: "google",
+          token: access_token,
+        });
+        let token;
+        if (response.success && response.authorization.token) {
+          token = response.authorization.token;
+        }
+        if (!token) {
+          throw new Error("Failed to retrieve token from Google response.");
+        }
+        // Save token securely in cookies
+        Cookies.set("auth-token", token);
+        setToken(token);
+
+        router.push("/dashboard");
+      } catch (error) {
+        console.error("Login Error:", error);
+        Cookies.remove("auth-token");
+        router.push("/login");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+
+    onError: () => {
+      console.error("Google Login Failed");
+    },
+  });
+
+  const facebookLoginHandler = async (credentialResponse) => {
+    try {
+      setIsLoading(true);
+      const access_token = credentialResponse?.accessToken;
+      const response = await fetchData("/user/login-with-social", "POST", {
+        provider: "facebook",
+        token: access_token,
+      });
+
+      let token;
+      if (response.success && response.authorization.token) {
+        token = response.authorization.token;
+      }
+      if (!token) {
+        throw new Error("Failed to retrieve token from Google response.");
+      }
+      // Save token securely in cookies
+      Cookies.set("auth-token", token);
+      setToken(token);
+
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Login Error:", error);
+      Cookies.remove("auth-token");
+      router.push("/login");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-[400px] sm:max-w-[490px] top-[12%] px-8 py-4 rounded-[11px] bg-white mx-auto">
       <div>
@@ -196,10 +270,33 @@ export default function Page() {
           <div className="w-full h-px bg-gray-300"></div>
         </div>
         <div className="grid grid-cols-2 gap-6">
+          <FacebookLogin
+            appId={FACEBOOK_CLIENT_ID}
+            autoLoad={false}
+            fields="name,email,picture"
+            // onClick={componentClicked}
+            callback={facebookLoginHandler}
+            render={(renderProps) => (
+              <button
+                onClick={renderProps.onClick}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#4267B2",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "5px",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                }}
+              >
+                Login Facebook
+              </button>
+            )}
+          />
           <button
             className="flex items-center gap-2 p-3 border border-gray-400 justify-center rounded-[10px]"
             type="button"
-            onClick={handleClick}
+            onClick={googleLoginHandler}
           >
             <Image
               alt="Sign in with Google"
