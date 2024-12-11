@@ -374,6 +374,12 @@ export default function FlightCard({ flight }) {
     );
   };
 
+  const flatData = flight?.itinerary_leg_descs?.flat();
+
+  flatData?.map((flat) => {
+    console.log(flat);
+  });
+
   return (
     <>
       <div
@@ -493,8 +499,55 @@ export default function FlightCard({ flight }) {
                   </p>
                 </div>
               </div>
-            ) : (
+            ) : flight?.itinerary_leg_descs?.length == 2 ? (
               <>{generateComp(flight?.schedules)}</>
+            ) : (
+              <>
+                {" "}
+                <div className="col-span-6 p-3 flex flex-col gap-6 justify-between">
+                  {flight?.itinerary_leg_descs?.flat()?.map((air, index) => (
+                    <div key={index}>
+                      <div className="flex justify-between items-center gap-5 flex-wrap">
+                        <div className="flex items-center gap-5">
+                          <Image
+                            width={50}
+                            height={50}
+                            alt="air"
+                            src={flight?.airline_logo}
+                          ></Image>
+
+                          <div>
+                            <p className="text-[14px]">
+                              {air?.departure_location} -{" "}
+                              {air?.arrival_location}
+                            </p>
+                            <p className="text-[12px] font-semibold">
+                              {air?.departure_datetime}
+                            </p>
+
+                            {/* <div>
+                            <p className="text-[#5F6D77] text-[14px]">
+                              {flight?.airline_name}
+                            </p>
+                            <p className="text-[#5F6D77] text-[14px]">
+                              {flight?.departure_date}
+                            </p>
+                          </div> */}
+                          </div>
+                        </div>
+                        <div className="flex gap-5">
+                          <p className="text-sm font-semibold text-start">
+                            {air?.duration}
+                          </p>
+                          <p className="text-sm font-semibold text-start">
+                            {air?.stop_count > 0 ? "Multi city" : "Direct"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
 
             <div>

@@ -7,7 +7,7 @@ import apple from "@/public/images/apple.png";
 import verify from "@/public/images/verify.png";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSidebar } from "@/context/sidebar-context";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -38,7 +38,7 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedIn, setLoggedIn] = useState(null);
   const [isOpenSaved, setIsOpenSaved] = useState(false);
-
+  const dropdownRef = useRef();
   const {
     savedFlights,
     token,
@@ -46,6 +46,8 @@ export default function Header() {
     setIsOpenSavedDialog,
     isOpenSavedDialog,
     setSearchData,
+    setUserData,
+    userData,
   } = useAirlineStore();
 
   // useEffect(() => {
@@ -53,9 +55,11 @@ export default function Header() {
   //   setToken(authToken);
   // }, []);
   const handleLogOut = () => {
+    setIsOpenProfile(false);
     Cookies.remove("auth-token");
     setToken(null);
     router.push("/login");
+    setUserData({});
   };
 
   const isMyTokenExpired = isExpired(token);
@@ -106,6 +110,19 @@ export default function Header() {
   const handleRoute = () => {
     router.push("/dashboard");
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpenProfile(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   return (
     <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
       <div className="max-w-full sm:px-6 lg:px-2 h-full">
@@ -126,7 +143,7 @@ export default function Header() {
               <Image className="mx-4 md:mx-0" alt="logo" src={logo}></Image>
             </Link>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <div className="relative">
               <button
                 className="p-2 rounded-full text-gray-400 hover:text-black focus:outline-none "
@@ -276,39 +293,6 @@ export default function Header() {
                                       </div>
                                     )
                                   )}
-
-                                  {/* <div class="mt-1 py-3 px-1   rounded-lg">
-                                    <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
-                                      Thu, 6 Oct
-                                    </div>
-                                    <div class="flex items-center gap-2 justify-between">
-                                      <Image
-                                        src={airAsia}
-                                        alt="Air Asia Logo"
-                                        class="h-8 w-8 object-contain"
-                                      />
-
-                                      <div class="flex flex-col text-center">
-                                        <span class="text-lg font-semibold">
-                                          00:50
-                                        </span>
-                                        <span class="text-xs text-black">
-                                          DAC
-                                        </span>
-                                      </div>
-                                      <div class="flex flex-col items-center text-xs text-black border-b">
-                                        <span>3H 50M</span>
-                                      </div>
-                                      <div class="flex flex-col text-center">
-                                        <span class="text-lg font-semibold">
-                                          06:55
-                                        </span>
-                                        <span class="text-xs text-black">
-                                          KUL
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div> */}
                                 </div>
                                 <div class="me-2">
                                   <div class="text-[18px] font-semibold text-black">
@@ -331,33 +315,45 @@ export default function Header() {
             </div>
 
             <ToastContainer />
-            {/* {loggedIn ? (
+            {token ? (
               <>
-                <div className="relative inline-block text-left">
-                  <div>
-                    <button
-                      onClick={toggleMenu}
-                      className="flex items-center focus:outline-none"
-                    >
+                <div
+                  className="relative inline-block text-left"
+                  ref={dropdownRef}
+                >
+                  <div onClick={toggleMenu}>
+                    {/* <button className="flex items-center focus:outline-none">
                       <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold">
                         M
                       </div>
-                    </button>
+                    </button> */}
+
+                    <div className="w-[40px] h-[40px] cursor-pointer">
+                      <img
+                        className="rounded-full h-full w-full object-cover"
+                        src={userData?.profile_pic}
+                        alt=""
+                      />
+                    </div>
                   </div>
 
                   {isOpenProfile && (
                     <div className="absolute right-0 z-10 w-80 mt-2 bg-white rounded-md shadow-lg border border-gray-200">
                       <div className="py-2 px-4 flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold">
-                          M
+                        <div className="w-[40px] h-[40px] ">
+                          <img
+                            className="rounded-full h-full w-full object-cover"
+                            src={userData?.profile_pic}
+                            alt=""
+                          />
                         </div>
                         <div className="flex flex-1 justify-between items-center">
                           <div>
                             <p className="text-[16px] font-[500] text-black">
-                              Myname12345
+                              {userData?.first_name + " " + userData?.last_name}
                             </p>
                             <p className="text-[10px] text-black">
-                              myname123456@gmail.com
+                              {userData?.email}
                             </p>
                           </div>
                           <ActiveIcon />
@@ -365,14 +361,14 @@ export default function Header() {
                       </div>
                       <div className="border-t border-gray-200">
                         <div className="flex flex-col gap-3 py-2 px-4">
-                          <button className="flex items-center gap-2 t  w-full ">
+                          {/* <button className="flex items-center gap-2 t  w-full ">
                             <div className="w-10 h-10 rounded-full bg-[#0E0E0E] flex items-center justify-center  text-white">
                               <UserIcon />
                             </div>
                             <span className="text-[16px] font-[500]">
                               Add user
                             </span>
-                          </button>
+                          </button> */}
                           <p className="py-1 text-sm text-black cursor-pointer">
                             Trips
                           </p>
@@ -389,7 +385,7 @@ export default function Header() {
                       </div>
                       <div className="py-2 px-4">
                         <button
-                          onClick={handleSignOut}
+                          onClick={handleLogOut}
                           className="w-full text-center text-black border border-black  py-1.5 rounded"
                         >
                           Sign out
@@ -400,10 +396,17 @@ export default function Header() {
                 </div>
               </>
             ) : (
-              <>
-              </>
-            )} */}
-            {token ? (
+              <Link href={"/login"}>
+                <button
+                  className="flex items-center gap-2 p-3 border border-[#9BA8B0] justify-center rounded-[10px] "
+                  onClick={handleRoute}
+                >
+                  <AvatarIcon />
+                  Sign in
+                </button>
+              </Link>
+            )}
+            {/* {token ? (
               <>
                 <button
                   className="flex items-center gap-2 p-3 border border-[#9BA8B0] justify-center rounded-[10px] "
@@ -423,7 +426,7 @@ export default function Header() {
                   Sign in
                 </button>
               </Link>
-            )}
+            )} */}
           </div>
         </div>
 

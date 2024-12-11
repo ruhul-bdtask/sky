@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
   images: {
-    domains: ["pics.avs.io"], // Add the hostname here
+    domains: ["pics.avs.io", "143.110.191.53"],
   },
   productionBrowserSourceMaps: false,
   webpack(config) {

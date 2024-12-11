@@ -41,11 +41,6 @@ export default function SearchPad() {
   const [arrival, setArrival] = useState("");
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
-  const [flightRows, setFlightRows] = useState([
-    { id: 1, from: "", to: "", date: "", class: "Economy" },
-    { id: 2, from: "", to: "", date: "", class: "Economy" },
-  ]);
-
   const {
     setSearchData,
     OriginDestinationInformation,
@@ -55,7 +50,33 @@ export default function SearchPad() {
     setContactInformation,
     setRecentSearchData,
     recentSearchData,
+    userData,
   } = useAirlineStore();
+
+  const [cities, setCities] = useState([
+    {
+      id: 1,
+      searchQueryDestination: "",
+      searchQueryArrival: "",
+      departureDate: null,
+      isOpenOrigin: false,
+      isOpenDestination: false,
+    },
+  ]);
+
+  const transformedData = cities.map((item, index) => ({
+    DepartureDateTime: item.departureDate,
+    OriginLocation: {
+      LocationCode: item.searchQueryDestination,
+      LocationType: "A",
+    },
+    DestinationLocation: {
+      LocationCode: item.searchQueryArrival,
+      LocationType: "A",
+    },
+    RPH: 0,
+  }));
+
 
   const [roundDate, setRoundDate] = useState(() => {
     const twoDaysAhead = new Date();
@@ -76,29 +97,74 @@ export default function SearchPad() {
     return twoDaysAhead;
   });
 
-  const addFlightRow = () => {
-    const newId = Math.max(...flightRows.map((row) => row.id), 0) + 1;
-    setFlightRows([
-      ...flightRows,
-      { id: newId, from: "", to: "", date: "", class: "Economy" },
+
+  const handleAddCity = () => {
+    setCities([
+      ...cities,
+      {
+        id: cities.length + 1,
+        searchQueryDestination: "",
+        searchQueryArrival: "",
+        departureDate: null,
+      },
     ]);
   };
 
-  const removeFlightRow = (id) => {
-    if (flightRows.length > 2) {
-      setFlightRows(flightRows.filter((row) => row.id !== id));
-    }
-  };
-
-  const updateFlightRow = (id, field, value) => {
-    setFlightRows(
-      flightRows.map((row) =>
-        row.id === id ? { ...row, [field]: value } : row
+  const updateCityData = (id, field, value) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === id ? { ...city, [field]: value } : city
       )
     );
   };
-  const [searchQueryArrival, setSearchQueryArrival] = useState("CXB");
-  const [searchQueryDestination, setSearchQueryDestination] = useState("DAC");
+  const handleDeleteCity = () => {
+    if (cities.length > 1) {
+      setCities(cities.slice(0, -1));
+    }
+  };
+  const toggleField = (id, field) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === id ? { ...city, [field]: !city[field] } : city
+      )
+    );
+  };
+
+
+
+  
+
+  const filteredAirportsArrivalMulti = cities.map((city) =>
+    airportsData.filter(
+      (airport) =>
+        (airport.name
+          .toLowerCase()
+          .includes(city.searchQueryArrival.toLowerCase()) ||
+          airport.value
+            .toLowerCase()
+            .includes(city.searchQueryArrival.toLowerCase())) &&
+        airport.value !== city.searchQueryDestination
+    )
+  );
+
+  const filteredAirportsDestinationMulti = cities.map((city) =>
+    airportsData.filter(
+      (airport) =>
+        (airport.name
+          .toLowerCase()
+          .includes(city.searchQueryDestination.toLowerCase()) ||
+          airport.value
+            .toLowerCase()
+            .includes(city.searchQueryDestination.toLowerCase())) &&
+        airport.value !== city.searchQueryArrival
+    )
+  );
+  const [searchQueryArrival, setSearchQueryArrival] = useState(
+    Object.keys(userData).length > 0 ? userData?.secondary_airports?.[0] : "CXB"
+  );
+  const [searchQueryDestination, setSearchQueryDestination] = useState(
+    Object.keys(userData).length > 0 ? userData?.home_airport : "DAC"
+  );
   const [ways, setWays] = useState([
     { name: "One-way", price: 50, shortCode: "one_way" },
     { name: "Return", price: 90, shortCode: "return" },
@@ -212,11 +278,9 @@ export default function SearchPad() {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const formattedDateTimeOrigin = `${year}-${month}-${day}T00:00:00`;
-    
+
     setOriginalDate(formattedDateTimeOrigin);
   }, [oneWayDate, roundDate, selectedWay]);
-
-
 
   const [originalArrivalData, setOriginalArrivalDate] = useState();
 
@@ -237,78 +301,134 @@ export default function SearchPad() {
     setPassengerInformation([]);
     setContactInformation({});
 
-    if (
-      /^[A-Z]{3}$/.test(searchQueryDestination) &&
-      /^[A-Z]{3}$/.test(searchQueryArrival) &&
-      selectedWay &&
-      passengers[0] &&
-      selectedClass &&
-      originalDate
-    ) {
-      const searchData = {
-        destination: searchQueryDestination,
-        arrival: searchQueryArrival,
-        tripType: selectedWay,
-        class: selectedClass,
-        passengers: passengers,
-        journeyDate: originalDate,
-        returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
-      };
+    const searchData = {
+      destination: searchQueryDestination,
+      arrival: searchQueryArrival,
+      tripType: selectedWay,
+      class: selectedClass,
+      passengers: passengers,
+      journeyDate: originalDate,
+      returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+    };
 
-      setSearchData(searchData);
+    setSearchData(searchData);
 
-      const originDestinationInfo = [
-        {
-          DepartureDateTime: originalDate,
-          OriginLocation: {
-            LocationCode: searchQueryDestination,
-            LocationType: "A",
-          },
-          DestinationLocation: {
-            LocationCode: searchQueryArrival,
-            LocationType: "A",
-          },
-          RPH: "0",
+    const originDestinationInfo = [
+      {
+        DepartureDateTime: originalDate,
+        OriginLocation: {
+          LocationCode: searchQueryDestination,
+          LocationType: "A",
         },
-      ];
+        DestinationLocation: {
+          LocationCode: searchQueryArrival,
+          LocationType: "A",
+        },
+        RPH: "0",
+      },
+    ];
 
-      if (selectedWay === "return" && roundDate?.to) {
-        originDestinationInfo.push({
-          DepartureDateTime: originalArrivalData,
-          OriginLocation: {
-            LocationCode: searchQueryArrival,
-            LocationType: "A",
-          },
-          DestinationLocation: {
-            LocationCode: searchQueryDestination,
-            LocationType: "A",
-          },
-          RPH: "1",
-        });
-      } else {
-        console.log(
-          "Return trip not added, check if selectedWay is 'return' and roundDate?.to is valid"
-        );
+    if (selectedWay === "return" && roundDate?.to) {
+      originDestinationInfo.push({
+        DepartureDateTime: originalArrivalData,
+        OriginLocation: {
+          LocationCode: searchQueryArrival,
+          LocationType: "A",
+        },
+        DestinationLocation: {
+          LocationCode: searchQueryDestination,
+          LocationType: "A",
+        },
+        RPH: "1",
+      });
+    } else {
+      console.log(
+        "Return trip not added, check if selectedWay is 'return' and roundDate?.to is valid"
+      );
+    }
+
+    setOriginDestinationInformation(originDestinationInfo);
+
+    const updatedRecentSearches = [searchData, ...recentSearchData].slice(0, 5);
+    setRecentSearchData(updatedRecentSearches);
+
+    if (selectedWay === "multi_city") {
+      if (transformedData.length < 2) {
+        toast.error("You must select at least 2 cities.");
+        setError("City selection is too few.");
+        setLoading(false);
+        return;
       }
 
-      setOriginDestinationInformation(originDestinationInfo);
-
-      const updatedRecentSearches = [searchData, ...recentSearchData].slice(
-        0,
-        5
+      const invalidTransformedData = transformedData.find(
+        (item) =>
+          !item.DepartureDateTime ||
+          !item.OriginLocation?.LocationCode ||
+          !item.DestinationLocation?.LocationCode
       );
-      setRecentSearchData(updatedRecentSearches);
 
-      const queryString = new URLSearchParams({
-        search: JSON.stringify(searchData),
-        originDestinationInfo: JSON.stringify(originDestinationInfo),
-      }).toString();
-
-      router.push(`/search-result?${queryString}`);
-    } else {
-      toast.error("Please fill up all the required fields");
+      if (invalidTransformedData) {
+        toast.error("One or more city data entries are invalid.");
+        return;
+      }
     }
+
+    if (!originalDate) {
+      toast.error("Please select a departure date.");
+
+      return;
+    }
+
+    if (!searchQueryDestination) {
+      toast.error("Please select a departure location.");
+
+      return;
+    }
+
+    if (!searchQueryArrival) {
+      toast.error("Please select a destination location.");
+
+      return;
+    }
+
+    if (selectedWay === "return" && !roundDate.to) {
+      toast.error("Please select a return date.");
+
+      return;
+    }
+
+    if (selectedWay === "multi_city") {
+      if (transformedData.length < 2) {
+        toast.error("You must select at least 2 cities.");
+
+        return;
+      }
+
+      const invalidTransformedData = transformedData.find(
+        (item) =>
+          !item.DepartureDateTime ||
+          !item.OriginLocation?.LocationCode ||
+          !item.DestinationLocation?.LocationCode
+      );
+
+      if (invalidTransformedData) {
+        toast.error("One or more city data entries are invalid.");
+
+        return;
+      }
+    }
+
+    const queryString = new URLSearchParams({
+      search: JSON.stringify(searchData),
+      originDestinationInfo:
+        selectedWay == "multi_city"
+          ? JSON.stringify(transformedData)
+          : JSON.stringify(originDestinationInfo),
+    }).toString();
+
+    router.push(`/search-result?${queryString}`);
   };
+
 
   const handleSwap = () => {
     const temp = searchQueryDestination;
@@ -466,7 +586,7 @@ export default function SearchPad() {
                 )}
               </div>
 
-              {selectedWay !== "multi_city" && (
+             
                 <div className=" text-left">
                   <DropdownMenu>
                     <DropdownMenuTrigger>
@@ -515,24 +635,26 @@ export default function SearchPad() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              )}
+           
             </div>
             {selectedWay == "multi_city" ? (
               <>
-                {flightRows.map((row, index) => (
+                {cities.map((row, index) => (
                   <div
                     key={row.id}
                     className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-4 items-center"
                   >
                     <div className="relative" ref={dropdownRefDestination}>
-                      <div
-                        onClick={() => setIsOpenDestination(!isOpenDestination)}
-                      >
+                      <div onClick={() => toggleField(row.id, "isOpenOrigin")}>
                         <input
-                          value={searchQueryDestination}
+                          value={row.searchQueryDestination}
                           type="text"
                           onChange={(e) =>
-                            setSearchQueryDestination(e.target.value)
+                            updateCityData(
+                              row.id,
+                              "searchQueryDestination",
+                              e.target.value
+                            )
                           }
                           placeholder="From ?"
                           className="w-full pl-10 pr-4 py-4  focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
@@ -541,20 +663,28 @@ export default function SearchPad() {
                           <Airplane />
                         </div>
                       </div>
-                      {isOpenDestination ? (
+                      {row?.isOpenOrigin ? (
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
                           <div className="p-8 ">
                             <ul className="space-y-4">
-                              {filteredAirportsDestination.map(
+                              {filteredAirportsDestinationMulti[row.id - 1].map(
                                 (destination, index) => (
                                   <li
                                     key={index}
                                     className="flex items-center space-x-4 cursor-pointer"
                                     onClick={() => {
-                                      setSearchQueryDestination(
-                                        destination.value
-                                      );
+                                      toggleField(row.id, "isOpenOrigin"),
+                                        updateCityData(
+                                          row.id,
+                                          "searchQueryDestination",
+                                          destination.value
+                                        );
                                       setIsOpenDestination(false);
+                                      updateCityData(row.id, "originAirport", {
+                                        label: destination.label,
+                                        value: destination.value,
+                                        code: destination.name,
+                                      });
                                     }}
                                   >
                                     <div className="flex-grow">
@@ -629,12 +759,18 @@ export default function SearchPad() {
                     </div>
 
                     <div className="relative" ref={dropdownRefArrival}>
-                      <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
+                      <div
+                        onClick={() => toggleField(row.id, "isOpenDestination")}
+                      >
                         <input
-                          value={searchQueryArrival}
+                          value={row.searchQueryArrival}
                           type="text"
                           onChange={(e) =>
-                            setSearchQueryArrival(e.target.value)
+                            updateCityData(
+                              row.id,
+                              "searchQueryArrival",
+                              e.target.value
+                            )
                           }
                           placeholder="To ?"
                           className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
@@ -643,29 +779,45 @@ export default function SearchPad() {
                           <Airplane />
                         </div>
                       </div>
-                      {isOpenArrival ? (
+                      {row?.isOpenDestination ? (
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
                           <div className="p-8 ">
                             <ul className="space-y-4">
-                              {filteredAirportsArrival.map((arrival, index) => (
-                                <li
-                                  key={index}
-                                  className="flex items-center space-x-4 cursor-pointer"
-                                  onClick={() => {
-                                    setSearchQueryArrival(arrival.value);
-                                    setIsOpenArrival(false);
-                                  }}
-                                >
-                                  <div className="flex-grow">
-                                    <p className="font-semibold">
-                                      {arrival.name}, {arrival.value}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      {arrival.label}
-                                    </p>
-                                  </div>
-                                </li>
-                              ))}
+                              {filteredAirportsArrivalMulti[row.id - 1].map(
+                                (arrival, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-center space-x-4 cursor-pointer"
+                                    onClick={() => {
+                                      toggleField(row.id, "isOpenDestination"),
+                                        updateCityData(
+                                          row.id,
+                                          "searchQueryArrival",
+                                          arrival.value
+                                        );
+                                      setIsOpenArrival(false);
+                                      updateCityData(
+                                        row.id,
+                                        "destinationAirport",
+                                        {
+                                          code: arrival.name,
+                                          value: arrival.value,
+                                          label: arrival.label,
+                                        }
+                                      );
+                                    }}
+                                  >
+                                    <div className="flex-grow">
+                                      <p className="font-semibold">
+                                        {arrival.name}, {arrival.value}
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        {arrival.label}
+                                      </p>
+                                    </div>
+                                  </li>
+                                )
+                              )}
                             </ul>
 
                             {recentSearchData?.length > 0 ? (
@@ -726,15 +878,17 @@ export default function SearchPad() {
                       )}
                     </div>
 
-                    <div className="col-span-1 flex gap-2 justify-between">
+                    <div className="col-span-2 flex gap-2 justify-between">
                       <DatePickerOneWay
-                        className={"w-full"}
-                        oneWayDate={oneWayDate}
-                        setOneWayDate={setOneWayDate}
+                        className="w-full"
+                        oneWayDate={row.departureDate}
+                        setOneWayDate={(date) =>
+                          updateCityData(row.id, "departureDate", date)
+                        }
                       />
-                    </div>
-                    <div className="flex items-center">
-                      <select
+
+                      <div className="flex items-center">
+                        {/* <select
                         className="w-full pl-6 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
                         value={row.class}
                         onChange={(e) =>
@@ -744,15 +898,41 @@ export default function SearchPad() {
                         <option>Economy</option>
                         <option>Business</option>
                         <option>First Class</option>
-                      </select>
-                      {index >= 2 && (
+                      </select> */}
+                        {/* {index >= 2 && (
                         <button
                           className="ml-2 p-2 bg-gray-200 rounded-full"
                           onClick={() => removeFlightRow(row.id)}
                         >
                           <X className="h-5 w-5 text-gray-500" />
                         </button>
-                      )}
+                      )} */}
+                        {index !== 0 && index !== 1 && (
+                          <div class="flex items-center border border-gray-300 rounded-md   p-1 overflow-hidden">
+                            <button
+                              class=" p-2 flex items-center justify-center text-gray-400 hover:text-gray-600  w-full  h-full "
+                              onClick={handleDeleteCity}
+                            >
+                              <span className="bg-gray-200 rounded-full w-8 h-8 flex justify-center items-center">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="h-6 w-6 text-white font-bold"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -760,7 +940,7 @@ export default function SearchPad() {
                   <button
                     type="button"
                     className="text-blue-600 font-semibold"
-                    onClick={addFlightRow}
+                    onClick={handleAddCity}
                   >
                     + Add another flight
                   </button>

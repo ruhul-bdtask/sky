@@ -48,6 +48,7 @@ export default function BookingForm() {
     setPassengerInformation,
     setLegDescription,
     setSelectedFlight,
+    setUserData,
   } = useAirlineStore();
   const isMyTokenExpired = isExpired(token);
 
@@ -206,7 +207,7 @@ export default function BookingForm() {
   useEffect(() => {
     if (registerData?.success == true) {
       setToken(registerData?.authorization?.token);
-
+      setUserData(registerData?.user);
       refetchBookingData();
     }
   }, [registerData, token]);
