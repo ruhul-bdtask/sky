@@ -41,6 +41,9 @@ export default function SearchPad() {
   const [arrival, setArrival] = useState("");
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
+
+  const [searchQueryArrival, setSearchQueryArrival] = useState();
+  const [searchQueryDestination, setSearchQueryDestination] = useState();
   const {
     setSearchData,
     OriginDestinationInformation,
@@ -77,7 +80,6 @@ export default function SearchPad() {
     RPH: 0,
   }));
 
-
   const [roundDate, setRoundDate] = useState(() => {
     const twoDaysAhead = new Date();
     twoDaysAhead.setDate(twoDaysAhead.getDate() + 2);
@@ -96,7 +98,6 @@ export default function SearchPad() {
     twoDaysAhead.setDate(twoDaysAhead.getDate() + 2);
     return twoDaysAhead;
   });
-
 
   const handleAddCity = () => {
     setCities([
@@ -130,10 +131,6 @@ export default function SearchPad() {
     );
   };
 
-
-
-  
-
   const filteredAirportsArrivalMulti = cities.map((city) =>
     airportsData.filter(
       (airport) =>
@@ -159,12 +156,21 @@ export default function SearchPad() {
         airport.value !== city.searchQueryArrival
     )
   );
-  const [searchQueryArrival, setSearchQueryArrival] = useState(
-    Object.keys(userData).length > 0 ? userData?.secondary_airports?.[0] : "CXB"
-  );
-  const [searchQueryDestination, setSearchQueryDestination] = useState(
-    Object.keys(userData).length > 0 ? userData?.home_airport : "DAC"
-  );
+
+  useEffect(() => {
+    if (Object.keys(userData).length > 0) {
+      setSearchQueryDestination(
+        userData?.home_airport?.match(/\((.*?)\)/)?.[1]
+      );
+      setSearchQueryArrival(
+        userData?.secondary_airports?.[0]?.match(/\((.*?)\)/)?.[1]
+      );
+    } else {
+      setSearchQueryDestination("DAC");
+      setSearchQueryArrival("CXB");
+    }
+  }, [userData]);
+
   const [ways, setWays] = useState([
     { name: "One-way", price: 50, shortCode: "one_way" },
     { name: "Return", price: 90, shortCode: "return" },
@@ -184,24 +190,24 @@ export default function SearchPad() {
 
   const filteredAirportsArrival = airportsData.filter(
     (airport) =>
-      (airport.name.toLowerCase().includes(searchQueryArrival.toLowerCase()) ||
+      (airport.name.toLowerCase().includes(searchQueryArrival?.toLowerCase()) ||
         airport.value
           .toLowerCase()
-          .includes(searchQueryArrival.toLowerCase())) &&
-      airport.name.toLowerCase() !== searchQueryDestination.toLowerCase() &&
-      airport.value.toLowerCase() !== searchQueryDestination.toLowerCase()
+          .includes(searchQueryArrival?.toLowerCase())) &&
+      airport.name.toLowerCase() !== searchQueryDestination?.toLowerCase() &&
+      airport.value.toLowerCase() !== searchQueryDestination?.toLowerCase()
   );
 
   const filteredAirportsDestination = airportsData.filter(
     (airport) =>
       (airport.name
         .toLowerCase()
-        .includes(searchQueryDestination.toLowerCase()) ||
+        .includes(searchQueryDestination?.toLowerCase()) ||
         airport.value
           .toLowerCase()
-          .includes(searchQueryDestination.toLowerCase())) &&
-      airport.name.toLowerCase() !== searchQueryArrival.toLowerCase() &&
-      airport.value.toLowerCase() !== searchQueryArrival.toLowerCase()
+          .includes(searchQueryDestination?.toLowerCase())) &&
+      airport.name.toLowerCase() !== searchQueryArrival?.toLowerCase() &&
+      airport.value.toLowerCase() !== searchQueryArrival?.toLowerCase()
   );
 
   const generatePassengersFromCategories = (categories) => {
@@ -429,7 +435,6 @@ export default function SearchPad() {
     router.push(`/search-result?${queryString}`);
   };
 
-
   const handleSwap = () => {
     const temp = searchQueryDestination;
     setSearchQueryDestination(searchQueryArrival);
@@ -586,56 +591,52 @@ export default function SearchPad() {
                 )}
               </div>
 
-             
-                <div className=" text-left">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <span
-                        onClick={() => setIsClassOpen(!isClassOpen)}
-                        className="flex justify-between items-center w-full px-2 py-2 text-sm  text-gray-700 cursor-pointer "
-                      >
-                        <span>
-                          {selectedClass == "Y"
-                            ? "Economy"
-                            : selectedClass == "P"
-                            ? "Premium Economy"
-                            : selectedClass == "C"
-                            ? "Business"
-                            : "F"}
-                        </span>
-                        <svg
-                          className="w-5 h-5 ml-2 -mr-1"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+              <div className=" text-left">
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <span
+                      onClick={() => setIsClassOpen(!isClassOpen)}
+                      className="flex justify-between items-center w-full px-2 py-2 text-sm  text-gray-700 cursor-pointer "
+                    >
+                      <span>
+                        {selectedClass == "Y"
+                          ? "Economy"
+                          : selectedClass == "P"
+                          ? "Premium Economy"
+                          : selectedClass == "C"
+                          ? "Business"
+                          : "First class"}
                       </span>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {classes?.map((cls, index) => (
-                        <DropdownMenuItem
-                          key={index}
-                          onClick={() => setSelectedClass(cls?.shortCode)}
-                          className={`px-5 py-2 ${
-                            selectedClass == cls?.shortCode
-                              ? "bg-[#F0F3F5]"
-                              : ""
-                          } cursor-pointer`}
-                        >
-                          {cls?.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-           
+                      <svg
+                        className="w-5 h-5 ml-2 -mr-1"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {classes?.map((cls, index) => (
+                      <DropdownMenuItem
+                        key={index}
+                        onClick={() => setSelectedClass(cls?.shortCode)}
+                        className={`px-5 py-2 ${
+                          selectedClass == cls?.shortCode ? "bg-[#F0F3F5]" : ""
+                        } cursor-pointer`}
+                      >
+                        {cls?.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
             {selectedWay == "multi_city" ? (
               <>
