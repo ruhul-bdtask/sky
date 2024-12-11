@@ -123,6 +123,7 @@ export default function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
   return (
     <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
       <div className="max-w-full sm:px-6 lg:px-2 h-full">

@@ -58,11 +58,10 @@ export default function TravelDashboard({ userData, userDataLoading }) {
 
         setBase64(reader.result);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file); 
     }
   };
 
-  console.log(imageUploadedData);
 
   const tabContent = {
     dashboard: (
