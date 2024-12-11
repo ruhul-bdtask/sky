@@ -11,6 +11,7 @@ import {
   GoogleOAuthProvider,
   useGoogleLogin,
 } from "@react-oauth/google";
+import FacebookLogin from "react-facebook-login";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import Image from "next/image";
@@ -20,7 +21,6 @@ import { useEffect, useState } from "react";
 import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -32,6 +32,7 @@ export default function Page() {
   const { token, setToken, setUserData, userData } = useAirlineStore();
 
   const handleClick = () => {};
+  const FACEBOOK_CLIENT_ID = process.env.NEXT_PUBLIC_FACEBOOK_CLIENT_ID;
 
   const { syncSavedFlights } = useSyncSavedFlights();
 
@@ -104,26 +105,26 @@ export default function Page() {
   // }, [token, router]);
 
   // Google login hook
-  const login = useGoogleLogin({
+  const googleLoginHandler = useGoogleLogin({
     // flow: "auth-code",
     // flow: "implicit",
     onSuccess: async (credentialResponse) => {
       try {
         setIsLoading(true);
-        console.log(credentialResponse);
-        const token = credentialResponse?.credential;
-        const data = await fetchData("/user/login", "POST", payload);
-        console.log(data);
-
+        const access_token = credentialResponse?.access_token;
+        const response = await fetchData("/user/login-with-social", "POST", {
+          provider: "google",
+          token: access_token,
+        });
+        let token;
+        if (response.success && response.authorization.token) {
+          token = response.authorization.token;
+        }
         if (!token) {
           throw new Error("Failed to retrieve token from Google response.");
         }
-
         // Save token securely in cookies
         Cookies.set("auth-token", token);
-        // console.log(token);
-
-        console.log("Login Successful!", token);
         setToken(token);
 
         router.push("/dashboard");
@@ -141,7 +142,36 @@ export default function Page() {
     },
   });
 
-  console.log(userData);
+  const facebookLoginHandler = async (credentialResponse) => {
+    try {
+      setIsLoading(true);
+      const access_token = credentialResponse?.accessToken;
+      const response = await fetchData("/user/login-with-social", "POST", {
+        provider: "facebook",
+        token: access_token,
+      });
+
+      let token;
+      if (response.success && response.authorization.token) {
+        token = response.authorization.token;
+      }
+      if (!token) {
+        throw new Error("Failed to retrieve token from Google response.");
+      }
+      // Save token securely in cookies
+      Cookies.set("auth-token", token);
+      setToken(token);
+
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Login Error:", error);
+      Cookies.remove("auth-token");
+      router.push("/login");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-[400px] sm:max-w-[490px] top-[12%] px-8 py-4 rounded-[11px] bg-white mx-auto">
       <div>
@@ -240,26 +270,33 @@ export default function Page() {
           <div className="w-full h-px bg-gray-300"></div>
         </div>
         <div className="grid grid-cols-2 gap-6">
-          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={(credentialResponse) => {
-                const token = credentialResponse.credential;
-                console.log(credentialResponse);
-                if (token) {
-                  Cookies.set("auth-token", token);
-                  setToken(token);
-                  router.push("/dashboard");
-                }
-              }}
-              onError={() => {
-                console.error("Login Failed");
-              }}
-            />
-          </GoogleOAuthProvider>
+          <FacebookLogin
+            appId={FACEBOOK_CLIENT_ID}
+            autoLoad={false}
+            fields="name,email,picture"
+            // onClick={componentClicked}
+            callback={facebookLoginHandler}
+            render={(renderProps) => (
+              <button
+                onClick={renderProps.onClick}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#4267B2",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "5px",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                }}
+              >
+                Login Facebook
+              </button>
+            )}
+          />
           <button
             className="flex items-center gap-2 p-3 border border-gray-400 justify-center rounded-[10px]"
             type="button"
-            onClick={login}
+            onClick={googleLoginHandler}
           >
             <Image
               alt="Sign in with Google"
