@@ -28,17 +28,10 @@ export default function SearchPad() {
   const [isClassOpen, setIsClassOpen] = useState(false);
   const [selectedWay, setSelectedWay] = useState("one_way");
   const [selectedClass, setSelectedClass] = useState("Y");
-  const [isCalenderShow, setIsCalenderShow] = useState(false);
   const [isOpenDestination, setIsOpenDestination] = useState(false);
   const [isOpenArrival, setIsOpenArrival] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedDestination, setSelectedDestination] = useState("");
-  const [selectedArrival, setSelectedArrival] = useState("");
 
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1));
-  const [tripType, setTripType] = useState("round-trip");
-  const [destination, setDestination] = useState("");
-  const [arrival, setArrival] = useState("");
+
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
 
@@ -46,7 +39,6 @@ export default function SearchPad() {
   const [searchQueryDestination, setSearchQueryDestination] = useState();
   const {
     setSearchData,
-    OriginDestinationInformation,
     setOriginDestinationInformation,
     setSelectedFlight,
     setPassengerInformation,
