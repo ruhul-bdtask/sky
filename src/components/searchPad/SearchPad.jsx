@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import airportsData from "../../../public/utils/airports.json";
 import moment from "moment";
+import { FaTimes } from "react-icons/fa";
 export default function SearchPad() {
   const [isPassengerOpen, setIsPassengerOpen] = useState(false);
   const [isWayOpen, setIsWayOpen] = useState(false);
@@ -30,7 +31,6 @@ export default function SearchPad() {
   const [selectedClass, setSelectedClass] = useState("Y");
   const [isOpenDestination, setIsOpenDestination] = useState(false);
   const [isOpenArrival, setIsOpenArrival] = useState(false);
-
 
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
@@ -51,6 +51,22 @@ export default function SearchPad() {
   const [cities, setCities] = useState([
     {
       id: 1,
+      searchQueryDestination: "",
+      searchQueryArrival: "",
+      departureDate: null,
+      isOpenOrigin: false,
+      isOpenDestination: false,
+    },
+    {
+      id: 2,
+      searchQueryDestination: "",
+      searchQueryArrival: "",
+      departureDate: null,
+      isOpenOrigin: false,
+      isOpenDestination: false,
+    },
+    {
+      id: 3,
       searchQueryDestination: "",
       searchQueryArrival: "",
       departureDate: null,
@@ -170,7 +186,8 @@ export default function SearchPad() {
   ]);
   const [categories, setCategories] = useState([
     { name: "Adults", ageRange: "18-64", count: 1 },
-    { name: "Children", ageRange: "2-11", count: 0 },
+    { name: "Children", ageRange: "5-11", count: 0 },
+    { name: "Kids", ageRange: "2-5", count: 0 },
     { name: "Infants on lap", ageRange: "under 2", count: 0 },
   ]);
   const [classes, setClasses] = useState([
@@ -212,7 +229,11 @@ export default function SearchPad() {
 
     const children = categories.find((cat) => cat.name === "Children");
     if (children && children.count > 0) {
-      passengers.push({ type: "C02", quantity: children.count });
+      passengers.push({ type: "C06", quantity: children.count });
+    }
+    const kids = categories.find((kid) => kid.name === "Kids");
+    if (kids && kids.count > 0) {
+      passengers.push({ type: "C04", quantity: kids.count });
     }
 
     const infants = categories.find((cat) => cat.name === "Infants on lap");
@@ -494,7 +515,7 @@ export default function SearchPad() {
                   >
                     <span>
                       {totalPassengers}{" "}
-                      {totalPassengers !== 1 ? "travelers" : "Adult"}
+                      {totalPassengers !== 1 ? "Travelers" : "Adult"}
                     </span>
                     <svg
                       className="w-5 h-5 ml-2 -mr-1"
@@ -532,7 +553,11 @@ export default function SearchPad() {
                             <button
                               type="button"
                               onClick={() => updateCount(index, -1)}
-                              disabled={category.count === 0}
+                              disabled={
+                                category?.name == "Adults"
+                                  ? category.count === 1
+                                  : category.count === 0
+                              }
                               className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
                               aria-label={`Decrease ${category.name}`}
                             >
@@ -557,6 +582,7 @@ export default function SearchPad() {
                             <button
                               onClick={() => updateCount(index, 1)}
                               type="button"
+                              disabled={totalPassengers === 7}
                               className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                               aria-label={`Increase ${category.name}`}
                             >
@@ -635,7 +661,7 @@ export default function SearchPad() {
                 {cities.map((row, index) => (
                   <div
                     key={row.id}
-                    className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-4 items-center"
+                    className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2 items-center"
                   >
                     <div className="relative" ref={dropdownRefDestination}>
                       <div onClick={() => toggleField(row.id, "isOpenOrigin")}>
@@ -873,7 +899,7 @@ export default function SearchPad() {
 
                     <div className="col-span-2 flex gap-2 justify-between">
                       <DatePickerOneWay
-                        className="w-full"
+                        className="w-[95%]"
                         oneWayDate={row.departureDate}
                         setOneWayDate={(date) =>
                           updateCityData(row.id, "departureDate", date)
@@ -900,28 +926,10 @@ export default function SearchPad() {
                           <X className="h-5 w-5 text-gray-500" />
                         </button>
                       )} */}
-                        {index !== 0 && index !== 1 && (
-                          <div class="flex items-center border border-gray-300 rounded-md   p-1 overflow-hidden">
-                            <button
-                              class=" p-2 flex items-center justify-center text-gray-400 hover:text-gray-600  w-full  h-full "
-                              onClick={handleDeleteCity}
-                            >
-                              <span className="bg-gray-200 rounded-full w-8 h-8 flex justify-center items-center">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  class="h-6 w-6 text-white font-bold"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                  />
-                                </svg>
-                              </span>
+                        {index !== 0 && (
+                          <div class="flex items-center overflow-hidden">
+                            <button type="button" onClick={handleDeleteCity}>
+                              <FaTimes size={20} />
                             </button>
                           </div>
                         )}
@@ -929,7 +937,7 @@ export default function SearchPad() {
                     </div>
                   </div>
                 ))}
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center w-[97.5%]">
                   <button
                     type="button"
                     className="text-blue-600 font-semibold"
@@ -950,9 +958,9 @@ export default function SearchPad() {
                     </div>
                   </button>
                 </div>
-                <p className="text-gray-500 text-sm text-right mt-2">
+                {/* <p className="text-gray-500 text-sm text-right mt-2">
                   Direct flights only
-                </p>
+                </p> */}
               </>
             ) : selectedWay == "one_way" ? (
               <>
@@ -976,14 +984,14 @@ export default function SearchPad() {
                         </div>
                       </div>
                       {isOpenDestination ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                          <div className="p-8 ">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                          <div className="p-4 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsDestination.map(
                                 (destination, index) => (
                                   <li
                                     key={index}
-                                    className="flex items-center space-x-4 cursor-pointer"
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-2 rounded-md"
                                     onClick={() => {
                                       setSearchQueryDestination(
                                         destination.value
@@ -1003,59 +1011,58 @@ export default function SearchPad() {
                                 )
                               )}
                             </ul>
-
-                            {recentSearchData?.length > 0 ? (
-                              <div className="mt-8">
-                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                  Recent Searches
-                                  <button
-                                    onClick={() => setRecentSearchData([])}
-                                    className="text-orange-500 hover:text-orange-600"
-                                  >
-                                    Clear
-                                  </button>
-                                </h3>
-                                <ul className="space-y-4">
-                                  {recentSearchData?.map((recent, index) => (
-                                    <li
-                                      key={index}
-                                      className="flex items-center space-x-4"
-                                    >
-                                      <div className="bg-gray-100 p-2 rounded-full">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-6 w-6 text-gray-600"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          stroke="currentColor"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M5 13l4 4L19 7"
-                                          />
-                                        </svg>
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold">
-                                          {recent?.destination} -{" "}
-                                          {recent?.arrival}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {moment(recent?.journeyDate).format(
-                                            "MMMM Do, YYYY"
-                                          )}
-                                        </p>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : (
-                              ""
-                            )}
                           </div>
+                          {recentSearchData?.length > 0 ? (
+                            <div className="p-8">
+                              <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                                Recent Searches
+                                <button
+                                  onClick={() => setRecentSearchData([])}
+                                  className="text-orange-500 hover:text-orange-600"
+                                >
+                                  Clear
+                                </button>
+                              </h3>
+                              <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                {recentSearchData?.map((recent, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-center space-x-4"
+                                  >
+                                    <div className="bg-gray-100 p-2 rounded-full">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-6 w-6 text-gray-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M5 13l4 4L19 7"
+                                        />
+                                      </svg>
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold">
+                                        {recent?.destination} -{" "}
+                                        {recent?.arrival}
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        {moment(recent?.journeyDate).format(
+                                          "MMMM Do, YYYY"
+                                        )}
+                                      </p>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : (
+                            ""
+                          )}
                         </div>
                       ) : (
                         ""
@@ -1084,8 +1091,8 @@ export default function SearchPad() {
                         </div>
                       </div>
                       {isOpenArrival ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                          <div className="p-8 ">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10">
+                          <div className="p-8 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsArrival.map((arrival, index) => (
                                 <li
@@ -1107,59 +1114,58 @@ export default function SearchPad() {
                                 </li>
                               ))}
                             </ul>
-
-                            {recentSearchData?.length > 0 ? (
-                              <div className="mt-8">
-                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                  Recent Searches
-                                  <button
-                                    onClick={() => setRecentSearchData([])}
-                                    className="text-orange-500 hover:text-orange-600"
-                                  >
-                                    Clear
-                                  </button>
-                                </h3>
-                                <ul className="space-y-4">
-                                  {recentSearchData?.map((recent, index) => (
-                                    <li
-                                      key={index}
-                                      className="flex items-center space-x-4"
-                                    >
-                                      <div className="bg-gray-100 p-2 rounded-full">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-6 w-6 text-gray-600"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          stroke="currentColor"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M5 13l4 4L19 7"
-                                          />
-                                        </svg>
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold">
-                                          {recent?.destination} -{" "}
-                                          {recent?.arrival}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {moment(recent?.journeyDate).format(
-                                            "MMMM Do, YYYY"
-                                          )}
-                                        </p>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : (
-                              ""
-                            )}
                           </div>
+                          {recentSearchData?.length > 0 ? (
+                            <div className="p-8">
+                              <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                                Recent Searches
+                                <button
+                                  onClick={() => setRecentSearchData([])}
+                                  className="text-orange-500 hover:text-orange-600"
+                                >
+                                  Clear
+                                </button>
+                              </h3>
+                              <ul className="space-y-4">
+                                {recentSearchData?.map((recent, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-center space-x-4"
+                                  >
+                                    <div className="bg-gray-100 p-2 rounded-full">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-6 w-6 text-gray-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M5 13l4 4L19 7"
+                                        />
+                                      </svg>
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold">
+                                        {recent?.destination} -{" "}
+                                        {recent?.arrival}
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        {moment(recent?.journeyDate).format(
+                                          "MMMM Do, YYYY"
+                                        )}
+                                      </p>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : (
+                            ""
+                          )}
                         </div>
                       ) : (
                         ""
@@ -1212,8 +1218,8 @@ export default function SearchPad() {
                           </div>
                         </div>
                         {isOpenDestination ? (
-                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                            <div className="p-8 ">
+                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                            <div className="p-8 max-h-[300px] overflow-y-auto">
                               <ul className="space-y-4">
                                 {filteredAirportsDestination.map(
                                   (destination, index) => (
@@ -1240,59 +1246,58 @@ export default function SearchPad() {
                                   )
                                 )}
                               </ul>
-
-                              {recentSearchData?.length > 0 ? (
-                                <div className="mt-8">
-                                  <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                    Recent Searches
-                                    <button
-                                      onClick={() => setRecentSearchData([])}
-                                      className="text-orange-500 hover:text-orange-600"
-                                    >
-                                      Clear
-                                    </button>
-                                  </h3>
-                                  <ul className="space-y-4">
-                                    {recentSearchData?.map((recent, index) => (
-                                      <li
-                                        key={index}
-                                        className="flex items-center space-x-4"
-                                      >
-                                        <div className="bg-gray-100 p-2 rounded-full">
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-6 w-6 text-gray-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              strokeWidth={2}
-                                              d="M5 13l4 4L19 7"
-                                            />
-                                          </svg>
-                                        </div>
-                                        <div>
-                                          <p className="font-semibold">
-                                            {recent?.destination} -{" "}
-                                            {recent?.arrival}
-                                          </p>
-                                          <p className="text-sm text-gray-500">
-                                            {moment(recent?.journeyDate).format(
-                                              "MMMM Do, YYYY"
-                                            )}
-                                          </p>
-                                        </div>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              ) : (
-                                ""
-                              )}
                             </div>
+                            {recentSearchData?.length > 0 ? (
+                              <div className="p-8 ">
+                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                                  Recent Searches
+                                  <button
+                                    onClick={() => setRecentSearchData([])}
+                                    className="text-orange-500 hover:text-orange-600"
+                                  >
+                                    Clear
+                                  </button>
+                                </h3>
+                                <ul className="space-y-4">
+                                  {recentSearchData?.map((recent, index) => (
+                                    <li
+                                      key={index}
+                                      className="flex items-center space-x-4"
+                                    >
+                                      <div className="bg-gray-100 p-2 rounded-full">
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-6 w-6 text-gray-600"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 13l4 4L19 7"
+                                          />
+                                        </svg>
+                                      </div>
+                                      <div>
+                                        <p className="font-semibold">
+                                          {recent?.destination} -{" "}
+                                          {recent?.arrival}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {moment(recent?.journeyDate).format(
+                                            "MMMM Do, YYYY"
+                                          )}
+                                        </p>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              ""
+                            )}
                           </div>
                         ) : (
                           ""
