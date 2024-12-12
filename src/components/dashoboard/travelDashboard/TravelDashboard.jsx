@@ -58,10 +58,9 @@ export default function TravelDashboard({ userData, userDataLoading }) {
 
         setBase64(reader.result);
       };
-      reader.readAsDataURL(file); 
+      reader.readAsDataURL(file);
     }
   };
-
 
   const tabContent = {
     dashboard: (
