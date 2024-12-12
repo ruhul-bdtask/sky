@@ -11,7 +11,7 @@ import {
   GoogleOAuthProvider,
   useGoogleLogin,
 } from "@react-oauth/google";
-import FacebookLogin from "react-facebook-login";
+import FacebookLogin from "react-facebook-login/dist/facebook-login-render-props";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import Image from "next/image";
@@ -21,6 +21,8 @@ import { useEffect, useState } from "react";
 import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
+import { FaFacebookF } from "react-icons/fa";
+import { ImFacebook2 } from "react-icons/im";
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -86,7 +88,7 @@ export default function Page() {
         setUserData(data?.user);
         await syncSavedFlights(token);
 
-        router.push("/dashboard");
+        router.push("/");
       } catch (err) {
         console.error("Error during login:", err);
         setError(err.message || "Login failed.");
@@ -126,8 +128,9 @@ export default function Page() {
         // Save token securely in cookies
         Cookies.set("auth-token", token);
         setToken(token);
+        setUserData(response.user);
 
-        router.push("/dashboard");
+        router.push("/");
       } catch (error) {
         console.error("Login Error:", error);
         Cookies.remove("auth-token");
@@ -161,8 +164,9 @@ export default function Page() {
       // Save token securely in cookies
       Cookies.set("auth-token", token);
       setToken(token);
+      setUserData(response.user);
 
-      router.push("/dashboard");
+      router.push("/");
     } catch (error) {
       console.error("Login Error:", error);
       Cookies.remove("auth-token");
@@ -270,29 +274,6 @@ export default function Page() {
           <div className="w-full h-px bg-gray-300"></div>
         </div>
         <div className="grid grid-cols-2 gap-6">
-          <FacebookLogin
-            appId={FACEBOOK_CLIENT_ID}
-            autoLoad={false}
-            fields="name,email,picture"
-            // onClick={componentClicked}
-            callback={facebookLoginHandler}
-            render={(renderProps) => (
-              <button
-                onClick={renderProps.onClick}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#4267B2",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                }}
-              >
-                Login Facebook
-              </button>
-            )}
-          />
           <button
             className="flex items-center gap-2 p-3 border border-gray-400 justify-center rounded-[10px]"
             type="button"
@@ -306,19 +287,23 @@ export default function Page() {
             ></Image>
             Google
           </button>
-          <button
-            className="flex items-center gap-2 p-3 border border-gray-400 justify-center rounded-[10px]"
-            type="button"
-            onClick={handleClick}
-          >
-            <Image
-              alt="Sign in with Apple"
-              src={apple}
-              width={20}
-              height={20}
-            ></Image>
-            Facebook
-          </button>
+          <FacebookLogin
+            appId={FACEBOOK_CLIENT_ID}
+            autoLoad={false}
+            fields="name,email,picture"
+            // onClick={componentClicked}
+            callback={facebookLoginHandler}
+            render={(renderProps) => (
+              <button
+                className="flex items-center gap-2 p-3 border border-gray-400 justify-center rounded-[10px]"
+                type="button"
+                onClick={renderProps.onClick}
+              >
+                <ImFacebook2 className="text-blue-500" />
+                Facebook
+              </button>
+            )}
+          />
         </div>
         <p className="text-[12px] mt-2 text-center">
           Do you haven&apos;t any account ?{" "}
