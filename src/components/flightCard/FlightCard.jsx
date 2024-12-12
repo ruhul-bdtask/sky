@@ -320,7 +320,10 @@ export default function FlightCard({ flight }) {
             </div>
             <div className="flex gap-5">
               <p className="text-sm font-semibold text-start">
-                {flight?.schedules.length > 1 ? "Multi stop" : "Direct"}
+                {flight?.schedules.length === 0 && " Direct"}
+                {flight?.schedules.length === 1 && "1 Stop"}
+                {flight?.schedules.length > 1 &&
+                  flight?.schedules.length + "Stops"}
               </p>
               <p className="text-sm font-semibold text-start">
                 {convertMinutesToHours(departureElapsedTime)}
@@ -362,7 +365,10 @@ export default function FlightCard({ flight }) {
             </div>
             <div className="flex gap-5">
               <p className="text-sm font-semibold text-start">
-                {flight?.schedules.length > 1 ? "Multi stop" : "Direct"}
+                {flight?.schedules.length === 0 && " Direct"}
+                {flight?.schedules.length === 1 && "1 Stop"}
+                {flight?.schedules.length > 1 &&
+                  flight?.schedules.length + "Stops"}
               </p>
               <p className="text-sm font-semibold text-start">
                 {convertMinutesToHours(arrivalElapsedTime)}
@@ -373,12 +379,6 @@ export default function FlightCard({ flight }) {
       </>
     );
   };
-
-  const flatData = flight?.itinerary_leg_descs?.flat();
-
-  flatData?.map((flat) => {
-    console.log(flat);
-  });
 
   return (
     <>
@@ -495,7 +495,10 @@ export default function FlightCard({ flight }) {
                     {flight?.flight_duration}
                   </p>
                   <p className="text-sm font-semibold text-start">
-                    {flight?.schedules.length > 1 ? "Multi city" : "Direct"}
+                    {flight?.total_stop === 0 && " Direct"}
+                    {flight?.total_stop === 1 && "1 Stop"}
+                    {flight?.total_stop > 1 &&
+                      flight?.total_stop + "Stops"}{" "}
                   </p>
                 </div>
               </div>
@@ -540,7 +543,10 @@ export default function FlightCard({ flight }) {
                             {air?.duration}
                           </p>
                           <p className="text-sm font-semibold text-start">
-                            {air?.stop_count > 0 ? "Multi city" : "Direct"}
+                            {air?.stop_count === 0 && " Direct"}
+                            {air?.stop_count === 1 && "1 Stop"}
+                            {air?.stop_count > 1 &&
+                              air?.stop_count + " Stops"}{" "}
                           </p>
                         </div>
                       </div>
