@@ -61,6 +61,7 @@ const useSyncSavedFlights = () => {
           null,
           token
         );
+        console.log(response);
         if (response.success && response.data) {
           setSavedFlights(response.data);
         } else {
@@ -68,9 +69,8 @@ const useSyncSavedFlights = () => {
         }
       }
     } catch (err) {
-      console.log(err);
-      console.error("Error syncing saved flights:", err);
-      toast.error("Failed to sync saved flights.");
+      console.log(err.message);
+      toast.error(err.message);
     }
   };
 
