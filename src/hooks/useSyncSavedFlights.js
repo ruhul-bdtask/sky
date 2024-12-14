@@ -42,7 +42,7 @@ const useSyncSavedFlights = () => {
         if (response.success) {
           console.log("get called");
           const response = await fetchData(
-            "/gds/get-user-saved-trips",
+            "/gds/get-saved-trips",
             "GET",
             null,
             token
@@ -56,7 +56,7 @@ const useSyncSavedFlights = () => {
       } else {
         console.log("get called only");
         const response = await fetchData(
-          "/gds/get-user-saved-trips",
+          "/gds/get-saved-trips",
           "GET",
           null,
           token
