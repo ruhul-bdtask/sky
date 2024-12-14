@@ -48,6 +48,7 @@ export default function Header() {
     setSearchData,
     setUserData,
     userData,
+    setSavedFlights,
   } = useAirlineStore();
 
   // useEffect(() => {
@@ -58,6 +59,7 @@ export default function Header() {
     setIsOpenProfile(false);
     Cookies.remove("auth-token");
     setToken(null);
+    setSavedFlights([]);
     router.push("/login");
     setUserData({});
   };

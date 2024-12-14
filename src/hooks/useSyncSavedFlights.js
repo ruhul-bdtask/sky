@@ -5,12 +5,14 @@ import { fetchData } from "@/utils/api";
 import { useState } from "react";
 
 const formatSavedFlight = (savedFlights) => {
-  const formattedSavedFlights = savedFlights.map((flight) => {
-    return {
-      trip_data: flight,
-    };
-  });
-
+  let formattedSavedFlights = [];
+  if (savedFlights.length > 0) {
+    formattedSavedFlights = savedFlights.map((flight) => {
+      return {
+        trip_data: flight,
+      };
+    });
+  }
   return {
     data: formattedSavedFlights,
   };
@@ -26,38 +28,47 @@ const removeDuplicateFlights = (flights) => {
 const useSyncSavedFlights = () => {
   const { token, setToken, savedFlights, setSavedFlights } = useAirlineStore();
   const formattedSavedFlights = formatSavedFlight(savedFlights);
-
   const syncSavedFlights = async (token) => {
     try {
-      // post existing local saved flights to the server
-      const response = await fetchData(
-        "/gds/save-trips",
-        "POST",
-        formattedSavedFlights,
-        token
-      );
-
-      if (response.success) {
+      if (formattedSavedFlights.data.length > 0) {
+        console.log("post called");
+        // post existing local saved flights to the server
+        const response = await fetchData(
+          "/gds/save-trips",
+          "POST",
+          formattedSavedFlights,
+          token
+        );
+        if (response.success) {
+          console.log("get called");
+          const response = await fetchData(
+            "/gds/get-user-saved-trips",
+            "GET",
+            null,
+            token
+          );
+          if (response.success && response.data) {
+            setSavedFlights(response.data);
+          }
+        } else {
+          throw new Error("Failed to fetch updated saved flights.");
+        }
+      } else {
+        console.log("get called only");
         const response = await fetchData(
           "/gds/get-user-saved-trips",
           "GET",
           null,
           token
         );
-
-        // const trips = response.data.map((trip) => trip?.trip_data);
-
-        // const uniqueFlights = removeDuplicateFlights([
-        //   ...savedFlights,
-        //   ...trips,
-        // ]);
-        if (response.success) {
+        if (response.success && response.data) {
           setSavedFlights(response.data);
+        } else {
+          throw new Error("Failed to fetch updated saved flights.");
         }
-      } else {
-        throw new Error("Failed to fetch updated saved flights.");
       }
     } catch (err) {
+      console.log(err);
       console.error("Error syncing saved flights:", err);
       toast.error("Failed to sync saved flights.");
     }

@@ -23,6 +23,7 @@ import { Oval } from "react-loader-spinner";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
 import { toast } from "react-toastify";
+import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
 
 export default function FlightCard({ flight }) {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function FlightCard({ flight }) {
     isOpenSavedDialog,
     setIsOpenSavedDialog,
   } = useAirlineStore();
+  const { syncSavedFlights } = useSyncSavedFlights();
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
@@ -94,13 +96,17 @@ export default function FlightCard({ flight }) {
     setSharedInfo(filterInfo);
   }, [router]);
 
-  const { savedFlights, setSavedFlights } = useAirlineStore();
+  const { token, savedFlights, setSavedFlights } = useAirlineStore();
   const handleSavedFlights = (id) => {
     const isFlightSaved = savedFlights.some(
       (savedFlight) =>
         savedFlight?.trip_data?.air_pricing_solution_key ===
         flight?.air_pricing_solution_key
     );
+
+    // if (token) {
+    //   syncSavedFlights(token);
+    // }
 
     if (isFlightSaved) {
       setSavedFlights(
