@@ -23,6 +23,8 @@ import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
+import { toast } from "react-toastify";
+import copy from "copy-to-clipboard";
 
 export default function FlightCard({ flight }) {
   const router = useRouter();
@@ -234,7 +236,8 @@ export default function FlightCard({ flight }) {
         break;
 
       case "copyUrl":
-        navigator.clipboard.writeText(url);
+        // navigator?.clipboard?.writeText(url);
+        copy(url);
         toast.success("Copied to clipboard");
         break;
       default:
@@ -379,7 +382,7 @@ export default function FlightCard({ flight }) {
                 {flight?.schedules.length === 0 && " Direct"}
                 {flight?.schedules.length === 1 && "1 Stop"}
                 {flight?.schedules.length > 1 &&
-                  flight?.schedules.length + "Stops"}
+                  flight?.schedules.length + " " + "Stops"}
               </p>
               <p className="text-sm font-semibold text-start">
                 {convertMinutesToHours(departureElapsedTime)}
@@ -424,7 +427,7 @@ export default function FlightCard({ flight }) {
                 {flight?.schedules.length === 0 && " Direct"}
                 {flight?.schedules.length === 1 && "1 Stop"}
                 {flight?.schedules.length > 1 &&
-                  flight?.schedules.length + "Stops"}
+                  flight?.schedules.length + " " + "Stops"}
               </p>
               <p className="text-sm font-semibold text-start">
                 {convertMinutesToHours(arrivalElapsedTime)}
@@ -440,7 +443,7 @@ export default function FlightCard({ flight }) {
     <>
       <div
         onClick={toggleFlightDetails}
-        className="w-full bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit hover:border transition-all ease-in-out border-black cursor-pointer"
+        className="w-full  bg-white rounded-[7px] shadow-md overflow-hidden mt-5 h-fit border border-white transition-all  duration-500  hover:border-black cursor-pointer"
       >
         {sharedInfo?.departure_time == flight?.departure_time &&
           sharedInfo?.arrival_time == flight?.arrival_time &&
@@ -554,7 +557,7 @@ export default function FlightCard({ flight }) {
                     {flight?.total_stop === 0 && " Direct"}
                     {flight?.total_stop === 1 && "1 Stop"}
                     {flight?.total_stop > 1 &&
-                      flight?.total_stop + "Stops"}{" "}
+                      flight?.total_stop + " " + "Stops"}{" "}
                   </p>
                 </div>
               </div>
@@ -572,7 +575,7 @@ export default function FlightCard({ flight }) {
                             width={50}
                             height={50}
                             alt="air"
-                            src={flight?.airline_logo}
+                            src={flight?.airline_logo} 
                           ></Image>
 
                           <div>
@@ -602,7 +605,7 @@ export default function FlightCard({ flight }) {
                             {air?.stop_count === 0 && " Direct"}
                             {air?.stop_count === 1 && "1 Stop"}
                             {air?.stop_count > 1 &&
-                              air?.stop_count + " Stops"}{" "}
+                              air?.stop_count + " " + " Stops"}{" "}
                           </p>
                         </div>
                       </div>
