@@ -1,15 +1,13 @@
+import { fetchData } from "@/utils/api";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../stores/airlineStore";
-import { useQuery } from "@tanstack/react-query";
-import { fetchData } from "@/utils/api";
-import { useState } from "react";
 
-const formatSavedFlight = (savedFlights) => {
+const formatSavedFlight = (savedTrips) => {
   let formattedSavedFlights = [];
-  if (savedFlights.length > 0) {
-    formattedSavedFlights = savedFlights.map((flight) => {
+  if (savedTrips.length > 0) {
+    formattedSavedFlights = savedTrips.map((flight) => {
       return {
-        trip_data: flight,
+        flight_data: flight,
       };
     });
   }
@@ -26,8 +24,8 @@ const removeDuplicateFlights = (flights) => {
 };
 
 const useSyncSavedFlights = () => {
-  const { token, setToken, savedFlights, setSavedFlights } = useAirlineStore();
-  const formattedSavedFlights = formatSavedFlight(savedFlights);
+  const { token, setToken, savedTrips, setSavedTrips } = useAirlineStore();
+  const formattedSavedFlights = formatSavedFlight(savedTrips);
   const syncSavedFlights = async (token) => {
     try {
       if (formattedSavedFlights.data.length > 0) {
@@ -48,7 +46,7 @@ const useSyncSavedFlights = () => {
             token
           );
           if (response.success && response.data) {
-            setSavedFlights(response.data);
+            setSavedTrips(response.data);
           }
         } else {
           throw new Error("Failed to fetch updated saved flights.");
@@ -63,7 +61,7 @@ const useSyncSavedFlights = () => {
         );
         console.log(response);
         if (response.success && response.data) {
-          setSavedFlights(response.data);
+          setSavedTrips(response.data);
         } else {
           throw new Error("Failed to fetch updated saved flights.");
         }
