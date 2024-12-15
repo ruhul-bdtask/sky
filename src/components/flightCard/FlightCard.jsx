@@ -163,11 +163,11 @@ export default function FlightCard({ flight }) {
 
     // Update the savedTrips array
     const updatedSavedTrips = savedTrips.map((trip) => {
-      if (trip.tripName === selectedSavedTrip.tripName) {
+      if (trip.name === selectedSavedTrip.name) {
         // Found the selected trip to update
         return {
           ...trip,
-          flights: [...trip.flights, flight],
+          flights: [...trip.flights, { flight_data: flight }],
         };
       }
       // Return other trips unchanged
@@ -178,7 +178,7 @@ export default function FlightCard({ flight }) {
     setSavedTrips(updatedSavedTrips);
 
     updatedSavedTrips.forEach((trip) => {
-      if (trip.tripName === selectedSavedTrip.tripName) {
+      if (trip.name === selectedSavedTrip.name) {
         setSelectedSavedTrip(trip);
       }
     });

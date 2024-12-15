@@ -12,7 +12,7 @@ const formatSavedFlight = (savedTrips) => {
     });
   }
   return {
-    data: formattedSavedFlights,
+    formattedSavedFlights,
   };
 };
 
@@ -25,16 +25,20 @@ const removeDuplicateFlights = (flights) => {
 
 const useSyncSavedFlights = () => {
   const { token, setToken, savedTrips, setSavedTrips } = useAirlineStore();
-  const formattedSavedFlights = formatSavedFlight(savedTrips);
+  // const formattedSavedFlights = formatSavedFlight(savedTrips);
+  const payload = {
+    data: savedTrips,
+  };
+
   const syncSavedFlights = async (token) => {
     try {
-      if (formattedSavedFlights.data.length > 0) {
+      if (savedTrips.length > 0) {
         console.log("post called");
         // post existing local saved flights to the server
         const response = await fetchData(
-          "/gds/save-trips",
+          "/gds/save-bulk-trips",
           "POST",
-          formattedSavedFlights,
+          payload,
           token
         );
         if (response.success) {
@@ -49,7 +53,8 @@ const useSyncSavedFlights = () => {
             setSavedTrips(response.data);
           }
         } else {
-          throw new Error("Failed to fetch updated saved flights.");
+          console.log(response);
+          throw new Error(response.errors[0]);
         }
       } else {
         console.log("get called only");
@@ -59,11 +64,10 @@ const useSyncSavedFlights = () => {
           null,
           token
         );
-        console.log(response);
         if (response.success && response.data) {
           setSavedTrips(response.data);
         } else {
-          throw new Error("Failed to fetch updated saved flights.");
+          throw new Error("Failed to sync saved flights.");
         }
       }
     } catch (err) {
