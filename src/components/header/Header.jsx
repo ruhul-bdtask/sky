@@ -1,32 +1,24 @@
 // app/components/Header.js
-import { Menu, X, Heart } from "lucide-react";
-import logo from "@/public/images/logo.png";
-import device from "@/public/images/device.png";
-import google from "@/public/images/google.png";
-import apple from "@/public/images/apple.png";
-import verify from "@/public/images/verify.png";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 import { useSidebar } from "@/context/sidebar-context";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { formatFlightFare } from "@/lib/formatFlightFare";
+import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
+import ActiveIcon from "@/public/icons/ActiveIcon";
 import AvatarIcon from "@/public/icons/AvatarIcon";
 import HeartIcon from "@/public/icons/HeartIcon";
-import { useRouter } from "next/navigation";
-import MessageIcon from "@/public/icons/MessageIcon";
-import LeftArrowIcon from "@/public/icons/LeftArrowIcon";
-import LinkIcon from "@/public/icons/LinkIcon";
-import ActiveIcon from "@/public/icons/ActiveIcon";
-import UserIcon from "@/public/icons/UserIcon";
-import { Pencil, MoreVertical } from "lucide-react";
+import logo from "@/public/images/logo.png";
+import verify from "@/public/images/verify.png";
 import weather from "@/public/images/weather.png";
-import useAirlineStore from "../../../stores/airlineStore";
-import { isExpired } from "react-jwt";
-import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
-import { formatFlightFare } from "@/lib/formatFlightFare";
 import Cookies from "js-cookie";
+import { Menu, Pencil, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { AiOutlinePlus } from "react-icons/ai";
+import { isExpired } from "react-jwt";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import useAirlineStore from "../../../stores/airlineStore";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -40,14 +32,21 @@ export default function Header() {
   const [isOpenSaved, setIsOpenSaved] = useState(false);
   const dropdownRef = useRef();
   const {
-    savedFlights,
     token,
+    savedTrips,
+    selectedSavedTrip,
+    isChangeTrip,
+    isOpenSavedDialog,
+    isCreateTrip,
+    setIsCreateTrip,
+    setIsChangeTrip,
     setToken,
     setIsOpenSavedDialog,
-    isOpenSavedDialog,
     setSearchData,
     setUserData,
     userData,
+    setSavedTrips,
+    setSelectedSavedTrip,
   } = useAirlineStore();
 
   // useEffect(() => {
@@ -57,10 +56,20 @@ export default function Header() {
   const handleLogOut = () => {
     setIsOpenProfile(false);
     Cookies.remove("auth-token");
+    if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+      setSavedTrips([]);
+      setSelectedSavedTrip([]);
+    }
     setToken(null);
     router.push("/login");
     setUserData({});
   };
+
+  useEffect(() => {
+    if (!selectedSavedTrip.name) {
+      setIsChangeTrip(true);
+    }
+  }, []);
 
   const isMyTokenExpired = isExpired(token);
   const handleChange = (e, index) => {
@@ -124,6 +133,64 @@ export default function Header() {
     };
   }, []);
 
+  const [tripError, setTripError] = useState("");
+  const [formData, setFormData] = useState({
+    destination: "",
+    name: "",
+    start_date: "",
+    end_date: "",
+    flights: [],
+  });
+
+  const handleToggleChangeTrip = () => {
+    setIsChangeTrip(!isChangeTrip);
+  };
+
+  const handleOnTripChange = (e) => {
+    const { name, value } = e.target;
+    const nextFormData = { ...formData };
+    nextFormData[name] = value;
+    setFormData(nextFormData);
+  };
+
+  const handleCreateTrip = (e) => {
+    e.preventDefault();
+
+    const newTripName = e.target.name.value;
+    if (formData.name.trim().length === 0) {
+      setTripError(`Please enter a trip name`);
+      return;
+    }
+
+    const tripExists = savedTrips.some(
+      (flight) =>
+        flight.name.toLowerCase().trim() === newTripName.toLowerCase().trim()
+    );
+
+    if (tripExists) {
+      setTripError(`${newTripName} is already taken`);
+      return;
+    }
+
+    setSavedTrips([...savedTrips, formData]);
+    setSelectedSavedTrip(formData);
+    setIsCreateTrip(false);
+    setIsChangeTrip(false);
+    setFormData({
+      destination: "",
+      name: "",
+      start_date: "",
+      end_date: "",
+      flights: [],
+    });
+    setTripError("");
+  };
+
+  const onSelectSavedTrip = (trip) => {
+    setSelectedSavedTrip(trip);
+    setIsChangeTrip(false);
+  };
+
   return (
     <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
       <div className="max-w-full sm:px-6 lg:px-2 h-full">
@@ -168,146 +235,279 @@ export default function Header() {
                         >
                           <X className="h-6 w-6" />
                         </button>
-                        <h2 className="text-[16px] font-semibold text-[#0C7C99]">
-                          Change Trip
-                        </h2>
+                        <button
+                          onClick={handleToggleChangeTrip}
+                          className="text-[16px] font-semibold text-[#0C7C99]"
+                        >
+                          {isChangeTrip ? "Cancel" : "Change Trip"}
+                        </button>
                       </div>
                     </div>
 
-                    <div className="p-4">
-                      <div className="mb-6 flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                          <Image
-                            alt="image"
-                            width={80}
-                            height={80}
-                            src={weather}
-                          ></Image>
-                          <div>
-                            <h2 className="text-lg font-bold">
-                              Kuala Lumpur Trip
-                            </h2>
-                            <p className="text-sm text-black">
-                              Thu, 3 Oct - Sun, 6 Oct
-                            </p>
-                            <p className="text-sm text-black">
-                              Kuala Lumpur, Malaysia
-                            </p>
+                    {!isChangeTrip && selectedSavedTrip?.name && (
+                      <div className="p-4">
+                        <div className="mb-6 flex items-start justify-between ">
+                          <div className="flex items-center gap-4">
+                            <Image
+                              alt="image"
+                              width={80}
+                              height={80}
+                              src={weather}
+                            ></Image>
+                            <div>
+                              <h2 className="text-lg font-bold">
+                                {selectedSavedTrip.name}
+                              </h2>
+                              <p className="text-sm text-black">
+                                {selectedSavedTrip.start_date} -{" "}
+                                {selectedSavedTrip.end_date}
+                              </p>
+                              <p className="text-sm text-black">
+                                {selectedSavedTrip.destination}
+                              </p>
+                            </div>
                           </div>
+                          <button className="text-black">
+                            <Pencil className="h-5 w-5" />
+                          </button>
                         </div>
-                        <button className="text-black">
-                          <Pencil className="h-5 w-5" />
-                        </button>
-                      </div>
-                      <div className="mb-4">
-                        <h3 className="text-lg font-semibold">Flights</h3>
-                      </div>
-                      <div className="mb-4">
-                        {savedFlights?.length > 0 && (
-                          <h4 className="mb-2 text-sm font-semibold">
-                            Saved Flights ({savedFlights?.length})
-                          </h4>
-                        )}
+                        <div className="mb-4">
+                          <h3 className="text-lg font-semibold">Flights</h3>
+                        </div>
+                        <div className="mb-4">
+                          {savedTrips?.length > 0 && (
+                            <h4 className="mb-2 text-sm font-semibold">
+                              Saved Flights (
+                              {selectedSavedTrip?.flights?.length})
+                            </h4>
+                          )}
 
-                        <div class="w-[373px]  shadow-xl ">
-                          <div class="flex justify-between items-center bg-[#F0F3F5]  rounded-t-[20px] p-6">
-                            <div class="text-left">
-                              <div class="text-lg font-semibold text-gray-800">
-                                {savedFlights[0]?.origin_code} -{" "}
-                                {savedFlights[0]?.destination_code}
+                          <div class="w-[373px]  shadow-xl ">
+                            <div class="flex justify-between items-center bg-[#F0F3F5]  rounded-t-[20px] p-6">
+                              <div class="text-left">
+                                <div class="text-lg font-semibold text-gray-800">
+                                  {savedTrips[0]?.origin_code} -{" "}
+                                  {savedTrips[0]?.destination_code}
+                                </div>
+                                <div class="text-sm text-black">
+                                  12/9 - 15/9
+                                </div>
                               </div>
-                              <div class="text-sm text-black">12/9 - 15/9</div>
-                            </div>
-                            <div class="text-right">
-                              <span class="text-xs font-medium text-black">
-                                Economy
-                              </span>
-                            </div>
-                          </div>
-
-                          {savedFlights?.map((flight, index) => (
-                            <div
-                              class="flex flex-col gap-4 mt-4 p-4 border-b"
-                              key={index}
-                            >
-                              <div class="flex items-center justify-between text-sm">
-                                <span class="font-medium text-gray-800">
-                                  {flight?.trip_data?.airline_name}
+                              <div class="text-right">
+                                <span class="text-xs font-medium text-black">
+                                  Economy
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2 justify-between ">
-                                <div className="">
-                                  {flight?.trip_data?.schedules?.map(
-                                    (schedule, index) => (
-                                      <div
-                                        class="mt-3 py-3 px-1  rounded-lg"
-                                        key={index}
-                                      >
-                                        <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
-                                          {flight?.trip_data?.departure_date}
-                                        </div>
+                            </div>
 
-                                        <div class="flex items-center justify-between">
-                                          <Image
-                                            width={50}
-                                            height={50}
-                                            src={
-                                              flight?.trip_data?.airline_logo
-                                            }
-                                            alt="Air line Logo"
-                                            class="h-8 w-8 object-contain"
-                                          />
-                                          <div class="flex flex-col text-center">
-                                            <span class="text-lg font-semibold">
-                                              {unifyTimeFormat(
-                                                flight?.trip_data
-                                                  ?.departure_time
-                                              )}
-                                            </span>
-                                            <span class="text-xs text-black">
-                                              {flight?.trip_data?.origin_code}
-                                            </span>
+                            {selectedSavedTrip?.flights.map(
+                              ({ flight_data: flight }, index) => (
+                                <div
+                                  class="flex flex-col gap-4 mt-4 p-4 border-b"
+                                  key={index}
+                                >
+                                  <div class="flex items-center justify-between text-sm">
+                                    <span class="font-medium text-gray-800">
+                                      {flight?.airline_name}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 justify-between ">
+                                    <div className="">
+                                      {flight?.schedules?.map(
+                                        (schedule, index) => (
+                                          <div
+                                            class="mt-3 py-3 px-1  rounded-lg"
+                                            key={index}
+                                          >
+                                            <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
+                                              {flight?.departure_date}
+                                            </div>
+
+                                            <div class="flex items-center justify-between">
+                                              <Image
+                                                width={50}
+                                                height={50}
+                                                src={flight?.airline_logo}
+                                                alt="Air line Logo"
+                                                class="h-8 w-8 object-contain"
+                                              />
+                                              <div class="flex flex-col text-center">
+                                                <span class="text-lg font-semibold">
+                                                  {unifyTimeFormat(
+                                                    flight?.departure_time
+                                                  )}
+                                                </span>
+                                                <span class="text-xs text-black">
+                                                  {flight?.origin_code}
+                                                </span>
+                                              </div>
+                                              <div class="flex flex-col items-center text-xs text-black border-b">
+                                                <span>
+                                                  {" "}
+                                                  {flight?.flight_duration}
+                                                </span>
+                                              </div>
+                                              <div class="flex flex-col text-center">
+                                                <span class="text-lg font-semibold">
+                                                  {unifyTimeFormat(
+                                                    flight?.arrival_time
+                                                  )}
+                                                </span>
+                                                <span class="text-xs text-black">
+                                                  {flight?.destination_code}
+                                                </span>
+                                              </div>
+                                            </div>
                                           </div>
-                                          <div class="flex flex-col items-center text-xs text-black border-b">
-                                            <span>
-                                              {" "}
-                                              {
-                                                flight?.trip_data
-                                                  ?.flight_duration
-                                              }
-                                            </span>
-                                          </div>
-                                          <div class="flex flex-col text-center">
-                                            <span class="text-lg font-semibold">
-                                              {unifyTimeFormat(
-                                                flight?.trip_data?.arrival_time
-                                              )}
-                                            </span>
-                                            <span class="text-xs text-black">
-                                              {
-                                                flight?.trip_data
-                                                  ?.destination_code
-                                              }
-                                            </span>
-                                          </div>
-                                        </div>
+                                        )
+                                      )}
+                                    </div>
+                                    <div class="me-2">
+                                      <div class="text-[18px] font-semibold text-black">
+                                        Tk .
+                                        {formatFlightFare(
+                                          flight?.fare_details?.total_fare
+                                        )}
                                       </div>
-                                    )
-                                  )}
-                                </div>
-                                <div class="me-2">
-                                  <div class="text-[18px] font-semibold text-black">
-                                    Tk .
-                                    {formatFlightFare(
-                                      flight?.trip_data?.fare_details
-                                        ?.total_fare
-                                    )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </div>
-                          ))}
+                              )
+                            )}
+                          </div>
                         </div>
+                      </div>
+                    )}
+
+                    <div className="">
+                      <div className="p-4">
+                        {isChangeTrip && !isCreateTrip && (
+                          <div>
+                            <div className="">
+                              <h2 className="border-b-2 pb-3">Choose Trip</h2>
+                              <button
+                                onClick={() => setIsCreateTrip(true)}
+                                className="flex space-x-2 justify-center items-center py-3"
+                              >
+                                <span className="p-3 bg-slate-200 rounded-md">
+                                  <AiOutlinePlus size={20} />
+                                </span>
+                                <span className="font-semibold">
+                                  Create New Trip
+                                </span>
+                              </button>
+                            </div>
+                            {savedTrips.length > 0 &&
+                              savedTrips.map((trip) => (
+                                <div key={trip.name} className="my-2 ">
+                                  <button
+                                    className="flex space-x-2 items-center"
+                                    onClick={() => onSelectSavedTrip(trip)}
+                                  >
+                                    <Image
+                                      className="rounded-md"
+                                      width={50}
+                                      height={50}
+                                      src={weather}
+                                      alt="place"
+                                    />
+                                    <div className="text-start">
+                                      <p className="">{trip.name}</p>
+                                      <p className="">
+                                        {trip.start_date} - {trip.end_date}
+                                      </p>
+                                    </div>
+                                  </button>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+
+                        {isChangeTrip && isCreateTrip && (
+                          <div>
+                            <form
+                              onSubmit={handleCreateTrip}
+                              className="space-y-5"
+                            >
+                              <h2 className="font-semibold text-2xl">
+                                Create a new Trip
+                              </h2>
+
+                              <div>
+                                <label className="block">
+                                  Add a destination
+                                </label>
+                                <input
+                                  className="block border rounded w-full outline-none p-1.5 hover:bg-gray-100"
+                                  type="text"
+                                  name="destination"
+                                  onChange={handleOnTripChange}
+                                  value={formData.destination}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <label className="block">Name your Trip</label>
+                                <input
+                                  className="block border rounded w-full outline-none p-1.5 hover:bg-gray-100"
+                                  type="text"
+                                  name="name"
+                                  onChange={handleOnTripChange}
+                                  value={formData.name}
+                                  required
+                                />
+                                {tripError && (
+                                  <p className="text-red-500">{tripError}*</p>
+                                )}
+                              </div>
+                              <div className="flex justify-between">
+                                <span>
+                                  <label className="block">Start Date</label>
+                                  <input
+                                    className="border rounded outline-none p-1.5 hover:bg-gray-100"
+                                    type="date"
+                                    name="start_date"
+                                    onChange={handleOnTripChange}
+                                    value={formData.start_date}
+                                    required
+                                  />
+                                </span>
+                                <span>
+                                  <label className="block">End Date</label>
+                                  <input
+                                    className="border rounded outline-none p-1.5 hover:bg-gray-100"
+                                    type="date"
+                                    name="end_date"
+                                    onChange={handleOnTripChange}
+                                    value={formData.end_date}
+                                    required
+                                  />
+                                </span>
+                              </div>
+                              <div className="flex space-x-5">
+                                <button
+                                  className={` px-3 py-2 rounded ${
+                                    !formData.name
+                                      ? "bg-gray-100 text-gray-400 "
+                                      : "bg-gray-600 text-gray-50 hover:bg-gray-700 transition-all"
+                                  }`}
+                                  type="submit"
+                                  disabled={!formData.name}
+                                  required
+                                >
+                                  Create
+                                </button>
+                                <button
+                                  onClick={() => setIsCreateTrip(false)}
+                                  className="bg-gray-300 px-3 py-2 rounded"
+                                  type="button"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

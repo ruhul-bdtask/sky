@@ -17,6 +17,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Oval } from "react-loader-spinner";
 import Cookies from "js-cookie";
 import useAirlineStore from "../../../stores/airlineStore";
+import LoginWithGoogle from "@/components/login/LoginWithGoogle";
+import LoginWithFacebook from "@/components/login/LoginWithFacebook";
 export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -291,32 +293,8 @@ export default function Page() {
           <div className="w-full h-px bg-gray-300"></div>
         </div>
         <div className="grid grid-cols-2 gap-6">
-          <button
-            className="flex items-center gap-2 p-3 border border-gray-400 justify-center rounded-[10px]"
-            type="button"
-            onClick={handleClick}
-          >
-            <Image
-              alt="Sign in with Google"
-              src={google}
-              width={20}
-              height={20}
-            ></Image>
-            Google
-          </button>
-          <button
-            className="flex items-center gap-2 p-3 border border-gray-400 justify-center rounded-[10px]"
-            type="button"
-            onClick={handleClick}
-          >
-            <Image
-              alt="Sign in with Apple"
-              src={apple}
-              width={20}
-              height={20}
-            ></Image>
-            Facebook
-          </button>
+          <LoginWithGoogle />
+          <LoginWithFacebook />
         </div>
         <p className="text-[12px] mt-2 text-center">
           Do you have an account ?{" "}

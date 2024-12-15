@@ -7,12 +7,12 @@ import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import { RxCross2 } from "react-icons/rx";
 
+import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
 import { Heart, Share2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  FaCross,
   FaFacebook,
   FaLink,
   FaTwitter,
@@ -20,23 +20,32 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { Oval } from "react-loader-spinner";
+import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
-import { toast } from "react-toastify";
 
 export default function FlightCard({ flight }) {
   const router = useRouter();
   const {
+    token,
     searchData,
     OriginDestinationInformation,
     setLegDescription,
+    savedTrips,
+    isCreateTrip,
+    isChangeTrip,
+    isOpenSavedDialog,
     LegDescription,
+    selectedSavedTrip,
     setSelectedFlight,
     selectedFlight,
-    isOpenSavedDialog,
     setIsOpenSavedDialog,
+    setSelectedSavedTrip,
+    setIsCreateTrip,
+    setSavedTrips,
+    setIsChangeTrip,
   } = useAirlineStore();
-
+  const { syncSavedFlights } = useSyncSavedFlights();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
   const toggleFlightDetails = (e) =>
@@ -94,46 +103,93 @@ export default function FlightCard({ flight }) {
     setSharedInfo(filterInfo);
   }, [router]);
 
-  const { savedFlights, setSavedFlights } = useAirlineStore();
-  const handleSavedFlights = (id) => {
-    const isFlightSaved = savedFlights.some(
-      (savedFlight) =>
-        savedFlight?.trip_data?.air_pricing_solution_key ===
-        flight?.air_pricing_solution_key
-    );
+  // const handleSavedFlights = (id) => {
+  //   const isFlightSaved = selectedSavedTrip.flights.some(
+  //     (savedFlight) =>
+  //       savedFlight?.trip_data?.air_pricing_solution_key ===
+  //       flight?.air_pricing_solution_key
+  //   );
 
-    if (isFlightSaved) {
-      setSavedFlights(
-        savedFlights.filter(
-          (savedFlight) =>
-            savedFlight?.trip_data?.air_pricing_solution_key !==
-            flight?.air_pricing_solution_key
-        )
-      );
-      // toast.success("Flight removed from saved!", {
-      //   position: "top-center",
-      //   autoClose: 5000,
-      //   hideProgressBar: false,
-      //   closeOnClick: true,
-      //   pauseOnHover: true,
-      //   draggable: true,
-      //   progress: undefined,
-      //   theme: "colored",
-      // });
-    } else {
-      setSavedFlights([...savedFlights, { trip_data: flight }]);
-      setIsOpenSavedDialog(true);
-      // toast.success("Flight saved successfully!", {
-      //   position: "top-center",
-      //   autoClose: 5000,
-      //   hideProgressBar: false,
-      //   closeOnClick: true,
-      //   pauseOnHover: true,
-      //   draggable: true,
-      //   progress: undefined,
-      //   theme: "colored",
-      // });
+  //   // if (token) {
+  //   //   syncSavedFlights(token);
+  //   // }
+
+  //   if (isFlightSaved) {
+  //     setSavedTrips(
+  //       selectedSavedTrip.flights.filter(
+  //         (savedFlight) =>
+  //           savedFlight?.trip_data?.air_pricing_solution_key !==
+  //           flight?.air_pricing_solution_key
+  //       )
+  //     );
+  //     // toast.success("Flight removed from saved!", {
+  //     //   position: "top-center",
+  //     //   autoClose: 5000,
+  //     //   hideProgressBar: false,
+  //     //   closeOnClick: true,
+  //     //   pauseOnHover: true,
+  //     //   draggable: true,
+  //     //   progress: undefined,
+  //     //   theme: "colored",
+  //     // });
+  //   } else {
+  //     setSavedTrips([...savedTrips, { flight_data: flight }]);
+  //     setIsOpenSavedDialog(true);
+  //     // toast.success("Flight saved successfully!", {
+  //     //   position: "top-center",
+  //     //   autoClose: 5000,
+  //     //   hideProgressBar: false,
+  //     //   closeOnClick: true,
+  //     //   pauseOnHover: true,
+  //     //   draggable: true,
+  //     //   progress: undefined,
+  //     //   theme: "colored",
+  //     // });
+  //   }
+  // };
+
+  const handleSavedFlights = (solution_key) => {
+    // Check if the flight is already saved in the selected trip's flights
+    // const isFlightSaved = selectedSavedTrip.flights.some(
+    //   (savedFlight) =>
+    //     savedFlight?.trip_data?.air_pricing_solution_key === solution_key
+    // );
+
+    setIsOpenSavedDialog(true);
+    if (savedTrips.length === 0) {
+      setIsChangeTrip(true);
+      toast.info("Please create a Trip first");
     }
+
+    // Update the savedTrips array
+    const updatedSavedTrips = savedTrips.map((trip) => {
+      if (trip.name === selectedSavedTrip.name) {
+        // Found the selected trip to update
+        return {
+          ...trip,
+          flights: [...trip.flights, { flight_data: flight }],
+        };
+      }
+      // Return other trips unchanged
+      return trip;
+    });
+
+    // Update the state with the modified savedTrips array
+    setSavedTrips(updatedSavedTrips);
+
+    updatedSavedTrips.forEach((trip) => {
+      if (trip.name === selectedSavedTrip.name) {
+        setSelectedSavedTrip(trip);
+      }
+    });
+
+    // if (isFlightSaved) {
+    //   // Optionally show a success message for removal
+    //   // toast.success("Flight removed from saved!", { ... });
+    // } else {
+    //   // Optionally show a success message for addition
+    //   // toast.success("Flight saved successfully!", { ... });
+    // }
   };
 
   const handleShare = (platform) => {
@@ -411,7 +467,7 @@ export default function FlightCard({ flight }) {
                   >
                     <button
                       className={`border px-2 py-1 flex items-center gap-2 rounded-lg ${
-                        savedFlights.some(
+                        savedTrips.some(
                           (savedFlight) =>
                             savedFlight?.trip_data?.air_pricing_solution_key ===
                             flight?.air_pricing_solution_key
@@ -425,7 +481,7 @@ export default function FlightCard({ flight }) {
                     >
                       <Heart className="w-3 h-3" />
 
-                      {savedFlights.some(
+                      {savedTrips.some(
                         (savedFlight) =>
                           savedFlight?.trip_data?.air_pricing_solution_key ===
                           flight?.air_pricing_solution_key
