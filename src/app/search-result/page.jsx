@@ -9,6 +9,7 @@ import useAirlineStore from "../../../stores/airlineStore";
 import ResultPageSkeleton from "@/skeletons/ResultPageSkeleton";
 import LoadingBar from "react-top-loading-bar";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 export default function Page({ searchParams }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -161,7 +162,16 @@ export default function Page({ searchParams }) {
                       <FlightCard key={flight.id} flight={flight} />
                     ))
                   ) : (
-                    <p>No flights available</p>
+                    <div className="flex justify-center items-center h-[500px]">
+                      <div className="flex flex-col gap-2 items-center">
+                        <p className="text-red-400 ">No flights available</p>
+                        <Link href={"/"}>
+                          <button className="p-3 text-white  bg-[#FC660F] rounded-lg mt-2 hover:bg-[#dd773b] ease-in-out duration-300 transition-all">
+                            Search again
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
                   )}
                   {/* <button className="w-full p-5 rounded-[10px] bg-[#5F6D77] text-white my-3 text-[14px] font-semibold">
                   Show More Results

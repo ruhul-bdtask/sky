@@ -291,7 +291,7 @@ export default function SearchPad() {
   }, []);
 
   useEffect(() => {
-    const dateToUse = selectedWay === "one_way" ? oneWayDate : roundDate.from;
+    const dateToUse = selectedWay === "one_way" ? oneWayDate : roundDate?.from;
     const date = new Date(dateToUse);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -304,7 +304,7 @@ export default function SearchPad() {
   const [originalArrivalData, setOriginalArrivalDate] = useState();
 
   useEffect(() => {
-    const dateToUse = selectedWay === "one_way" ? "" : roundDate.to;
+    const dateToUse = selectedWay === "one_way" ? "" : roundDate?.to;
     const date = new Date(dateToUse);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -609,7 +609,7 @@ export default function SearchPad() {
                 )}
               </div>
 
-              <div className=" text-left">
+              <div className="text-left">
                 <DropdownMenu>
                   <DropdownMenuTrigger>
                     <span
@@ -684,13 +684,13 @@ export default function SearchPad() {
                       </div>
                       {row?.isOpenOrigin ? (
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                          <div className="p-8 ">
+                          <div className="p-6 ">
                             <ul className="space-y-4">
                               {filteredAirportsDestinationMulti[row.id - 1].map(
                                 (destination, index) => (
                                   <li
                                     key={index}
-                                    className="flex items-center space-x-4 cursor-pointer"
+                                    className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
                                     onClick={() => {
                                       toggleField(row.id, "isOpenOrigin"),
                                         updateCityData(
@@ -718,58 +718,6 @@ export default function SearchPad() {
                                 )
                               )}
                             </ul>
-
-                            {recentSearchData?.length > 0 ? (
-                              <div className="mt-8">
-                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                  Recent Searches
-                                  <button
-                                    onClick={() => setRecentSearchData([])}
-                                    className="text-orange-500 hover:text-orange-600"
-                                  >
-                                    Clear
-                                  </button>
-                                </h3>
-                                <ul className="space-y-4">
-                                  {recentSearchData?.map((recent, index) => (
-                                    <li
-                                      key={index}
-                                      className="flex items-center space-x-4"
-                                    >
-                                      <div className="bg-gray-100 p-2 rounded-full">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-6 w-6 text-gray-600"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          stroke="currentColor"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M5 13l4 4L19 7"
-                                          />
-                                        </svg>
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold">
-                                          {recent?.destination} -{" "}
-                                          {recent?.arrival}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {moment(recent?.journeyDate).format(
-                                            "MMMM Do, YYYY"
-                                          )}
-                                        </p>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : (
-                              ""
-                            )}
                           </div>
                         </div>
                       ) : (
@@ -800,13 +748,13 @@ export default function SearchPad() {
                       </div>
                       {row?.isOpenDestination ? (
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                          <div className="p-8 ">
+                          <div className="p-6 ">
                             <ul className="space-y-4">
                               {filteredAirportsArrivalMulti[row.id - 1].map(
                                 (arrival, index) => (
                                   <li
                                     key={index}
-                                    className="flex items-center space-x-4 cursor-pointer"
+                                    className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
                                     onClick={() => {
                                       toggleField(row.id, "isOpenDestination"),
                                         updateCityData(
@@ -838,58 +786,6 @@ export default function SearchPad() {
                                 )
                               )}
                             </ul>
-
-                            {recentSearchData?.length > 0 ? (
-                              <div className="mt-8">
-                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                  Recent Searches
-                                  <button
-                                    onClick={() => setRecentSearchData([])}
-                                    className="text-orange-500 hover:text-orange-600"
-                                  >
-                                    Clear
-                                  </button>
-                                </h3>
-                                <ul className="space-y-4">
-                                  {recentSearchData?.map((recent, index) => (
-                                    <li
-                                      key={index}
-                                      className="flex items-center space-x-4"
-                                    >
-                                      <div className="bg-gray-100 p-2 rounded-full">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-6 w-6 text-gray-600"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          stroke="currentColor"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M5 13l4 4L19 7"
-                                          />
-                                        </svg>
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold">
-                                          {recent?.destination} -{" "}
-                                          {recent?.arrival}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {moment(recent?.journeyDate).format(
-                                            "MMMM Do, YYYY"
-                                          )}
-                                        </p>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : (
-                              ""
-                            )}
                           </div>
                         </div>
                       ) : (
@@ -984,14 +880,14 @@ export default function SearchPad() {
                         </div>
                       </div>
                       {isOpenDestination ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10 ">
-                          <div className="p-4 max-h-[300px] overflow-y-auto">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                          <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsDestination.map(
                                 (destination, index) => (
                                   <li
                                     key={index}
-                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-2 rounded-md"
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                     onClick={() => {
                                       setSearchQueryDestination(
                                         destination.value
@@ -1092,12 +988,12 @@ export default function SearchPad() {
                       </div>
                       {isOpenArrival ? (
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10">
-                          <div className="p-8 max-h-[300px] overflow-y-auto">
+                          <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsArrival.map((arrival, index) => (
                                 <li
                                   key={index}
-                                  className="flex items-center space-x-4 cursor-pointer"
+                                  className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   onClick={() => {
                                     setSearchQueryArrival(arrival.value);
                                     setIsOpenArrival(false);
@@ -1219,13 +1115,13 @@ export default function SearchPad() {
                         </div>
                         {isOpenDestination ? (
                           <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10 ">
-                            <div className="p-8 max-h-[300px] overflow-y-auto">
+                            <div className="p-6 max-h-[300px] overflow-y-auto">
                               <ul className="space-y-4">
                                 {filteredAirportsDestination.map(
                                   (destination, index) => (
                                     <li
                                       key={index}
-                                      className="flex items-center space-x-4 cursor-pointer"
+                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
                                       onClick={() => {
                                         setSearchQueryDestination(
                                           destination.value
@@ -1330,13 +1226,13 @@ export default function SearchPad() {
                         </div>
                         {isOpenArrival ? (
                           <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                            <div className="p-8 ">
+                            <div className="p-6 ">
                               <ul className="space-y-4">
                                 {filteredAirportsArrival.map(
                                   (arrival, index) => (
                                     <li
                                       key={index}
-                                      className="flex items-center space-x-4 cursor-pointer"
+                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
                                       onClick={() => {
                                         setSearchQueryArrival(arrival.value);
                                         setIsOpenArrival(false);
