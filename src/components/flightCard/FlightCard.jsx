@@ -23,7 +23,6 @@ import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
-import { toast } from "react-toastify";
 import copy from "copy-to-clipboard";
 
 export default function FlightCard({ flight }) {
@@ -82,14 +81,15 @@ export default function FlightCard({ flight }) {
     const res = await refetchAllFlights();
     if (res?.status === "success") {
       setSelectedFlight(res?.data?.data?.sortedItineraries);
+      router.push("/bookingForm");
     }
   };
 
-  useEffect(() => {
-    if (selectedFlight && Object.keys(selectedFlight).length > 0) {
-      router.push("/bookingForm");
-    }
-  }, [allFlights]);
+  // useEffect(() => {
+  //   if (selectedFlight && Object.keys(selectedFlight).length > 0) {
+  //     router.push("/bookingForm");
+  //   }
+  // }, [allFlights]);
 
   useEffect(() => {
     const existingDepartureTime = searchParams.get("departure_time");
@@ -575,7 +575,7 @@ export default function FlightCard({ flight }) {
                             width={50}
                             height={50}
                             alt="air"
-                            src={flight?.airline_logo} 
+                            src={flight?.airline_logo}
                           ></Image>
 
                           <div>
