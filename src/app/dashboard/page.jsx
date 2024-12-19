@@ -14,7 +14,7 @@ export default function Page() {
   const router = useRouter();
   const token = Cookies.get("auth-token");
 
-  const { setUserData } = useAirlineStore();
+  const { setUserData, setToken } = useAirlineStore();
 
   useEffect(() => {
     const checkAuth = () => {
@@ -55,6 +55,9 @@ export default function Page() {
   useEffect(() => {
     if (userData?.success == true) {
       setUserData(userData?.data);
+    } else {
+      setToken(null);
+      Cookies.remove("auth-token");
     }
   }, [userData]);
 

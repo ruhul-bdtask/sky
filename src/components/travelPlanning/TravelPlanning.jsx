@@ -6,51 +6,39 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "@/utils/api";
+import useAirlineStore from "../../../stores/airlineStore";
+import { useRouter } from "next/navigation";
 export default function TravelPlanning() {
-  const destinations = [
-    {
-      city: "New York",
-      expanded: false,
-      items: [],
-    },
-    {
-      city: "Orlando",
-      expanded: true,
-      items: [
-        { name: "Monumental Movieland Hotel", price: "$47+" },
-        { name: "Rosen Inn Closest to Universal", price: "$68+" },
-        { name: "Rosen Inn International", price: "$68+" },
-        { name: "Flight Atlanta - Orlando (ATL - MCO)", price: "$43+" },
-        { name: "Flight Islip - Orlando (ISP - MCO)", price: "$55+" },
-        { name: "Flight New York - Orlando (LGA - MCO)", price: "$56+" },
-      ],
-    },
-    {
-      city: "London",
-      expanded: false,
-      items: [],
-    },
-    {
-      city: "Fort Lauderdale",
-      expanded: false,
-      items: [],
-    },
-    {
-      city: "Seattle",
-      expanded: false,
-      items: [],
-    },
-    {
-      city: "Fort Lauderdale",
-      expanded: false,
-      items: [],
-    },
-    {
-      city: "Seattle",
-      expanded: false,
-      items: [],
-    },
-  ];
+  const {
+    originQuery,
+    setOriginQuery,
+    setDestinationQuery,
+    destinationQuery,
+    travelPlanningDate,
+    setTravelPlanningDate,
+  } = useAirlineStore();
+  const router = useRouter();
+  const {
+    data: travelData,
+    error: travelDataError,
+    isLoading: travelDataLoading,
+    refetch: refetchTravelData,
+  } = useQuery({
+    queryKey: ["travelData"],
+    queryFn: () => fetchData("/travel-plan/all", "GET"),
+    enabled: true,
+  });
+
+  const handleSearch = (item, destination) => {
+    setOriginQuery(item?.departure_code);
+    setDestinationQuery(destination?.code);
+    setTravelPlanningDate(item?.departure_date);
+    window.location.href = "/";
+  };
+  console.log(originQuery, destinationQuery);
+
   return (
     <div className="py-10">
       <div className="pb-6">
@@ -59,74 +47,29 @@ export default function TravelPlanning() {
         </h2>
         <p className="text-[16px]">Search Flights</p>
       </div>
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3  py-4 gap-10 ">
-        <Accordion type="single" collapsible className="w-full">
-          {destinations.map((destination, index) => (
-            <AccordionItem value={destination.city} key={index}>
+      <div className="w-full    ">
+        <Accordion
+          type="single"
+          collapsible
+          className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-10"
+        >
+          {travelData?.data.map((destination, index) => (
+            <AccordionItem value={destination.name} key={index}>
               <div className="text-[16ox] font-semibold py-3">
-                {destination.city}
+                {destination.name}
               </div>
               <AccordionTrigger className="text-left py-1">
                 <div className="text-[12px]  text-[#0C7C99]">FLIGHTS</div>
               </AccordionTrigger>
               <AccordionContent>
                 <ul className="space-y-2">
-                  {destination.items.map((item, itemIndex) => (
+                  {destination.routes.map((item, itemIndex) => (
                     <li
+                      onClick={() => handleSearch(item, destination)}
                       key={itemIndex}
-                      className="flex justify-between text-sm"
+                      className="flex justify-between text-sm hover:underline cursor-pointer"
                     >
-                      <span>{item.name}</span>
-                      <span className="text-gray-600">{item.price}</span>
-                    </li>
-                  ))}
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-        <Accordion type="single" collapsible className="w-full">
-          {destinations.map((destination, index) => (
-            <AccordionItem value={destination.city} key={index}>
-              <div className="text-[16ox] font-semibold py-3">
-                {destination.city}
-              </div>
-              <AccordionTrigger className="text-left py-1">
-                <div className="text-[12px]  text-[#0C7C99]">FLIGHTS</div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="space-y-2">
-                  {destination.items.map((item, itemIndex) => (
-                    <li
-                      key={itemIndex}
-                      className="flex justify-between text-sm"
-                    >
-                      <span>{item.name}</span>
-                      <span className="text-gray-600">{item.price}</span>
-                    </li>
-                  ))}
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-        <Accordion type="single" collapsible className="w-full">
-          {destinations.map((destination, index) => (
-            <AccordionItem value={destination.city} key={index}>
-              <div className="text-[16ox] font-semibold py-3">
-                {destination.city}
-              </div>
-              <AccordionTrigger className="text-left py-1">
-                <div className="text-[12px]  text-[#0C7C99]">FLIGHTS</div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="space-y-2">
-                  {destination.items.map((item, itemIndex) => (
-                    <li
-                      key={itemIndex}
-                      className="flex justify-between text-sm"
-                    >
-                      <span>{item.name}</span>
+                      <span>{item.departure}</span>
                       <span className="text-gray-600">{item.price}</span>
                     </li>
                   ))}

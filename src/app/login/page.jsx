@@ -86,7 +86,6 @@ export default function Page() {
         setToken(token);
         setUserData(data?.user);
         syncSavedFlights(token);
-
         router.push("/");
       } catch (err) {
         console.error("Error during login:", err);

@@ -35,8 +35,6 @@ export default function SearchPad() {
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
 
-  const [searchQueryArrival, setSearchQueryArrival] = useState();
-  const [searchQueryDestination, setSearchQueryDestination] = useState();
   const {
     setSearchData,
     setOriginDestinationInformation,
@@ -46,8 +44,16 @@ export default function SearchPad() {
     setRecentSearchData,
     recentSearchData,
     userData,
+    originQuery,
+    setOriginQuery,
+    destinationQuery,
+    setDestinationQuery,
+    setTravelPlanningDate,
+    travelPlanningDate,
   } = useAirlineStore();
 
+  const [searchQueryArrival, setSearchQueryArrival] = useState();
+  const [searchQueryDestination, setSearchQueryDestination] = useState();
   const [cities, setCities] = useState([
     {
       id: 1,
@@ -106,6 +112,12 @@ export default function SearchPad() {
     twoDaysAhead.setDate(twoDaysAhead.getDate() + 2);
     return twoDaysAhead;
   });
+
+  useEffect(() => {
+    if (originQuery && destinationQuery && travelPlanningDate !== "") {
+      setOneWayDate(new Date(travelPlanningDate));
+    }
+  }, [originQuery, destinationQuery, travelPlanningDate]);
 
   const handleAddCity = () => {
     setCities([
@@ -174,8 +186,8 @@ export default function SearchPad() {
         userData?.secondary_airports?.[0]?.match(/\((.*?)\)/)?.[1]
       );
     } else {
-      setSearchQueryDestination("DAC");
-      setSearchQueryArrival("CXB");
+      setSearchQueryDestination(originQuery !== "" ? originQuery : "DAC");
+      setSearchQueryArrival(destinationQuery !== "" ? destinationQuery : "CXB");
     }
   }, [userData]);
 
@@ -319,6 +331,9 @@ export default function SearchPad() {
     setSelectedFlight({});
     setPassengerInformation([]);
     setContactInformation({});
+    setOriginQuery("");
+    setDestinationQuery("");
+    setTravelPlanningDate("");
 
     const searchData = {
       destination: searchQueryDestination,
