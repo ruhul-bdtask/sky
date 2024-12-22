@@ -2,11 +2,13 @@ import { formatShortDate } from "@/lib/formatShortDate";
 import Image from "next/image";
 import { GiCommercialAirplane } from "react-icons/gi";
 import IconDetails from "./IconDetails";
+import { convertMinutesToHours } from "@/lib/formatMinutes";
 
 const FlightDetails = ({ flight }) => {
   const {
     airline_logo,
     airline_name,
+    airline_code,
     origin_airport_name,
     arrival_time,
     departure_time,
@@ -15,6 +17,8 @@ const FlightDetails = ({ flight }) => {
     flight_duration,
     departure_date,
   } = flight;
+
+  console.log(flight);
 
   return (
     <div
@@ -32,13 +36,19 @@ const FlightDetails = ({ flight }) => {
         return (
           <div key={schedule.flight_number}>
             {/* Layover Information */}
-            {schedule.layover_time > 0 && (
-              <div className="p-3 space-x-6 text-xs border-y m-4">
-                <span>31h 55m</span>
-                <span>• Changes Plane in New Delhi (DEL)</span>
-                <span className="py-1 px-2 bg-red-100 rounded-md text-red-900">
-                  Long layover
+            {schedule?.layover_time > 0 && (
+              <div className="p-3 space-x-3 text-xs border-y m-4">
+                <span>{convertMinutesToHours(schedule.layover_time)}</span>
+                <span>•</span>
+                <span>
+                  Changes Planes in {schedule.departure_city} (
+                  {schedule?.departure_airport})
                 </span>
+                {schedule.layover_time > 180 && (
+                  <span className="py-1 px-2 bg-red-100 rounded-md text-red-900 font-[500]">
+                    Long layover
+                  </span>
+                )}
               </div>
             )}
 
@@ -47,15 +57,17 @@ const FlightDetails = ({ flight }) => {
               <div>
                 {/* Airline Information */}
                 <div className="space-x-2 flex items-center text-sm text-gray-500">
+                  {/* <Image src={airline_logo} width={50} height={50} alt="logo" /> */}
                   <Image
-                    src={flight.airline_logo}
-                    width={50}
-                    height={50}
-                    alt="logo"
-                  />
-                  <span>{flight.airline_name}</span>
-                  <div className="border p-1 rounded focus:outline-none">
-                    {flight.airline_code} Airlines
+                    src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${schedule?.operating_code}.png`}
+                    // src={`https://pics.avs.io/200/200/${stop?.operating_code}@2x.png`}
+                    alt="airline logo"
+                    height={30}
+                    width={30}
+                  />{" "}
+                  <span>{airline_name}</span>
+                  <div className="border border-gray-700 py-0.5 px-2 rounded focus:outline-none">
+                    {schedule?.equipment}
                   </div>
                 </div>
 
@@ -68,15 +80,15 @@ const FlightDetails = ({ flight }) => {
                       <span className="h-full w-[1px] bg-gray-400 flex ml-[3px]"></span>
                     </div>
                     <strong className="font-semibold ">
-                      {schedule.departure_time}
+                      {schedule?.departure_time}
                     </strong>
-                    <span>{flight.origin_airport_name}</span>
+                    <span>{origin_airport_name}</span>
                   </div>
 
                   {/* Flight Duration */}
                   <div className="flex space-x-4 text-xs">
                     <GiCommercialAirplane size={25} />
-                    <span>{flight.flight_duration}</span>
+                    <span>{convertMinutesToHours(schedule?.travel_time)}</span>
                   </div>
 
                   {/* Arrival */}
@@ -86,9 +98,9 @@ const FlightDetails = ({ flight }) => {
                       <span className="h-2 w-2 bg-white border rounded-full border-gray-400 absolute bottom-0"></span>
                     </span>
                     <strong className="font-semibold">
-                      {schedule.arrival_time}
+                      {schedule?.arrival_time}
                     </strong>
-                    <span>{flight.destination_airport_name}</span>
+                    <span>{destination_airport_name}</span>
                   </div>
                 </div>
               </div>
