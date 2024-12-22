@@ -54,6 +54,8 @@ export default function SearchPad() {
 
   const [searchQueryArrival, setSearchQueryArrival] = useState();
   const [searchQueryDestination, setSearchQueryDestination] = useState();
+  const [originAirport, setOriginAirport] = useState("");
+  const [destinationAirport, setDestinationAirport] = useState("");
   const [cities, setCities] = useState([
     {
       id: 1,
@@ -214,6 +216,9 @@ export default function SearchPad() {
       (airport.name.toLowerCase().includes(searchQueryArrival?.toLowerCase()) ||
         airport.value
           .toLowerCase()
+          .includes(searchQueryArrival?.toLowerCase()) ||
+        airport.label
+          .toLowerCase()
           .includes(searchQueryArrival?.toLowerCase())) &&
       airport.name.toLowerCase() !== searchQueryDestination?.toLowerCase() &&
       airport.value.toLowerCase() !== searchQueryDestination?.toLowerCase()
@@ -225,6 +230,9 @@ export default function SearchPad() {
         .toLowerCase()
         .includes(searchQueryDestination?.toLowerCase()) ||
         airport.value
+          .toLowerCase()
+          .includes(searchQueryDestination?.toLowerCase()) ||
+        airport.label
           .toLowerCase()
           .includes(searchQueryDestination?.toLowerCase())) &&
       airport.name.toLowerCase() !== searchQueryArrival?.toLowerCase() &&
@@ -469,6 +477,15 @@ export default function SearchPad() {
     setSearchQueryArrival(temp);
   };
 
+  const handleClear = () => {
+    setSearchQueryDestination("");
+    setOriginAirport("");
+  };
+
+  const handleClearArrival = () => {
+    setSearchQueryArrival("");
+    setDestinationAirport("");
+  };
   return (
     <div>
       <main className={``}>
@@ -881,17 +898,28 @@ export default function SearchPad() {
                       <div
                         onClick={() => setIsOpenDestination(!isOpenDestination)}
                       >
+                        <p className="absolute right-5 truncate left-[40px] top-1/2 transform -translate-y-1/2  ">
+                          {originAirport !== ""
+                            ? originAirport + " " + searchQueryDestination
+                            : searchQueryDestination}
+                        </p>
                         <input
-                          value={searchQueryDestination}
+                          value={
+                            originAirport !== "" ? "" : searchQueryDestination
+                          }
                           type="text"
                           onChange={(e) =>
                             setSearchQueryDestination(e.target.value)
                           }
-                          placeholder="From ?"
-                          className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                          // placeholder="From ?"
+                          className="w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                         />
+
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                           <Airplane />
+                        </div>
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                          <FaTimes onClick={handleClear} />
                         </div>
                       </div>
                       {isOpenDestination ? (
@@ -907,6 +935,7 @@ export default function SearchPad() {
                                       setSearchQueryDestination(
                                         destination.value
                                       );
+                                      setOriginAirport(destination.name);
                                       setIsOpenDestination(false);
                                     }}
                                   >
@@ -988,7 +1017,7 @@ export default function SearchPad() {
                     </button>
                     <div className="relative" ref={dropdownRefArrival}>
                       <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
-                        <input
+                        {/* <input
                           value={searchQueryArrival}
                           type="text"
                           onChange={(e) =>
@@ -996,9 +1025,28 @@ export default function SearchPad() {
                           }
                           placeholder="To ?"
                           className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                        /> */}
+                        <p className="absolute right-5 truncate left-[40px] top-1/2 transform -translate-y-1/2  ">
+                          {destinationAirport !== ""
+                            ? destinationAirport + " " + searchQueryArrival
+                            : searchQueryArrival}
+                        </p>
+                        <input
+                          value={
+                            destinationAirport !== "" ? "" : searchQueryArrival
+                          }
+                          type="text"
+                          onChange={(e) =>
+                            setSearchQueryArrival(e.target.value)
+                          }
+                          // placeholder="To ?"
+                          className="w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                         />
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                           <Airplane />
+                        </div>
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                          <FaTimes onClick={handleClearArrival} />
                         </div>
                       </div>
                       {isOpenArrival ? (
@@ -1011,6 +1059,7 @@ export default function SearchPad() {
                                   className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   onClick={() => {
                                     setSearchQueryArrival(arrival.value);
+                                    setDestinationAirport(arrival.name);
                                     setIsOpenArrival(false);
                                   }}
                                 >

@@ -37,7 +37,6 @@ export default function TravelPlanning() {
     setTravelPlanningDate(item?.departure_date);
     window.location.href = "/";
   };
-  console.log(originQuery, destinationQuery);
 
   return (
     <div className="py-10">
@@ -45,7 +44,7 @@ export default function TravelPlanning() {
         <h2 className="text-[24px] font-bold text-black">
           Start your travel planning here
         </h2>
-        <p className="text-[16px]">Search Flights</p>
+        <p className="text-[16px]">Search Flights</p>
       </div>
       <div className="w-full    ">
         <Accordion
@@ -53,7 +52,7 @@ export default function TravelPlanning() {
           collapsible
           className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-10"
         >
-          {travelData?.data.map((destination, index) => (
+          {travelData?.data?.map((destination, index) => (
             <AccordionItem value={destination.name} key={index}>
               <div className="text-[16ox] font-semibold py-3">
                 {destination.name}
