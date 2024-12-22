@@ -1,29 +1,25 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeftIcon, ChevronRightIcon, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { addDays } from "date-fns";
+import travelBg from "@/public/images/wishlist-travel-2.png";
 import { ArrowLeftRightIcon } from "lucide-react";
-import Image from "next/image";
 import Airplane from "@/public/icons/Airplane";
-import Calender from "@/public/icons/Calender";
 import SearchIcon from "@/public/icons/SearchIcon";
-import Link from "next/link";
-import DatePicker from "../datePicker/DatePicker";
-import DatePickerOneWay from "../datePicker/DatePickerOneWay";
 import useAirlineStore from "../../../stores/airlineStore";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import airportsData from "../../../public/utils/airports.json";
 import moment from "moment";
 import { FaTimes } from "react-icons/fa";
-export default function SearchPad() {
+import DatePickerOneWay from "@/components/datePicker/DatePickerOneWay";
+import DatePicker from "@/components/datePicker/DatePicker";
+
+export default function page({ searchParams }) {
   const [isPassengerOpen, setIsPassengerOpen] = useState(false);
   const [isWayOpen, setIsWayOpen] = useState(false);
   const [isClassOpen, setIsClassOpen] = useState(false);
@@ -35,6 +31,8 @@ export default function SearchPad() {
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
 
+  const { travelPlanningDate, originQuery, destinationQuery } = searchParams;
+
   const {
     setSearchData,
     setOriginDestinationInformation,
@@ -44,12 +42,9 @@ export default function SearchPad() {
     setRecentSearchData,
     recentSearchData,
     userData,
-    originQuery,
     setOriginQuery,
-    destinationQuery,
     setDestinationQuery,
     setTravelPlanningDate,
-    travelPlanningDate,
   } = useAirlineStore();
 
   const [searchQueryArrival, setSearchQueryArrival] = useState();
@@ -188,8 +183,8 @@ export default function SearchPad() {
         userData?.secondary_airports?.[0]?.match(/\((.*?)\)/)?.[1]
       );
     } else {
-      setSearchQueryDestination( "DAC");
-      setSearchQueryArrival("CXB");
+      setSearchQueryDestination(originQuery !== "" ? originQuery : "DAC");
+      setSearchQueryArrival(destinationQuery !== "" ? destinationQuery : "CXB");
     }
   }, [userData]);
 
@@ -487,9 +482,11 @@ export default function SearchPad() {
     setDestinationAirport("");
   };
   return (
-    <div>
-      <main className={``}>
-        <div className=" mx-auto ">
+    <div className="bg-travelBg">
+      <main
+        className={`container_section_home mx-auto  max-w-7xl py-10 h-screen `}
+      >
+        <div className=" mx-auto bg-white p-5 rounded-lg">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
             Where do you want to go?
           </h1>
