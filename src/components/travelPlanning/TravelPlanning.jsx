@@ -35,7 +35,15 @@ export default function TravelPlanning() {
     setOriginQuery(item?.departure_code);
     setDestinationQuery(destination?.code);
     setTravelPlanningDate(item?.departure_date);
-    window.location.href = "/";
+
+    // Build the URL with query parameters
+    const queryParams = new URLSearchParams({
+      originQuery: item?.departure_code,
+      destinationQuery: destination?.code,
+      travelPlanningDate: item?.departure_date,
+    }).toString();
+
+    window.open(`/travel-plan/?${queryParams}`, "_blank");
   };
 
   return (
