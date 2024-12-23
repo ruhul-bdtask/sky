@@ -52,5 +52,12 @@ module.exports = {
       },
     },
   },
+  variants: {
+    extend: {
+      transform: ["responsive", "hover", "focus"],
+      translate: ["responsive", "hover", "focus"],
+      opacity: ["responsive", "hover", "focus"],
+    },
+  },
   plugins: [require("tailwindcss-animate")],
 };
