@@ -199,7 +199,7 @@ export default function Header() {
     setIsChangeTrip(false);
   };
 
-  const totalPassengers = searchData?.passengers.reduce(
+  const totalPassengers = searchData?.passengers?.reduce(
     (sum, category) => sum + category.quantity,
     0
   );
@@ -242,63 +242,65 @@ export default function Header() {
               <Image className="mx-4 md:mx-0" alt="logo" src={logo}></Image>
             </Link>
           </div>
-          {pathname == "/search-result" && searchData?.tripType && (
-            <div
-              className="w-full flex items-center justify-center gap-1"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer hover:bg-gray-300 transition-all border-[#d9e2e8] border">
-                {tripType == "one_way"
-                  ? "One way"
-                  : tripType == "return"
-                  ? "Return"
-                  : "Multi city"}
-              </div>
-
-              <div className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm cursor-pointer  transition-all flex items-center gap-4 border-[#d9e2e8] border">
-                <div>{destination}</div>
-                <FaExchangeAlt
-                  className="hover:bg-gray-300 p-1 rounded-md"
-                  size={20}
-                />
-                <div>{arrival}</div>
-              </div>
-
-              <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-3">
-                {formatDate(journeyDate)} <LuChevronsLeftRight size={20} />
-                {tripType == "return" && (
-                  <>
-                    <div class="border-l-2 border-gray-100 h-5"></div>
-                    {formatDate(returnDate)} <LuChevronsLeftRight size={20} />
-                  </>
-                )}
-              </div>
-
-              <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-4">
-                <span>
-                  {totalPassengers}{" "}
-                  {totalPassengers !== 1 ? "Travelers" : "Adult"}
-                </span>{" "}
-                <span>
-                  {searchData?.class == "Y"
-                    ? "Economy"
-                    : searchData?.class == "P"
-                    ? "Premium Economy"
-                    : searchData?.class == "C"
-                    ? "Business"
-                    : "First class"}
-                </span>
-              </div>
-              <button
-                className="rounded-[10px] bg-[#FC660F] w-[50px] h-[50px] hover:bg-[#d67136]"
-                type="submit"
+          <div>
+            {pathname == "/search-result" && searchData?.tripType && (
+              <div
+                className="w-full flex items-center  gap-1"
+                onClick={() => setIsModalOpen(true)}
               >
-                <div className="flex justify-center items-center w-full text-white">
-                  <SearchIcon />
+                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer hover:bg-gray-300 transition-all border-[#d9e2e8] border">
+                  {tripType == "one_way"
+                    ? "One way"
+                    : tripType == "return"
+                    ? "Return"
+                    : "Multi city"}
                 </div>
-              </button>
-            </div>
-          )}
+
+                <div className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm cursor-pointer  transition-all flex items-center gap-4 border-[#d9e2e8] border">
+                  <div>{destination}</div>
+                  <FaExchangeAlt
+                    className="hover:bg-gray-300 p-1 rounded-md"
+                    size={20}
+                  />
+                  <div>{arrival}</div>
+                </div>
+
+                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-3">
+                  {formatDate(journeyDate)} <LuChevronsLeftRight size={20} />
+                  {tripType == "return" && (
+                    <>
+                      <div class="border-l-2 border-gray-100 h-5"></div>
+                      {formatDate(returnDate)} <LuChevronsLeftRight size={20} />
+                    </>
+                  )}
+                </div>
+
+                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-4">
+                  <span>
+                    {totalPassengers}{" "}
+                    {totalPassengers !== 1 ? "Travelers" : "Adult"}
+                  </span>{" "}
+                  <span>
+                    {searchData?.class == "Y"
+                      ? "Economy"
+                      : searchData?.class == "P"
+                      ? "Premium Economy"
+                      : searchData?.class == "C"
+                      ? "Business"
+                      : "First class"}
+                  </span>
+                </div>
+                <button
+                  className="rounded-[10px] bg-[#FC660F] w-[50px] h-[50px] hover:bg-[#d67136]"
+                  type="submit"
+                >
+                  <div className="flex justify-center items-center w-full text-white">
+                    <SearchIcon />
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             <div className="relative">
               <button
