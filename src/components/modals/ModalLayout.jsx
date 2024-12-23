@@ -275,7 +275,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const dropdownRefDestination = useRef(null);
   const dropdownRefArrival = useRef(null);
 
-  const totalPassengers = searchData?.passengers.reduce(
+  const totalPassengers = searchData?.passengers?.reduce(
     (sum, category) => sum + category.quantity,
     0
   );

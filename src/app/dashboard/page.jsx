@@ -16,26 +16,26 @@ export default function Page() {
 
   const { setUserData, setToken } = useAirlineStore();
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = Cookies.get("auth-token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-      try {
-        const decodedToken = jwtDecode(token);
-        setUser(decodedToken);
-      } catch (error) {
-        Cookies.remove("auth-token");
-        router.push("/login");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const checkAuth = () => {
+  //     const token = Cookies.get("auth-token");
+  //     if (!token) {
+  //       router.push("/login");
+  //       return;
+  //     }
+  //     // try {
+  //     //   const decodedToken = jwtDecode(token);
+  //     //   setUser(decodedToken);
+  //     // } catch (error) {
+  //     //   Cookies.remove("auth-token");
+  //     //   router.push("/login");
+  //     // } finally {
+  //     //   setIsLoading(false);
+  //     // }
+  //   };
 
-    checkAuth();
-  }, [router]);
+  //   checkAuth();
+  // }, [router]);
 
   const userPayload = {
     document_type: "NID",
@@ -44,24 +44,16 @@ export default function Page() {
   const {
     data: userData,
     error: userDataError,
-    isLoading: userDataLoading,
+    isLoading: userDataLoading = true,
     refetch: refetchUserData,
   } = useQuery({
     queryKey: ["user", token],
     queryFn: () => fetchData("/user/me", "POST", userPayload, token),
     enabled: true,
+    retry: false,
   });
 
-  useEffect(() => {
-    if (userData?.success == true) {
-      setUserData(userData?.data);
-    } else {
-      setToken(null);
-      Cookies.remove("auth-token");
-    }
-  }, [userData]);
-
-  if (isLoading || userDataLoading) {
+  if (userDataLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
