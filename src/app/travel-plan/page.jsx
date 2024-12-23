@@ -19,7 +19,7 @@ import { FaTimes } from "react-icons/fa";
 import DatePickerOneWay from "@/components/datePicker/DatePickerOneWay";
 import DatePicker from "@/components/datePicker/DatePicker";
 
-export default function page({ searchParams }) {
+export default function Page({ searchParams }) {
   const [isPassengerOpen, setIsPassengerOpen] = useState(false);
   const [isWayOpen, setIsWayOpen] = useState(false);
   const [isClassOpen, setIsClassOpen] = useState(false);
@@ -30,6 +30,7 @@ export default function page({ searchParams }) {
 
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
+  
 
   const { travelPlanningDate, originQuery, destinationQuery } = searchParams;
 

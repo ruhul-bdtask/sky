@@ -188,7 +188,7 @@ export default function SearchPad() {
         userData?.secondary_airports?.[0]?.match(/\((.*?)\)/)?.[1]
       );
     } else {
-      setSearchQueryDestination( "DAC");
+      setSearchQueryDestination("DAC");
       setSearchQueryArrival("CXB");
     }
   }, [userData]);
@@ -459,6 +459,10 @@ export default function SearchPad() {
         return;
       }
     }
+
+    setOriginQuery(searchQueryDestination);
+    setDestinationQuery(searchQueryArrival);
+    setTravelPlanningDate(originalDate);
 
     const queryString = new URLSearchParams({
       search: JSON.stringify(searchData),

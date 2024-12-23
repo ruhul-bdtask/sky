@@ -9,27 +9,32 @@ import logo from "@/public/images/logo.png";
 import verify from "@/public/images/verify.png";
 import weather from "@/public/images/weather.png";
 import Cookies from "js-cookie";
-import { Menu, Pencil, X } from "lucide-react";
+import { Menu, Pencil, SearchIcon, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { isExpired } from "react-jwt";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaExchangeAlt } from "react-icons/fa";
 import useAirlineStore from "../../../stores/airlineStore";
+import ModalLayout from "../modals/ModalLayout";
+import { LuChevronsLeftRight } from "react-icons/lu";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [modalPage, setModalPage] = useState("google");
   const router = useRouter();
+  const pathname = usePathname();
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isOpenProfile, setIsOpenProfile] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedIn, setLoggedIn] = useState(null);
   const [isOpenSaved, setIsOpenSaved] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef();
   const {
     token,
@@ -47,8 +52,11 @@ export default function Header() {
     userData,
     setSavedTrips,
     setSelectedSavedTrip,
+    searchData,
   } = useAirlineStore();
 
+  const { destination, arrival, journeyDate, returnDate, tripType } =
+    searchData;
   // useEffect(() => {
   //   const authToken = Cookies.get("auth-token");
   //   setToken(authToken);
@@ -191,8 +199,31 @@ export default function Header() {
     setIsChangeTrip(false);
   };
 
+  const totalPassengers = searchData?.passengers.reduce(
+    (sum, category) => sum + category.quantity,
+    0
+  );
+
+  const formatDate = (journeyDate) => {
+    const date = new Date(journeyDate);
+
+    // Format: 2024-12-25T00:00:00
+    const isoFormat = date.toISOString().split("T")[0] + "T00:00:00";
+
+    // Format: Wed12/25
+    const day = date.toLocaleDateString("en-US", { weekday: "short" });
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const dayOfMonth = String(date.getDate()).padStart(2, "0");
+    const shortFormat = `${day} ${month}/${dayOfMonth}`;
+
+    // Return the desired format
+    return ` ${shortFormat}`; // Combine or use as needed
+  };
   return (
     <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
+      <ModalLayout isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
+        sjfhfdgv
+      </ModalLayout>
       <div className="max-w-full sm:px-6 lg:px-2 h-full">
         <div className="flex justify-between items-center h-full">
           <div className="flex items-center gap-5">
@@ -211,6 +242,63 @@ export default function Header() {
               <Image className="mx-4 md:mx-0" alt="logo" src={logo}></Image>
             </Link>
           </div>
+          {pathname == "/search-result" && searchData?.tripType && (
+            <div
+              className="w-full flex items-center justify-center gap-1"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer hover:bg-gray-300 transition-all border-[#d9e2e8] border">
+                {tripType == "one_way"
+                  ? "One way"
+                  : tripType == "return"
+                  ? "Return"
+                  : "Multi city"}
+              </div>
+
+              <div className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm cursor-pointer  transition-all flex items-center gap-4 border-[#d9e2e8] border">
+                <div>{destination}</div>
+                <FaExchangeAlt
+                  className="hover:bg-gray-300 p-1 rounded-md"
+                  size={20}
+                />
+                <div>{arrival}</div>
+              </div>
+
+              <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-3">
+                {formatDate(journeyDate)} <LuChevronsLeftRight size={20} />
+                {tripType == "return" && (
+                  <>
+                    <div class="border-l-2 border-gray-100 h-5"></div>
+                    {formatDate(returnDate)} <LuChevronsLeftRight size={20} />
+                  </>
+                )}
+              </div>
+
+              <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-4">
+                <span>
+                  {totalPassengers}{" "}
+                  {totalPassengers !== 1 ? "Travelers" : "Adult"}
+                </span>{" "}
+                <span>
+                  {searchData?.class == "Y"
+                    ? "Economy"
+                    : searchData?.class == "P"
+                    ? "Premium Economy"
+                    : searchData?.class == "C"
+                    ? "Business"
+                    : "First class"}
+                </span>
+              </div>
+              <button
+                className="rounded-[10px] bg-[#FC660F] w-[50px] h-[50px] hover:bg-[#d67136]"
+                type="submit"
+              >
+                <div className="flex justify-center items-center w-full text-white">
+                  <SearchIcon />
+                </div>
+              </button>
+            </div>
+          )}
           <div className="flex items-center gap-4">
             <div className="relative">
               <button
