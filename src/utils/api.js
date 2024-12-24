@@ -35,3 +35,22 @@ export const fetchData = async (
 
   return response.json();
 };
+
+
+// airlines info from json
+export const fetchAirlinesData = async () => {
+  const response = await fetch("/utils/airlines.json");
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return response.json();
+};
+
+// airports info from json
+export const fetchAirportsData = async () => {
+  const response = await fetch("/utils/airports.json");
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return response.json();
+};
