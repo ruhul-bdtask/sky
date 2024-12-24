@@ -1,8 +1,10 @@
+import { convertMinutesToHours } from "@/lib/formatMinutes";
 import { formatShortDate } from "@/lib/formatShortDate";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { GiCommercialAirplane } from "react-icons/gi";
 import IconDetails from "./IconDetails";
-import { convertMinutesToHours } from "@/lib/formatMinutes";
+import { fetchAirlinesData, fetchAirportsData } from "@/utils/api";
 
 const FlightDetails = ({ flight }) => {
   const {
@@ -18,7 +20,38 @@ const FlightDetails = ({ flight }) => {
     departure_date,
   } = flight;
 
-  console.log(flight);
+  const {
+    data: airlinesData = [],
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ["airlines"],
+    queryFn: fetchAirlinesData,
+  });
+
+  const {
+    data: airportsData = [],
+    error: airportError,
+    isLoading: airportLoading,
+  } = useQuery({
+    queryKey: ["airports"],
+    queryFn: fetchAirportsData,
+  });
+
+  const getAirline = (srtCode) => {
+    const airline = airlinesData.find((airline) => airline?.iata === srtCode);
+    return airline ? airline.name : "Unknown Airline";
+  };
+
+  const getAirport = (srtCode) => {
+    const airport = airportsData.find((airport) => airport?.value === srtCode);
+    return airport ? airport.name : "Unknown Airport";
+  };
+
+  const getChangingCity = (srtCode) => {
+    const airport = airportsData.find((airport) => airport?.value === srtCode);
+    return airport ? airport.label : "Unknown City";
+  };
 
   return (
     <div
@@ -41,8 +74,8 @@ const FlightDetails = ({ flight }) => {
                 <span>{convertMinutesToHours(schedule.layover_time)}</span>
                 <span>•</span>
                 <span>
-                  Changes Planes in {schedule.departure_city} (
-                  {schedule?.departure_airport})
+                  Changes Planes in{" "}
+                  {getChangingCity(schedule?.departure_airport)}
                 </span>
                 {schedule.layover_time > 180 && (
                   <span className="py-1 px-2 bg-red-100 rounded-md text-red-900 font-[500]">
@@ -64,8 +97,9 @@ const FlightDetails = ({ flight }) => {
                     alt="airline logo"
                     height={30}
                     width={30}
-                  />{" "}
-                  <span>{airline_name}</span>
+                  />
+                  <span>{getAirline(schedule.operating_code)}</span>
+
                   <div className="border border-gray-700 py-0.5 px-2 rounded focus:outline-none">
                     {schedule?.equipment}
                   </div>
@@ -82,13 +116,13 @@ const FlightDetails = ({ flight }) => {
                     <strong className="font-semibold ">
                       {schedule?.departure_time}
                     </strong>
-                    <span>{origin_airport_name}</span>
+                    <span>{getAirport(schedule?.departure_airport)}</span>
                   </div>
 
                   {/* Flight Duration */}
                   <div className="flex space-x-4 text-xs">
                     <GiCommercialAirplane size={25} />
-                    <span>{convertMinutesToHours(schedule?.travel_time)}</span>
+                    <span>{convertMinutesToHours(schedule?.elapsed_time)}</span>
                   </div>
 
                   {/* Arrival */}
@@ -100,7 +134,7 @@ const FlightDetails = ({ flight }) => {
                     <strong className="font-semibold">
                       {schedule?.arrival_time}
                     </strong>
-                    <span>{destination_airport_name}</span>
+                    <span>{getAirport(schedule?.arrival_airport)}</span>
                   </div>
                 </div>
               </div>
