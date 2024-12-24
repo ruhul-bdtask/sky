@@ -29,6 +29,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const [isWayOpen, setIsWayOpen] = useState(false);
   const [isClassOpen, setIsClassOpen] = useState(false);
   const [originalDate, setOriginalDate] = useState();
+  const [isOpenClassPassenger, setIsOpenClassPassenger] = useState(false);
   const router = useRouter();
 
   const {
@@ -272,8 +273,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const dropdownRefDestination = useRef(null);
   const dropdownRefArrival = useRef(null);
 
-  const totalPassengers = searchData?.passengers?.reduce(
-    (sum, category) => sum + category.quantity,
+  const totalPassengers = categories?.reduce(
+    (sum, category) => sum + category.count,
     0
   );
 
@@ -526,21 +527,26 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
               <div className=" mx-auto  p-5 rounded-lg">
                 <form className="" onSubmit={handleSubmitSearch}>
                   <div className="flex flex-wrap gap-4 mb-4">
-                    <div className=" text-left">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger>
-                          <span
-                            onClick={() => setIsWayOpen(!isWayOpen)}
-                            className=" flex justify-between items-center w-full py-2 text-sm  text-gray-700 cursor-pointer "
-                          >
-                            <span className="w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300">
-                              {selectedWay === "one_way"
-                                ? "One way"
-                                : selectedWay === "return"
-                                ? "Round-trip"
-                                : "Multi city"}
-                            </span>
-                            {/* <svg
+                    <div className="w-[300px] text-center flex justify-between items-center py-2 text-sm  text-gray-700 cursor-pointer gap-2">
+                      <span
+                        className="w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300"
+                        onClick={() => setSelectedWay("one_way")}
+                      >
+                        One way
+                      </span>
+                      <span
+                        className="w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300"
+                        onClick={() => setSelectedWay("return")}
+                      >
+                        Round-trip
+                      </span>
+                      <span
+                        className="w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300"
+                        onClick={() => setSelectedWay("multi_city")}
+                      >
+                        Multi city
+                      </span>
+                      {/* <svg
                               className="w-5 h-5 ml-2 -mr-1"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 20 20"
@@ -553,148 +559,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 clipRule="evenodd"
                               />
                             </svg> */}
-                          </span>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {ways?.map((way, index) => (
-                            <DropdownMenuItem
-                              key={index}
-                              onClick={() => setSelectedWay(way?.shortCode)}
-                              className={`px-5 py-2 ${
-                                selectedWay == way?.shortCode
-                                  ? "bg-[#F0F3F5]"
-                                  : ""
-                              } cursor-pointer`}
-                            >
-                              {way?.name}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    <div className="relative  text-left" ref={dropdownRef}>
-                      <div className="flex items-center ">
-                        <span
-                          onClick={() => setIsPassengerOpen(!isPassengerOpen)}
-                          className="flex justify-between items-center w-full  py-2 text-sm  text-gray-700 cursor-pointer "
-                        >
-                          <span className="border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300">
-                            {totalPassengers}{" "}
-                            {totalPassengers !== 1 ? "Travelers" : "Adult"}
-                          </span>
-                        </span>
-                      </div>
-
-                      {isPassengerOpen && (
-                        <div className="absolute w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
-                          <div className="py-5 px-3">
-                            {categories.map((category, index) => (
-                              <div
-                                key={category.name}
-                                className="px-4 py-2 flex items-center justify-between"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <p className="text-sm  text-gray-900">
-                                    {category.name}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    {category.ageRange}
-                                  </p>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => updateCount(index, -1)}
-                                    disabled={
-                                      category?.name == "Adults"
-                                        ? category.count === 1
-                                        : category.count === 0
-                                    }
-                                    className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
-                                    aria-label={`Decrease ${category.name}`}
-                                  >
-                                    <svg
-                                      className="w-3 h-3"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M20 12H4"
-                                      />
-                                    </svg>
-                                  </button>
-                                  <span className="text-gray-900 w-8 text-center">
-                                    {category.count}
-                                  </span>
-                                  <button
-                                    onClick={() => updateCount(index, 1)}
-                                    type="button"
-                                    disabled={totalPassengers === 7}
-                                    className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                                    aria-label={`Increase ${category.name}`}
-                                  >
-                                    <svg
-                                      className="w-5 h-5"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                      />
-                                    </svg>
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="text-left">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger>
-                          <span
-                            onClick={() => setIsClassOpen(!isClassOpen)}
-                            className="flex justify-between items-center w-full py-2 text-sm  text-gray-700 cursor-pointer "
-                          >
-                            <span className="border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300">
-                              {selectedClass == "Y"
-                                ? "Economy"
-                                : selectedClass == "P"
-                                ? "Premium Economy"
-                                : selectedClass == "C"
-                                ? "Business"
-                                : "First class"}
-                            </span>
-                          </span>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {classes?.map((cls, index) => (
-                            <DropdownMenuItem
-                              key={index}
-                              onClick={() => setSelectedClass(cls?.shortCode)}
-                              className={`px-5 py-2 ${
-                                selectedClass == cls?.shortCode
-                                  ? "bg-[#F0F3F5]"
-                                  : ""
-                              } cursor-pointer`}
-                            >
-                              {cls?.name}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </div>
                   </div>
                   {selectedWay == "multi_city" ? (
@@ -921,7 +785,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                     </>
                   ) : selectedWay == "one_way" ? (
                     <>
-                      <div className="grid grid-cols-1 md:grid-cols-4  gap-2 relative">
+                      <div className="grid grid-cols-1 md:grid-cols-5  gap-2 relative">
                         <div className="col-span-2 flex gap-1 ">
                           <div
                             className="relative"
@@ -1202,16 +1066,142 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                           </div>
                         </div>
 
-                        <div className="col-span-2 flex gap-2 justify-between">
+                        <div className="col-span-3 grid grid-cols-7 gap-2">
                           <DatePickerOneWay
-                            className={"w-full"}
+                            className={"w-full col-span-4"}
                             setOneWayDate={setOneWayDate}
                             oneWayDate={oneWayDate}
                           />
+                          <div className="col-span-2">
+                            <div
+                              className="relative"
+                              ref={dropdownRefDestination}
+                            >
+                              <div
+                                onClick={() =>
+                                  setIsOpenClassPassenger(!isOpenClassPassenger)
+                                }
+                              >
+                                <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+                                  {totalPassengers}{" "}
+                                  {totalPassengers !== 1
+                                    ? "Travelers"
+                                    : "Adult"}
+                                  ,{" "}
+                                  {selectedClass == "Y"
+                                    ? "Economy"
+                                    : selectedClass == "P"
+                                    ? "Premium Economy"
+                                    : selectedClass == "C"
+                                    ? "Business"
+                                    : "First class"}
+                                </div>
+                              </div>
+                              {isOpenClassPassenger ? (
+                                <div className="absolute w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
+                                  <div className=" ">
+                                    <div className="py-5 px-3">
+                                      {categories.map((category, index) => (
+                                        <div
+                                          key={category.name}
+                                          className="px-4 py-2 flex items-center justify-between"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <p className="text-sm  text-gray-900">
+                                              {category.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              {category.ageRange}
+                                            </p>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                updateCount(index, -1)
+                                              }
+                                              disabled={
+                                                category?.name == "Adults"
+                                                  ? category.count === 1
+                                                  : category.count === 0
+                                              }
+                                              className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
+                                              aria-label={`Decrease ${category.name}`}
+                                            >
+                                              <svg
+                                                className="w-3 h-3"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M20 12H4"
+                                                />
+                                              </svg>
+                                            </button>
+                                            <span className="text-gray-900 w-8 text-center">
+                                              {category.count}
+                                            </span>
+                                            <button
+                                              onClick={() =>
+                                                updateCount(index, 1)
+                                              }
+                                              type="button"
+                                              disabled={totalPassengers === 7}
+                                              className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                              aria-label={`Increase ${category.name}`}
+                                            >
+                                              <svg
+                                                className="w-5 h-5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                                />
+                                              </svg>
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2 w-full flex-wrap p-4">
+                                    {classes?.map((cls, index) => (
+                                      <div
+                                        key={index}
+                                        onClick={() =>
+                                          setSelectedClass(cls?.shortCode)
+                                        }
+                                        className={`px-2 py-2 border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300 ${
+                                          selectedClass == cls?.shortCode
+                                            ? "bg-[#F0F3F5]"
+                                            : ""
+                                        } cursor-pointer`}
+                                      >
+                                        <span className="">{cls?.name}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                          </div>
 
                           {/* <Link href={"/search-result"}> */}
                           <button
-                            className="rounded-[10px] bg-[#FC660F] w-[130px] h-full hover:bg-[#d67136]"
+                            className="rounded-[10px] bg-[#FC660F] w-[130px] h-full hover:bg-[#d67136] col-span-1"
                             type="submit"
                           >
                             <div className="flex justify-center items-center w-full gap-1">
@@ -1226,7 +1216,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                   ) : (
                     <>
                       <>
-                        <div className="grid grid-cols-1 md:grid-cols-4  gap-2 relative">
+                        <div className="grid grid-cols-1 md:grid-cols-5  gap-2 relative">
                           <div className="col-span-2 flex gap-1 ">
                             <div
                               className="relative"
@@ -1237,31 +1227,38 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   setIsOpenDestination(!isOpenDestination)
                                 }
                               >
-                                <p className="absolute right-5 truncate left-[40px] top-1/2 transform -translate-y-1/2  ">
+                                <p
+                                  className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
+                                    originAirport !== "" ||
+                                    searchQueryDestination !== ""
+                                      ? "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                                      : ""
+                                  }`}
+                                >
                                   {originAirport !== ""
                                     ? originAirport +
                                       " " +
                                       searchQueryDestination
                                     : searchQueryDestination}
+                                  <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                                    <FaTimes onClick={handleClear} />
+                                  </span>
                                 </p>
                                 <input
-                                  value={
-                                    originAirport !== ""
-                                      ? ""
-                                      : searchQueryDestination
-                                  }
+                                  // value={
+                                  //   originAirport !== ""
+                                  //     ? ""
+                                  //     : searchQueryDestination
+                                  // }
                                   type="text"
                                   onChange={(e) =>
                                     setSearchQueryDestination(e.target.value)
                                   }
                                   // placeholder="From ?"
-                                  className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                                  className="hover:bg-[#d9e2e8] w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
                                 />
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                                   <Airplane />
-                                </div>
-                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
-                                  <FaTimes onClick={handleClear} />
                                 </div>
                               </div>
                               {isOpenDestination ? (
@@ -1371,31 +1368,33 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               <div
                                 onClick={() => setIsOpenArrival(!isOpenArrival)}
                               >
-                                <p className="absolute right-5 truncate left-[40px] top-1/2 transform -translate-y-1/2  ">
+                                <p
+                                  className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
+                                    destinationAirport !== "" ||
+                                    searchQueryArrival !== ""
+                                      ? "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                                      : ""
+                                  }`}
+                                >
                                   {destinationAirport !== ""
                                     ? destinationAirport +
                                       " " +
                                       searchQueryArrival
                                     : searchQueryArrival}
+                                  <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                                    <FaTimes onClick={handleClearArrival} />
+                                  </span>
                                 </p>
                                 <input
-                                  value={
-                                    destinationAirport !== ""
-                                      ? ""
-                                      : searchQueryArrival
-                                  }
                                   type="text"
                                   onChange={(e) =>
                                     setSearchQueryArrival(e.target.value)
                                   }
                                   // placeholder="To ?"
-                                  className="w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                                  className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                                 />
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                                   <Airplane />
-                                </div>
-                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
-                                  <FaTimes onClick={handleClearArrival} />
                                 </div>
                               </div>
                               {isOpenArrival ? (
@@ -1493,87 +1492,156 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             </div>
                           </div>
 
-                          {/* <div className="col-span-1 flex gap-2">
-                      <div
-                        className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        onClick={() => setIsCalenderShow(!isCalenderShow)}
-                      >
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Calender />
-                        </div>
-                        {selectedDate && formatDate(selectedDate)}
-                        {isCalenderShow ? (
-                          <div className="bg-white p-4 rounded-lg shadow-lg max-w-3xl mx-auto absolute w-full md:w-[834px] right-2 z-10 top-14">
-                            <div className="flex justify-end items-center mb-4">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm">Departure</span>
-                                <span className="text-xs text-[#007799]">
-                                  Exact
-                                </span>
-                              </div>
-                            </div>
-
-                            {renderTwoMonths()}
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                      </div>
-                    </div>
-                    <div className="col-span-1 flex gap-2">
-                      <div
-                        className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        onClick={() => setIsCalenderShow(!isCalenderShow)}
-                      >
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Calender />
-                        </div>
-                        {selectedDate && formatDate(selectedDate)}
-                        {isCalenderShow ? (
-                          <div className="bg-white p-4 rounded-lg shadow-lg max-w-3xl mx-auto absolute w-full md:w-[834px] right-2 z-10 top-14">
-                            <div className="flex justify-end items-center mb-4">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm">Departure</span>
-                                <span className="text-xs text-[#007799]">
-                                  Exact
-                                </span>
-                              </div>
-                            </div>
-
-                            {renderTwoMonths()}
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                      </div>
-
-                      <Link href={"/search-result"}>
-                        <button
-                          className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
-                          type="submit"
-                        >
-                          <div className="flex justify-center items-center w-full">
-                            <SearchIcon />
-                          </div>
-                        </button>
-                      </Link>
-                    </div> */}
-                          <div className="col-span-2 flex gap-2 justify-between">
+                          <div className="col-span-3 flex gap-2 justify-between">
                             <div>
                               <DatePicker
                                 setRoundDate={setRoundDate}
                                 roundDate={roundDate}
                               />
                             </div>
-
-                            <button
-                              className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
-                              type="submit"
-                            >
-                              <div className="flex justify-center items-center w-full">
-                                <SearchIcon />
+                            <div className="flex items-center gap-2 w-full">
+                              <div className="col-span-2">
+                                <div
+                                  className="relative"
+                                  ref={dropdownRefDestination}
+                                >
+                                  <div
+                                    onClick={() =>
+                                      setIsOpenClassPassenger(
+                                        !isOpenClassPassenger
+                                      )
+                                    }
+                                  >
+                                    <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+                                      {totalPassengers}{" "}
+                                      {totalPassengers !== 1
+                                        ? "Travelers"
+                                        : "Adult"}
+                                      ,{" "}
+                                      {selectedClass == "Y"
+                                        ? "Economy"
+                                        : selectedClass == "P"
+                                        ? "Premium Economy"
+                                        : selectedClass == "C"
+                                        ? "Business"
+                                        : "First class"}
+                                    </div>
+                                  </div>
+                                  {isOpenClassPassenger ? (
+                                    <div className="absolute w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
+                                      <div className=" ">
+                                        <div className="py-5 px-3">
+                                          {categories.map((category, index) => (
+                                            <div
+                                              key={category.name}
+                                              className="px-4 py-2 flex items-center justify-between"
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <p className="text-sm  text-gray-900">
+                                                  {category.name}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                  {category.ageRange}
+                                                </p>
+                                              </div>
+                                              <div className="flex items-center space-x-2">
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    updateCount(index, -1)
+                                                  }
+                                                  disabled={
+                                                    category?.name == "Adults"
+                                                      ? category.count === 1
+                                                      : category.count === 0
+                                                  }
+                                                  className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
+                                                  aria-label={`Decrease ${category.name}`}
+                                                >
+                                                  <svg
+                                                    className="w-3 h-3"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                  >
+                                                    <path
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M20 12H4"
+                                                    />
+                                                  </svg>
+                                                </button>
+                                                <span className="text-gray-900 w-8 text-center">
+                                                  {category.count}
+                                                </span>
+                                                <button
+                                                  onClick={() =>
+                                                    updateCount(index, 1)
+                                                  }
+                                                  type="button"
+                                                  disabled={
+                                                    totalPassengers === 7
+                                                  }
+                                                  className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                                  aria-label={`Increase ${category.name}`}
+                                                >
+                                                  <svg
+                                                    className="w-5 h-5"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                  >
+                                                    <path
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                                    />
+                                                  </svg>
+                                                </button>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-2 w-full flex-wrap p-4">
+                                        {classes?.map((cls, index) => (
+                                          <div
+                                            key={index}
+                                            onClick={() =>
+                                              setSelectedClass(cls?.shortCode)
+                                            }
+                                            className={`px-2 py-2 border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300 ${
+                                              selectedClass == cls?.shortCode
+                                                ? "bg-[#F0F3F5]"
+                                                : ""
+                                            } cursor-pointer`}
+                                          >
+                                            <span className="">
+                                              {cls?.name}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    ""
+                                  )}
+                                </div>
                               </div>
-                            </button>
+
+                              <button
+                                className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
+                                type="submit"
+                              >
+                                <div className="flex justify-center items-center w-full">
+                                  <SearchIcon />
+                                </div>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </>
