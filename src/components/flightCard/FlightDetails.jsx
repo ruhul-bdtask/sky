@@ -45,7 +45,7 @@ const FlightDetails = ({ flight }) => {
 
   const getAirport = (srtCode) => {
     const airport = airportsData.find((airport) => airport?.value === srtCode);
-    return airport ? airport.name : "Unknown Airport";
+    return airport ? airport.label : "Unknown Airport";
   };
 
   const getChangingCity = (srtCode) => {

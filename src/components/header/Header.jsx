@@ -22,6 +22,7 @@ import { FaExchangeAlt } from "react-icons/fa";
 import useAirlineStore from "../../../stores/airlineStore";
 import ModalLayout from "../modals/ModalLayout";
 import { LuChevronsLeftRight } from "react-icons/lu";
+import { fetchData, saveSingleTrip } from "@/utils/api";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -169,9 +170,8 @@ export default function Header() {
     setFormData(nextFormData);
   };
 
-  const handleCreateTrip = (e) => {
+  const handleCreateTrip = async (e) => {
     e.preventDefault();
-
     const newTripName = e.target.name.value;
     if (formData.name.trim().length === 0) {
       setTripError(`Please give a valid trip name`);
@@ -179,12 +179,36 @@ export default function Header() {
     }
 
     const tripExists = savedTrips.some(
-      (flight) =>
-        flight.name.toLowerCase().trim() === newTripName.toLowerCase().trim()
+      (trip) =>
+        trip.name.toLowerCase().trim() === newTripName.toLowerCase().trim()
     );
 
     if (tripExists) {
       setTripError(`${newTripName} is already taken`);
+      return;
+    }
+
+    if (token) {
+      const response = await fetchData(
+        "/gds/create-trip",
+        "POST",
+        formData,
+        token
+      );
+      if (response.success) {
+        setSavedTrips([...savedTrips, { ...response.data, flights: [] }]);
+        setSelectedSavedTrip(response.data);
+        setIsCreateTrip(false);
+        setIsChangeTrip(false);
+        setFormData({
+          destination: "",
+          name: "",
+          start_date: "",
+          end_date: "",
+          flights: [],
+        });
+        setTripError("");
+      }
       return;
     }
 
@@ -398,7 +422,7 @@ export default function Header() {
                               </div>
                             </div>
 
-                            {selectedSavedTrip?.flights.map(
+                            {selectedSavedTrip?.flights?.map(
                               ({ flight_data: flight }, index) => (
                                 <div
                                   class="flex flex-col gap-4 mt-4 p-4 border-b"

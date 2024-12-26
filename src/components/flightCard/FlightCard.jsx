@@ -170,7 +170,7 @@ export default function FlightCard({ flight }) {
         // Found the selected trip to update
         return {
           ...trip,
-          flights: [...trip.flights, { flight_data: flight }],
+          flights: [...trip?.flights, { flight_data: flight }],
         };
       }
       // Return other trips unchanged
@@ -180,6 +180,7 @@ export default function FlightCard({ flight }) {
     // Update the state with the modified savedTrips array
     setSavedTrips(updatedSavedTrips);
 
+    //update selected saved trip data
     updatedSavedTrips.forEach((trip) => {
       if (trip.name === selectedSavedTrip.name) {
         setSelectedSavedTrip(trip);
