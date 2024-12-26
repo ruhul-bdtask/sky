@@ -36,21 +36,40 @@ export const fetchData = async (
   return response.json();
 };
 
-
-// airlines info from json
-export const fetchAirlinesData = async () => {
-  const response = await fetch("/utils/airlines.json");
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
+const fetchJsonData = async (url) => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch data from ${url}: ${response.statusText}`
+      );
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
   }
-  return response.json();
 };
 
-// airports info from json
-export const fetchAirportsData = async () => {
-  const response = await fetch("/utils/airports.json");
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  return response.json();
-};
+export const fetchAirlinesData = () => fetchJsonData("/utils/airlines.json");
+export const fetchAirportsData = () => fetchJsonData("/utils/airports.json");
+
+// save single trip for loggedin user
+// export const saveSingleTrip = async () => {
+//   try {
+//     const response = await fetch(`${API_BASE_URL}${"/gds/create-trip"}`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
+//     if (!response.ok) {
+//       throw new Error("Network response was not ok");
+//     }
+//     return await response.json();
+//   } catch (error) {
+//     console.log(error);
+//     throw error;
+//   }
+// };
