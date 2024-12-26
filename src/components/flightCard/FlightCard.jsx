@@ -150,7 +150,7 @@ export default function FlightCard({ flight }) {
   //   }
   // };
 
-  const handleSavedFlights = (solution_key) => {
+  const handleSavedFlights = async (solution_key) => {
     // Check if the flight is already saved in the selected trip's flights
     // const isFlightSaved = selectedSavedTrip.flights.some(
     //   (savedFlight) =>
@@ -177,9 +177,29 @@ export default function FlightCard({ flight }) {
       return trip;
     });
 
-    // Update the state with the modified savedTrips array
-    setSavedTrips(updatedSavedTrips);
+    // if (token) {
+    //   syncSavedFlights(token);
+    // }
 
+    if (token) {
+      const payload = {
+        data: [{ trip_id: selectedSavedTrip?.id, flight_data: flight }],
+      };
+
+      const response = await fetchData(
+        "/gds/save-flights",
+        "POST",
+        payload,
+        token
+      );
+      if (response.success) {
+        // Update the state with the modified savedTrips array
+        setSavedTrips(updatedSavedTrips);
+        return;
+      }
+    }
+
+    setSavedTrips(updatedSavedTrips);
     //update selected saved trip data
     updatedSavedTrips.forEach((trip) => {
       if (trip.name === selectedSavedTrip.name) {
