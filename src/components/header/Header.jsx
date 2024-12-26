@@ -73,11 +73,19 @@ export default function Header() {
     setUserData({});
   };
 
+  // useEffect(() => {
+  //   if (!selectedSavedTrip.name) {
+  //     setIsChangeTrip(true);
+  //   }
+  // }, [selectedSavedTrip.name]);
+
   useEffect(() => {
-    if (!selectedSavedTrip.name) {
-      setIsChangeTrip(true);
-    }
-  }, []);
+    savedTrips.forEach((trip) => {
+      if (trip.name === selectedSavedTrip.name) {
+        setSelectedSavedTrip(trip);
+      }
+    });
+  }, [savedTrips]);
 
   const isMyTokenExpired = isExpired(token);
   const handleChange = (e, index) => {
@@ -166,7 +174,7 @@ export default function Header() {
 
     const newTripName = e.target.name.value;
     if (formData.name.trim().length === 0) {
-      setTripError(`Please enter a trip name`);
+      setTripError(`Please give a valid trip name`);
       return;
     }
 
