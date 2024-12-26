@@ -26,8 +26,15 @@ const removeDuplicateFlights = (flights) => {
 const useSyncSavedFlights = () => {
   const { token, setToken, savedTrips, setSavedTrips } = useAirlineStore();
   // const formattedSavedFlights = formatSavedFlight(savedTrips);
+  const payloadData = savedTrips.map((trip) => {
+    return {
+      ...trip,
+      flights: trip.flights.map((flight) => flight.flight_data),
+    };
+  });
+
   const payload = {
-    data: savedTrips,
+    data: payloadData,
   };
 
   const syncSavedFlights = async (token) => {

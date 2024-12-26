@@ -161,6 +161,7 @@ export default function FlightCard({ flight }) {
     if (savedTrips.length === 0) {
       setIsChangeTrip(true);
       toast.info("Please create a Trip first");
+      return;
     }
 
     // Update the savedTrips array
