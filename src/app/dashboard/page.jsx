@@ -19,23 +19,51 @@ export default function Page() {
   // useEffect(() => {
   //   const checkAuth = () => {
   //     const token = Cookies.get("auth-token");
-  //     if (!token) {
+
+  //     try {
+  //       const decodedToken = jwtDecode(token);
+  //       setUser(decodedToken);
+  //     } catch (error) {
+  //       Cookies.remove("auth-token");
   //       router.push("/login");
-  //       return;
+  //     } finally {
+  //       setIsLoading(false);
   //     }
-  //     // try {
-  //     //   const decodedToken = jwtDecode(token);
-  //     //   setUser(decodedToken);
-  //     // } catch (error) {
-  //     //   Cookies.remove("auth-token");
-  //     //   router.push("/login");
-  //     // } finally {
-  //     //   setIsLoading(false);
-  //     // }
   //   };
 
   //   checkAuth();
   // }, [router]);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = Cookies.get("auth-token");
+
+      if (!token) {
+        Cookies.remove("auth-token");
+        router.push("/login");
+        return;
+      }
+
+      try {
+        const decodedToken = jwtDecode(token);
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        if (decodedToken.exp && decodedToken.exp < currentTime) {
+          Cookies.remove("auth-token");
+          router.push("/login");
+        } else {
+          setUser(decodedToken);
+        }
+      } catch (error) {
+        Cookies.remove("auth-token");
+        router.push("/login");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const userPayload = {
     document_type: "NID",
