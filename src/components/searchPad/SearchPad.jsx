@@ -490,6 +490,7 @@ export default function SearchPad() {
     setSearchQueryArrival("");
     setDestinationAirport("");
   };
+
   return (
     <div>
       <main className={``}>
@@ -904,10 +905,12 @@ export default function SearchPad() {
                       >
                         <p
                           className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
-                            originAirport !== "" ||
-                            searchQueryDestination !== ""
-                              ? "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
-                              : ""
+                            originAirport == "" ||
+                            originAirport == undefined ||
+                            searchQueryDestination == "" ||
+                            searchQueryDestination == undefined
+                              ? ""
+                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                           }`}
                         >
                           {originAirport !== ""
@@ -1028,22 +1031,14 @@ export default function SearchPad() {
                     </button>
                     <div className="relative" ref={dropdownRefArrival}>
                       <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
-                        {/* <input
-                          value={searchQueryArrival}
-                          type="text"
-                          onChange={(e) =>
-                            setSearchQueryArrival(e.target.value)
-                          }
-                          placeholder="To ?"
-                          className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        /> */}
-
                         <p
                           className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
-                            destinationAirport !== "" ||
-                            searchQueryArrival !== ""
-                              ? "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
-                              : ""
+                            destinationAirport == "" ||
+                            destinationAirport == undefined ||
+                            searchQueryArrival == undefined ||
+                            searchQueryArrival == ""
+                              ? ""
+                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                           }`}
                         >
                           {destinationAirport !== ""
@@ -1183,15 +1178,35 @@ export default function SearchPad() {
                             setIsOpenDestination(!isOpenDestination)
                           }
                         >
+                          <p
+                            className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
+                              originAirport == "" ||
+                              originAirport == undefined ||
+                              searchQueryDestination == "" ||
+                              searchQueryDestination == undefined
+                                ? ""
+                                : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                            }`}
+                          >
+                            {originAirport !== ""
+                              ? originAirport + " " + searchQueryDestination
+                              : searchQueryDestination}
+                            <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                              <FaTimes onClick={handleClear} />
+                            </span>
+                          </p>
                           <input
-                            value={searchQueryDestination}
+                            // value={
+                            //   originAirport !== "" ? "" : searchQueryDestination
+                            // }
                             type="text"
                             onChange={(e) =>
                               setSearchQueryDestination(e.target.value)
                             }
-                            placeholder="From ?"
-                            className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                            // placeholder="From ?"
+                            className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                           />
+
                           <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                             <Airplane />
                           </div>
@@ -1204,11 +1219,12 @@ export default function SearchPad() {
                                   (destination, index) => (
                                     <li
                                       key={index}
-                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
+                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                       onClick={() => {
                                         setSearchQueryDestination(
                                           destination.value
                                         );
+                                        setOriginAirport(destination.name);
                                         setIsOpenDestination(false);
                                       }}
                                     >
@@ -1294,14 +1310,33 @@ export default function SearchPad() {
                       </button>
                       <div className="relative" ref={dropdownRefArrival}>
                         <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
+                          <p
+                            className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
+                              destinationAirport == "" ||
+                              destinationAirport == undefined ||
+                              searchQueryArrival == undefined ||
+                              searchQueryArrival == ""
+                                ? ""
+                                : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                            }`}
+                          >
+                            {destinationAirport !== ""
+                              ? destinationAirport + " " + searchQueryArrival
+                              : searchQueryArrival}
+                            <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                              <FaTimes onClick={handleClearArrival} />
+                            </span>
+                          </p>
                           <input
-                            value={searchQueryArrival}
+                            // value={
+                            //   destinationAirport !== "" ? "" : searchQueryArrival
+                            // }
                             type="text"
                             onChange={(e) =>
                               setSearchQueryArrival(e.target.value)
                             }
-                            placeholder="To ?"
-                            className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                            // placeholder="To ?"
+                            className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                           />
                           <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                             <Airplane />
@@ -1315,9 +1350,10 @@ export default function SearchPad() {
                                   (arrival, index) => (
                                     <li
                                       key={index}
-                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
+                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                       onClick={() => {
                                         setSearchQueryArrival(arrival.value);
+                                        setDestinationAirport(arrival.name);
                                         setIsOpenArrival(false);
                                       }}
                                     >

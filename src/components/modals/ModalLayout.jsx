@@ -502,6 +502,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     }
   }, [isModalOpen, setIsModalOpen]);
 
+  console.log(originAirport, destinationAirport);
+
   return (
     <div>
       <div
@@ -798,10 +800,12 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             >
                               <p
                                 className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
-                                  originAirport !== "" ||
-                                  searchQueryDestination !== ""
-                                    ? "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
-                                    : ""
+                                  originAirport == "" ||
+                                  originAirport == undefined ||
+                                  searchQueryDestination == "" ||
+                                  searchQueryDestination == undefined
+                                    ? ""
+                                    : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                 }`}
                               >
                                 {originAirport !== ""
@@ -811,12 +815,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   <FaTimes onClick={handleClear} />
                                 </span>
                               </p>
-
                               <input
                                 // value={
-                                //   originAirport !== ""
-                                //     ? ""
-                                //     : searchQueryDestination
+                                //   originAirport !== "" ? "" : searchQueryDestination
                                 // }
                                 type="text"
                                 onChange={(e) =>
@@ -933,21 +934,14 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             <div
                               onClick={() => setIsOpenArrival(!isOpenArrival)}
                             >
-                              {/* <input
-                          value={searchQueryArrival}
-                          type="text"
-                          onChange={(e) =>
-                            setSearchQueryArrival(e.target.value)
-                          }
-                          placeholder="To ?"
-                          className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        /> */}
                               <p
                                 className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
-                                  destinationAirport !== "" ||
-                                  searchQueryArrival !== ""
-                                    ? "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
-                                    : ""
+                                  destinationAirport == "" ||
+                                  destinationAirport == undefined ||
+                                  searchQueryArrival == undefined ||
+                                  searchQueryArrival == ""
+                                    ? ""
+                                    : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                 }`}
                               >
                                 {destinationAirport !== ""
@@ -961,9 +955,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               </p>
                               <input
                                 // value={
-                                //   destinationAirport !== ""
-                                //     ? ""
-                                //     : searchQueryArrival
+                                //   destinationAirport !== "" ? "" : searchQueryArrival
                                 // }
                                 type="text"
                                 onChange={(e) =>
@@ -1073,10 +1065,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             oneWayDate={oneWayDate}
                           />
                           <div className="col-span-2">
-                            <div
-                              className="relative"
-                              ref={dropdownRefDestination}
-                            >
+                            <div className="relative" ref={dropdownRef}>
                               <div
                                 onClick={() =>
                                   setIsOpenClassPassenger(!isOpenClassPassenger)
@@ -1229,10 +1218,12 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               >
                                 <p
                                   className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
-                                    originAirport !== "" ||
-                                    searchQueryDestination !== ""
-                                      ? "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
-                                      : ""
+                                    originAirport == "" ||
+                                    originAirport == undefined ||
+                                    searchQueryDestination == "" ||
+                                    searchQueryDestination == undefined
+                                      ? ""
+                                      : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                   }`}
                                 >
                                   {originAirport !== ""
@@ -1246,17 +1237,16 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 </p>
                                 <input
                                   // value={
-                                  //   originAirport !== ""
-                                  //     ? ""
-                                  //     : searchQueryDestination
+                                  //   originAirport !== "" ? "" : searchQueryDestination
                                   // }
                                   type="text"
                                   onChange={(e) =>
                                     setSearchQueryDestination(e.target.value)
                                   }
                                   // placeholder="From ?"
-                                  className="hover:bg-[#d9e2e8] w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                                  className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                                 />
+
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                                   <Airplane />
                                 </div>
@@ -1370,10 +1360,12 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               >
                                 <p
                                   className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
-                                    destinationAirport !== "" ||
-                                    searchQueryArrival !== ""
-                                      ? "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
-                                      : ""
+                                    destinationAirport == "" ||
+                                    destinationAirport == undefined ||
+                                    searchQueryArrival == undefined ||
+                                    searchQueryArrival == ""
+                                      ? ""
+                                      : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                   }`}
                                 >
                                   {destinationAirport !== ""
@@ -1386,6 +1378,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   </span>
                                 </p>
                                 <input
+                                  // value={
+                                  //   destinationAirport !== "" ? "" : searchQueryArrival
+                                  // }
                                   type="text"
                                   onChange={(e) =>
                                     setSearchQueryArrival(e.target.value)
@@ -1501,10 +1496,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             </div>
                             <div className="flex items-center gap-2 w-full">
                               <div className="col-span-2">
-                                <div
-                                  className="relative"
-                                  ref={dropdownRefDestination}
-                                >
+                                <div className="relative" ref={dropdownRef}>
                                   <div
                                     onClick={() =>
                                       setIsOpenClassPassenger(
