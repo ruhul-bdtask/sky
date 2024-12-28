@@ -160,7 +160,12 @@ export default function FlightCard({ flight }) {
     setIsOpenSavedDialog(true);
     if (savedTrips.length === 0) {
       setIsChangeTrip(true);
-      toast.info("Please create a Trip first");
+      toast.info("Please create a trip first");
+      return;
+    }
+    if (!selectedSavedTrip?.name) {
+      setIsChangeTrip(true);
+      toast.info("Please select a trip first");
       return;
     }
 
@@ -193,6 +198,7 @@ export default function FlightCard({ flight }) {
         token
       );
       if (response.success) {
+        toast.success("Flight saved successfully");
         // Update the state with the modified savedTrips array
         setSavedTrips(updatedSavedTrips);
         return;
@@ -200,6 +206,7 @@ export default function FlightCard({ flight }) {
     }
 
     setSavedTrips(updatedSavedTrips);
+    toast.success("Flight saved successfully");
     //update selected saved trip data
     updatedSavedTrips.forEach((trip) => {
       if (trip.name === selectedSavedTrip.name) {
