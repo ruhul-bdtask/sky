@@ -60,6 +60,19 @@ export default function Header() {
 
   const { destination, arrival, journeyDate, returnDate, tripType } =
     searchData;
+
+  const [tripError, setTripError] = useState("");
+  const [formData, setFormData] = useState({
+    destination: "",
+    name: "",
+    start_date: "",
+    end_date: "",
+    flights: [],
+  });
+
+  const [renameTripTerm, setRenameTripTerm] = useState("");
+  const [isRenameTrip, setIsRenameTrip] = useState(false);
+
   // useEffect(() => {
   //   const authToken = Cookies.get("auth-token");
   //   setToken(authToken);
@@ -152,15 +165,6 @@ export default function Header() {
     };
   }, []);
 
-  const [tripError, setTripError] = useState("");
-  const [formData, setFormData] = useState({
-    destination: "",
-    name: "",
-    start_date: "",
-    end_date: "",
-    flights: [],
-  });
-
   const handleToggleChangeTrip = () => {
     setIsChangeTrip(!isChangeTrip);
     setIsShowPopupBtn(null);
@@ -212,21 +216,20 @@ export default function Header() {
         });
         setTripError("");
       }
-      return;
+    } else {
+      setSavedTrips([...savedTrips, formData]);
+      setSelectedSavedTrip(formData);
+      setIsCreateTrip(false);
+      setIsChangeTrip(false);
+      setFormData({
+        destination: "",
+        name: "",
+        start_date: "",
+        end_date: "",
+        flights: [],
+      });
+      setTripError("");
     }
-
-    setSavedTrips([...savedTrips, formData]);
-    setSelectedSavedTrip(formData);
-    setIsCreateTrip(false);
-    setIsChangeTrip(false);
-    setFormData({
-      destination: "",
-      name: "",
-      start_date: "",
-      end_date: "",
-      flights: [],
-    });
-    setTripError("");
   };
 
   const onSelectSavedTrip = (trip) => {
@@ -298,6 +301,83 @@ export default function Header() {
     //     return trip;
     //   })
     // );
+  };
+
+  // handle rename trip
+  const onEditTrip = (trip) => {
+    setIsRenameTrip(true);
+    setRenameTripTerm(trip.name);
+  };
+
+  const onChangeTrip = (e) => {
+    setRenameTripTerm(e.target.value);
+  };
+
+  const handleRenameTrip = async () => {
+    try {
+      if (token) {
+        const payload = {
+          trip_id: selectedSavedTrip?.id,
+          name: renameTripTerm,
+        };
+
+        const response = await fetchData(
+          "/gds/rename-trip",
+          "POST",
+          payload,
+          token
+        );
+
+        if (response.success) {
+          toast.success("Trip renamed successfully");
+
+          // Update the saved trips list
+          setSavedTrips(
+            savedTrips.map((trip) => {
+              if (trip?.id === response?.data?.id) {
+                return { ...trip, name: response?.data?.name };
+              }
+              return trip;
+            })
+          );
+
+          // Update the selected trip
+          setSelectedSavedTrip({
+            ...selectedSavedTrip,
+            name: response?.data?.name,
+          });
+
+          // Close the rename modal
+          setIsRenameTrip(false);
+        } else {
+          toast.error("Unable to rename the trip");
+        }
+      } else {
+        // toast.error("Authentication token is missing. Please log in again.");
+        setSavedTrips(
+          savedTrips.map((trip) => {
+            if (trip.name === selectedSavedTrip?.name) {
+              return { ...trip, name: renameTripTerm };
+            }
+            return trip;
+          })
+        );
+
+        // Update the selected trip
+        setSelectedSavedTrip({
+          ...selectedSavedTrip,
+          name: renameTripTerm,
+        });
+
+        setIsRenameTrip(false);
+      }
+    } catch (error) {
+      // Catch any unexpected errors
+      console.error("Error renaming trip:", error);
+      toast.error(
+        "An error occurred while renaming the trip. Please try again."
+      );
+    }
   };
 
   const totalPassengers = searchData?.passengers?.reduce(
@@ -426,203 +506,260 @@ export default function Header() {
                         >
                           <X className="h-6 w-6" />
                         </button>
-                        <button
-                          onClick={handleToggleChangeTrip}
-                          className="text-[16px] font-semibold text-[#0C7C99]"
-                        >
-                          {isChangeTrip ? "Cancel" : "Change Trip"}
-                        </button>
+
+                        {isRenameTrip ? (
+                          <button
+                            onClick={() => setIsRenameTrip(false)}
+                            className="text-[16px] font-semibold text-[#0C7C99]"
+                          >
+                            Cancel
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleToggleChangeTrip}
+                            className="text-[16px] font-semibold text-[#0C7C99]"
+                          >
+                            {isChangeTrip ? "Cancel" : "Change Trip"}
+                          </button>
+                        )}
                       </div>
                     </div>
-                    {!isChangeTrip && selectedSavedTrip?.name && (
-                      <div className="p-4">
-                        <div className="mb-6 flex items-start justify-between ">
-                          <div className="flex items-center gap-4">
-                            <Image
-                              alt="image"
-                              width={80}
-                              height={80}
-                              src={weather}
-                            ></Image>
-                            <div>
-                              <h2 className="text-lg font-bold">
-                                {selectedSavedTrip.name}
-                              </h2>
-                              <p className="text-sm text-black">
-                                {selectedSavedTrip.start_date} -{" "}
-                                {selectedSavedTrip.end_date}
-                              </p>
-                              <p className="text-sm text-black">
-                                {selectedSavedTrip.destination}
-                              </p>
+                    {!isChangeTrip &&
+                      selectedSavedTrip?.name &&
+                      !isRenameTrip && (
+                        <div className="p-4">
+                          <div className="mb-6 flex items-start justify-between ">
+                            <div className="flex items-center gap-4">
+                              <Image
+                                alt="image"
+                                width={80}
+                                height={80}
+                                src={weather}
+                              ></Image>
+                              <div>
+                                <h2 className="text-lg font-bold">
+                                  {selectedSavedTrip.name}
+                                </h2>
+                                <p className="text-sm text-black">
+                                  {selectedSavedTrip.start_date} -{" "}
+                                  {selectedSavedTrip.end_date}
+                                </p>
+                                <p className="text-sm text-black">
+                                  {selectedSavedTrip.destination}
+                                </p>
+                              </div>
                             </div>
+                            <button className="text-black">
+                              <Pencil
+                                className="h-5 w-5"
+                                onClick={() => onEditTrip(selectedSavedTrip)}
+                              />
+                            </button>
                           </div>
-                          <button className="text-black">
-                            <Pencil className="h-5 w-5" />
-                          </button>
-                        </div>
-                        <div className="mb-4">
-                          <h3 className="text-lg font-semibold">Flights</h3>
-                        </div>
-                        <div className="mb-4">
-                          {savedTrips?.length > 0 && (
-                            <h4 className="mb-2 text-sm font-semibold">
-                              Saved Flights (
-                              {selectedSavedTrip?.flights?.length})
-                            </h4>
-                          )}
 
-                          <div class="w-[373px]  shadow-xl ">
-                            <div class="flex justify-between items-center bg-[#F0F3F5]  rounded-t-[20px] p-6">
-                              <div class="text-left">
-                                <div class="text-lg font-semibold text-gray-800">
-                                  {savedTrips[0]?.origin_code} -{" "}
-                                  {savedTrips[0]?.destination_code}
-                                </div>
-                                <div class="text-sm text-black">
-                                  12/9 - 15/9
-                                </div>
-                              </div>
-                              <div class="text-right">
-                                <span class="text-xs font-medium text-black">
-                                  Economy
-                                </span>
-                              </div>
-                            </div>
+                          <div className="mb-4">
+                            <h3 className="text-lg font-semibold">Flights</h3>
+                          </div>
+                          <div className="mb-4">
+                            {savedTrips?.length > 0 && (
+                              <h4 className="mb-2 text-sm font-semibold">
+                                Saved Flights (
+                                {selectedSavedTrip?.flights?.length})
+                              </h4>
+                            )}
 
-                            {selectedSavedTrip?.flights?.map(
-                              (flight, index) => (
-                                <div
-                                  class="flex flex-col gap-4 mt-4 p-4 border-b"
-                                  key={index}
-                                >
-                                  <div className="flex items-center justify-between text-sm">
-                                    <span class="font-medium text-gray-800">
-                                      {flight?.flight_data?.airline_name}
-                                    </span>
-                                    <div className="font-medium text-gray-800 relative">
-                                      <button
-                                        className={`w-6 h-5 flex justify-center items-center rounded ${
-                                          isShowPopupBtn === index
-                                            ? "bg-gray-200"
-                                            : "bg-gray-100"
-                                        }`}
-                                        onClick={() =>
-                                          setIsShowPopupBtn(
-                                            isShowPopupBtn === index
-                                              ? null
-                                              : index
-                                          )
-                                        }
-                                      >
-                                        <HiDotsHorizontal />
-                                      </button>
-                                      {isShowPopupBtn === index && (
-                                        <div className="rounded-md border text-center absolute top-6 right-0 bg-white shadow-md">
-                                          <button className="block p-3 border-b w-full hover:text-[#0C7C99] transition-all">
-                                            Search
-                                          </button>
-                                          {token && (
-                                            <button
-                                              className="block p-3 w-full text-red-400 hover:text-[#0C7C99] transition-all"
-                                              onClick={() =>
-                                                handleRemoveFlight(flight)
-                                              }
-                                            >
-                                              Remove
-                                            </button>
-                                          )}
-                                        </div>
-                                      )}
-                                    </div>
+                            <div class="w-[373px]  shadow-xl ">
+                              <div class="flex justify-between items-center bg-[#F0F3F5]  rounded-t-[20px] p-6">
+                                <div class="text-left">
+                                  <div class="text-lg font-semibold text-gray-800">
+                                    {savedTrips[0]?.origin_code} -{" "}
+                                    {savedTrips[0]?.destination_code}
                                   </div>
-                                  <div className="flex items-center gap-2 justify-between ">
-                                    <div className="">
-                                      {flight?.flight_data?.schedules?.map(
-                                        (schedule, index) => (
-                                          <div
-                                            class="mt-3 py-3 px-1  rounded-lg"
-                                            key={index}
-                                          >
-                                            <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
-                                              {
-                                                flight?.flight_data
-                                                  ?.departure_date
-                                              }
-                                            </div>
+                                  <div class="text-sm text-black">
+                                    12/9 - 15/9
+                                  </div>
+                                </div>
+                                <div class="text-right">
+                                  <span class="text-xs font-medium text-black">
+                                    Economy
+                                  </span>
+                                </div>
+                              </div>
 
-                                            <div class="flex items-center justify-between">
-                                              <Image
-                                                width={50}
-                                                height={50}
-                                                src={
-                                                  flight?.flight_data
-                                                    ?.airline_logo
+                              {selectedSavedTrip?.flights?.map(
+                                (flight, index) => (
+                                  <div
+                                    class="flex flex-col gap-4 mt-4 p-4 border-b"
+                                    key={index}
+                                  >
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span class="font-medium text-gray-800">
+                                        {flight?.flight_data?.airline_name}
+                                      </span>
+                                      <div className="font-medium text-gray-800 relative">
+                                        <button
+                                          className={`w-6 h-5 flex justify-center items-center rounded ${
+                                            isShowPopupBtn === index
+                                              ? "bg-gray-200"
+                                              : "bg-gray-100"
+                                          }`}
+                                          onClick={() =>
+                                            setIsShowPopupBtn(
+                                              isShowPopupBtn === index
+                                                ? null
+                                                : index
+                                            )
+                                          }
+                                        >
+                                          <HiDotsHorizontal />
+                                        </button>
+                                        {isShowPopupBtn === index && (
+                                          <div className="rounded-md border text-center absolute top-6 right-0 bg-white shadow-md">
+                                            <button className="block p-3 border-b w-full hover:text-[#0C7C99] transition-all">
+                                              Search
+                                            </button>
+                                            {token && (
+                                              <button
+                                                className="block p-3 w-full text-red-400 hover:text-[#0C7C99] transition-all"
+                                                onClick={() =>
+                                                  handleRemoveFlight(flight)
                                                 }
-                                                alt="Air line Logo"
-                                                class="h-8 w-8 object-contain"
-                                              />
-                                              <div class="flex flex-col text-center">
-                                                <span class="text-lg font-semibold">
-                                                  {unifyTimeFormat(
-                                                    flight?.flight_data
-                                                      ?.departure_time
-                                                  )}
-                                                </span>
-                                                <span class="text-xs text-black">
-                                                  {
-                                                    flight?.flight_data
-                                                      ?.origin_code
-                                                  }
-                                                </span>
-                                              </div>
-                                              <div class="flex flex-col items-center text-xs text-black border-b">
-                                                <span>
-                                                  {" "}
-                                                  {
-                                                    flight?.flight_data
-                                                      ?.flight_duration
-                                                  }
-                                                </span>
-                                              </div>
-                                              <div class="flex flex-col text-center">
-                                                <span class="text-lg font-semibold">
-                                                  {unifyTimeFormat(
-                                                    flight?.flight_data
-                                                      ?.arrival_time
-                                                  )}
-                                                </span>
-                                                <span class="text-xs text-black">
-                                                  {
-                                                    flight?.flight_data
-                                                      ?.destination_code
-                                                  }
-                                                </span>
-                                              </div>
-                                            </div>
+                                              >
+                                                Remove
+                                              </button>
+                                            )}
                                           </div>
-                                        )
-                                      )}
-                                    </div>
-                                    <div class="me-2">
-                                      <div class="text-[18px] font-semibold text-black">
-                                        Tk .
-                                        {formatFlightFare(
-                                          flight?.flight_data?.fare_details
-                                            ?.total_fare
                                         )}
                                       </div>
                                     </div>
+                                    <div className="flex items-center gap-2 justify-between ">
+                                      <div className="">
+                                        {flight?.flight_data?.schedules?.map(
+                                          (schedule, index) => (
+                                            <div
+                                              class="mt-3 py-3 px-1  rounded-lg"
+                                              key={index}
+                                            >
+                                              <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
+                                                {
+                                                  flight?.flight_data
+                                                    ?.departure_date
+                                                }
+                                              </div>
+
+                                              <div class="flex items-center justify-between">
+                                                <Image
+                                                  width={50}
+                                                  height={50}
+                                                  src={
+                                                    flight?.flight_data
+                                                      ?.airline_logo
+                                                  }
+                                                  alt="Air line Logo"
+                                                  class="h-8 w-8 object-contain"
+                                                />
+                                                <div class="flex flex-col text-center">
+                                                  <span class="text-lg font-semibold">
+                                                    {unifyTimeFormat(
+                                                      flight?.flight_data
+                                                        ?.departure_time
+                                                    )}
+                                                  </span>
+                                                  <span class="text-xs text-black">
+                                                    {
+                                                      flight?.flight_data
+                                                        ?.origin_code
+                                                    }
+                                                  </span>
+                                                </div>
+                                                <div class="flex flex-col items-center text-xs text-black border-b">
+                                                  <span>
+                                                    {" "}
+                                                    {
+                                                      flight?.flight_data
+                                                        ?.flight_duration
+                                                    }
+                                                  </span>
+                                                </div>
+                                                <div class="flex flex-col text-center">
+                                                  <span class="text-lg font-semibold">
+                                                    {unifyTimeFormat(
+                                                      flight?.flight_data
+                                                        ?.arrival_time
+                                                    )}
+                                                  </span>
+                                                  <span class="text-xs text-black">
+                                                    {
+                                                      flight?.flight_data
+                                                        ?.destination_code
+                                                    }
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                      <div class="me-2">
+                                        <div class="text-[18px] font-semibold text-black">
+                                          Tk .
+                                          {formatFlightFare(
+                                            flight?.flight_data?.fare_details
+                                              ?.total_fare
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              )
-                            )}
+                                )
+                              )}
+                            </div>
                           </div>
                         </div>
+                      )}
+
+                    {/* ======== Rename Trip ============= */}
+                    {isRenameTrip && (
+                      <div className="p-4">
+                        <h4 className="font-semibold text-lg mb-2">
+                          Rename trip
+                        </h4>
+                        <span className="text-gray-400 block text-sm mb-6">
+                          Organize, manage and plan where you're going— no
+                          matter where you book.
+                        </span>
+                        <label htmlFor="rename-trip" className="text-sm">
+                          Trip name
+                        </label>
+                        <input
+                          className={`w-full rounded p-2 hover:bg-gray-100 transition-all duration-500 outline-none border focus:border-gray-500 ${
+                            renameTripTerm === selectedSavedTrip.name &&
+                            "border-red-500 focus:border-red-500"
+                          }`}
+                          id="rename-trip"
+                          type="text"
+                          value={renameTripTerm}
+                          onChange={(e) => onChangeTrip(e)}
+                        />
+                        <span className="block mt-2 mb-10 text-xs text-gray-400">
+                          50 characters maximum
+                        </span>
+                        <hr className="my-5" />
+                        <button
+                          onClick={handleRenameTrip}
+                          disabled={renameTripTerm === selectedSavedTrip.name}
+                          className={`w-full rounded py-2 px-3 font-semibold text-sm ${
+                            renameTripTerm !== selectedSavedTrip.name
+                              ? "bg-gray-700 text-white"
+                              : "bg-gray-300 text-gray-400"
+                          }`}
+                        >
+                          Rename trip
+                        </button>
                       </div>
                     )}
 
-                    {/* ============ create trip and trip lists ============*/}
+                    {/* ============ Create a new trip show trip lists   ============*/}
                     <div className="">
                       <div className="p-4">
                         {isChangeTrip && !isCreateTrip && (
@@ -641,6 +778,7 @@ export default function Header() {
                                 </span>
                               </button>
                             </div>
+                            {/* Show trip lists */}
                             {savedTrips.length > 0 &&
                               savedTrips.map((trip) => (
                                 <div key={trip.name} className="my-2 ">
@@ -663,7 +801,7 @@ export default function Header() {
                                           </span>
                                           {trip.name ===
                                             selectedSavedTrip.name && (
-                                            <span className="ml-3 shadow-md px-2 py-0 bg-green-100 text-green-600 rounded-full text-xs">
+                                            <span className="ml-3 border border-green-400 shadow-md px-2 py-0 bg-green-100 text-green-600 rounded-full text-xs">
                                               Selected
                                             </span>
                                           )}
@@ -679,6 +817,7 @@ export default function Header() {
                           </div>
                         )}
 
+                        {/* Create a new trip form */}
                         {isChangeTrip && isCreateTrip && (
                           <div>
                             <form
@@ -771,7 +910,7 @@ export default function Header() {
               )}
             </div>
 
-            <ToastContainer />
+            <ToastContainer closeOnClick={true} />
             {token ? (
               <>
                 <div
