@@ -16,6 +16,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiDotsHorizontal } from "react-icons/hi";
+import { MdOutlineArrowRightAlt } from "react-icons/md";
 import { isExpired } from "react-jwt";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -494,7 +495,7 @@ export default function Header() {
                     className="absolute inset-0 "
                     onClick={handleSaved}
                   ></div>
-                  <div className="absolute right-0 top-0 h-full w-full max-w-[421px] overflow-y-auto bg-white shadow-xl transition-transform duration-300 ease-in-out">
+                  <div className="absolute right-0 top-[80px] h-full w-full max-w-[380px] overflow-y-auto bg-white shadow-xl transition-transform duration-300 ease-in-out">
                     <div className="sticky top-0 z-10 border-b bg-white p-4">
                       <div className="flex items-center justify-between">
                         <button
@@ -524,8 +525,8 @@ export default function Header() {
                     {!isChangeTrip &&
                       selectedSavedTrip?.name &&
                       !isRenameTrip && (
-                        <div className="p-4">
-                          <div className="mb-6 flex items-start justify-between ">
+                        <div className="">
+                          <div className="p-4 mb-4 flex items-start justify-between ">
                             <div className="flex items-center gap-4">
                               <Image
                                 alt="image"
@@ -537,13 +538,11 @@ export default function Header() {
                                 <h2 className="text-lg font-bold">
                                   {selectedSavedTrip.name}
                                 </h2>
-                                <p className="text-sm text-black">
-                                  {selectedSavedTrip.start_date} -{" "}
-                                  {selectedSavedTrip.end_date}
-                                </p>
-                                <p className="text-sm text-black">
-                                  {selectedSavedTrip.destination}
-                                </p>
+                                <div className="text-sm text-black flex space-x-1">
+                                  <span>{selectedSavedTrip.start_date}</span>
+                                  <span>-</span>
+                                  <span> {selectedSavedTrip.end_date}</span>
+                                </div>
                               </div>
                             </div>
                             <button className="text-black">
@@ -554,27 +553,27 @@ export default function Header() {
                             </button>
                           </div>
 
-                          <div className="mb-4">
-                            <h3 className="text-lg font-semibold">Flights</h3>
+                          <div className="px-4 pb-2 border-b">
+                            <h4 className="text-lg font-semibold">Flights</h4>
                           </div>
-                          <div className="mb-4">
+
+                          <div className="p-4">
                             {savedTrips?.length > 0 && (
-                              <h4 className="mb-2 text-sm font-semibold">
+                              <h4 className="mb-4 text-md font-semibold">
                                 Saved Flights (
                                 {selectedSavedTrip?.flights?.length})
                               </h4>
                             )}
 
-                            <div class="w-[373px]  shadow-xl ">
-                              <div class="flex justify-between items-center bg-[#F0F3F5]  rounded-t-[20px] p-6">
+                            <div class="w-full shadow-xl rounded-[20px]">
+                              <div class="flex justify-between items-center bg-[#F0F3F5] border-b  rounded-t-[20px] p-4">
                                 <div class="text-left">
-                                  <div class="text-lg font-semibold text-gray-800">
-                                    {savedTrips[0]?.origin_code} -{" "}
-                                    {savedTrips[0]?.destination_code}
+                                  <div class="text-lg flex items-center space-x-1 font-semibold text-gray-800">
+                                    <span>DAC</span>
+                                    <MdOutlineArrowRightAlt />
+                                    <span>CXB</span>
                                   </div>
-                                  <div class="text-sm text-black">
-                                    12/9 - 15/9
-                                  </div>
+                                  <div class="text-sm text-black">12/9</div>
                                 </div>
                                 <div class="text-right">
                                   <span class="text-xs font-medium text-black">
@@ -586,7 +585,7 @@ export default function Header() {
                               {selectedSavedTrip?.flights?.map(
                                 (flight, index) => (
                                   <div
-                                    class="flex flex-col gap-4 mt-4 p-4 border-b"
+                                    class="flex flex-col p-4 border-b"
                                     key={index}
                                   >
                                     <div className="flex items-center justify-between text-sm">
@@ -612,12 +611,12 @@ export default function Header() {
                                         </button>
                                         {isShowPopupBtn === index && (
                                           <div className="rounded-md border text-center absolute top-6 right-0 bg-white shadow-md">
-                                            <button className="block p-3 border-b w-full hover:text-[#0C7C99] transition-all">
+                                            <button className="block p-2 border-b w-full hover:text-[#0C7C99] transition-all">
                                               Search
                                             </button>
                                             {token && (
                                               <button
-                                                className="block p-3 w-full text-red-400 hover:text-[#0C7C99] transition-all"
+                                                className="block p-2 w-full text-red-400 hover:text-[#0C7C99] transition-all"
                                                 onClick={() =>
                                                   handleRemoveFlight(flight)
                                                 }
@@ -629,15 +628,12 @@ export default function Header() {
                                         )}
                                       </div>
                                     </div>
-                                    <div className="flex items-center gap-2 justify-between ">
+                                    <div className="flex items-center gap-2 justify-between pt-2">
                                       <div className="">
                                         {flight?.flight_data?.schedules?.map(
                                           (schedule, index) => (
-                                            <div
-                                              class="mt-3 py-3 px-1  rounded-lg"
-                                              key={index}
-                                            >
-                                              <div class="text-xs text-black border px-2 py-1 inline-block rounded-full mb-2">
+                                            <div class="" key={index}>
+                                              <div class="text-xs text-black border px-2 inline-block rounded-md mb-2 font-semibold">
                                                 {
                                                   flight?.flight_data
                                                     ?.departure_date
@@ -655,8 +651,8 @@ export default function Header() {
                                                   alt="Air line Logo"
                                                   class="h-8 w-8 object-contain"
                                                 />
-                                                <div class="flex flex-col text-center">
-                                                  <span class="text-lg font-semibold">
+                                                <div class="flex flex-col text-center ">
+                                                  <span class=" font-semibold">
                                                     {unifyTimeFormat(
                                                       flight?.flight_data
                                                         ?.departure_time
@@ -669,9 +665,8 @@ export default function Header() {
                                                     }
                                                   </span>
                                                 </div>
-                                                <div class="flex flex-col items-center text-xs text-black border-b">
+                                                <div class="flex flex-col items-center text-xs text-black border-b mx-2">
                                                   <span>
-                                                    {" "}
                                                     {
                                                       flight?.flight_data
                                                         ?.flight_duration
@@ -679,7 +674,7 @@ export default function Header() {
                                                   </span>
                                                 </div>
                                                 <div class="flex flex-col text-center">
-                                                  <span class="text-lg font-semibold">
+                                                  <span class=" font-semibold">
                                                     {unifyTimeFormat(
                                                       flight?.flight_data
                                                         ?.arrival_time
@@ -697,8 +692,8 @@ export default function Header() {
                                           )
                                         )}
                                       </div>
-                                      <div class="me-2">
-                                        <div class="text-[18px] font-semibold text-black">
+                                      <div class="">
+                                        <div class=" font-semibold text-black">
                                           Tk .
                                           {formatFlightFare(
                                             flight?.flight_data?.fare_details
@@ -762,7 +757,9 @@ export default function Header() {
                         {isChangeTrip && !isCreateTrip && (
                           <div>
                             <div className="">
-                              <h2 className="border-b-2 pb-3">Choose Trip</h2>
+                              <h4 className="border-b-2 pb-3 font-semibold text-lg">
+                                Choose Trip
+                              </h4>
                               <button
                                 onClick={() => setIsCreateTrip(true)}
                                 className="flex space-x-2 justify-center items-center py-3"
