@@ -25,6 +25,7 @@ import useAirlineStore from "../../../stores/airlineStore";
 import ModalLayout from "../modals/ModalLayout";
 import { LuChevronsLeftRight } from "react-icons/lu";
 import { fetchData, saveSingleTrip } from "@/utils/api";
+import DatePickerOneWay from "../datePicker/DatePickerOneWay";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -759,7 +760,7 @@ export default function Header() {
                       <div className="p-4">
                         {isChangeTrip && !isCreateTrip && (
                           <div>
-                            <div className="">
+                            <div className="border-b">
                               <h4 className="border-b-2 pb-3 font-semibold text-lg">
                                 Choose Trip
                               </h4>
@@ -768,9 +769,9 @@ export default function Header() {
                                 className="flex space-x-2 justify-center items-center py-3"
                               >
                                 <span className="p-3 bg-slate-200 rounded-md">
-                                  <AiOutlinePlus size={20} />
+                                  <AiOutlinePlus size={25} />
                                 </span>
-                                <span className="font-semibold text-sm">
+                                <span className="font-semibold text-sm ">
                                   Create New Trip
                                 </span>
                               </button>
@@ -780,13 +781,13 @@ export default function Header() {
                               savedTrips.map((trip) => (
                                 <div key={trip.name} className="my-2 ">
                                   <button
-                                    className="flex space-x-2 items-center"
+                                    className="flex space-x-3 items-center"
                                     onClick={() => onSelectSavedTrip(trip)}
                                   >
                                     <Image
                                       className="rounded-md"
-                                      width={45}
-                                      height={45}
+                                      width={50}
+                                      height={50}
                                       src={weather}
                                       alt="place"
                                     />
@@ -819,18 +820,18 @@ export default function Header() {
                           <div>
                             <form
                               onSubmit={handleCreateTrip}
-                              className="space-y-5"
+                              className="space-y-8"
                             >
-                              <h2 className="font-semibold text-2xl">
+                              <h2 className="font-semibold text-2xl text-gray-700">
                                 Create a new Trip
                               </h2>
 
                               <div>
-                                <label className="block">
+                                <label className="block text-gray-600">
                                   Add a destination
                                 </label>
                                 <input
-                                  className="block border rounded w-full outline-none p-1.5 hover:bg-gray-100"
+                                  className="block border border-gray-400 rounded w-full outline-none p-1.5 hover:bg-gray-100"
                                   type="text"
                                   name="destination"
                                   onChange={handleOnTripChange}
@@ -839,9 +840,11 @@ export default function Header() {
                                 />
                               </div>
                               <div>
-                                <label className="block">Name your Trip</label>
+                                <label className="block text-gray-600">
+                                  Name your Trip
+                                </label>
                                 <input
-                                  className="block border rounded w-full outline-none p-1.5 hover:bg-gray-100"
+                                  className="block border border-gray-400 rounded w-full outline-none p-1.5 hover:bg-gray-100"
                                   type="text"
                                   name="name"
                                   onChange={handleOnTripChange}
@@ -852,11 +855,14 @@ export default function Header() {
                                   <p className="text-red-500">{tripError}*</p>
                                 )}
                               </div>
+
                               <div className="flex justify-between">
                                 <span>
-                                  <label className="block">Start Date</label>
+                                  <label className="block text-gray-600">
+                                    Start Date
+                                  </label>
                                   <input
-                                    className="border rounded outline-none p-1.5 hover:bg-gray-100"
+                                    className="border border-gray-400 rounded outline-none p-1.5 hover:bg-gray-100"
                                     type="date"
                                     name="start_date"
                                     onChange={handleOnTripChange}
@@ -865,9 +871,11 @@ export default function Header() {
                                   />
                                 </span>
                                 <span>
-                                  <label className="block">End Date</label>
+                                  <label className="block text-gray-600">
+                                    End Date
+                                  </label>
                                   <input
-                                    className="border rounded outline-none p-1.5 hover:bg-gray-100"
+                                    className="border border-gray-400 rounded outline-none p-1.5 hover:bg-gray-100"
                                     type="date"
                                     name="end_date"
                                     onChange={handleOnTripChange}
@@ -876,9 +884,9 @@ export default function Header() {
                                   />
                                 </span>
                               </div>
-                              <div className="flex space-x-5">
+                              <div className="flex space-x-5 pt-5">
                                 <button
-                                  className={` px-3 py-2 rounded ${
+                                  className={`p-3 font-medium rounded ${
                                     !formData.name
                                       ? "bg-gray-100 text-gray-400 "
                                       : "bg-gray-600 text-gray-50 hover:bg-gray-700 transition-all"
@@ -891,7 +899,7 @@ export default function Header() {
                                 </button>
                                 <button
                                   onClick={() => setIsCreateTrip(false)}
-                                  className="bg-gray-300 px-3 py-2 rounded"
+                                  className="bg-gray-100 p-3 rounded font-medium"
                                   type="button"
                                 >
                                   Cancel
