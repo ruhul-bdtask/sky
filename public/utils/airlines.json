@@ -14100,16 +14100,6 @@
     "active": "N"
   },
   {
-    "id": "1411",
-    "name": "British International Helicopters",
-    "alias": null,
-    "iata": "BS",
-    "icao": "BIH",
-    "callsign": "BRINTEL",
-    "country": "United Kingdom",
-    "active": "Y"
-  },
-  {
     "id": "1412",
     "name": "Billund Air Center",
     "alias": null,
@@ -61233,7 +61223,7 @@
     "id": "20726",
     "name": "US-Bangla Airlines",
     "alias": "",
-    "iata": "",
+    "iata": "BS",
     "icao": "UBG",
     "callsign": "",
     "country": "Bangladesh",

@@ -379,11 +379,7 @@ export default function Page({ searchParams }) {
         },
         RPH: "1",
       });
-    } else {
-      console.log(
-        "Return trip not added, check if selectedWay is 'return' and roundDate?.to is valid"
-      );
-    }
+    } 
 
     setOriginDestinationInformation(originDestinationInfo);
 

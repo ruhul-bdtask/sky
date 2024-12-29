@@ -39,7 +39,6 @@ export default function Preferences({ userData, userDataLoading }) {
     mutationFn: (payload) =>
       fetchData("/user/update-user-preferences", "POST", payload, token),
     onSuccess: (data) => {
-      console.log("Mutation successful", data);
       toast.success(data?.message);
       setUserData(data?.data);
     },

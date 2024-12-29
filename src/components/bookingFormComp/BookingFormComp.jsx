@@ -93,7 +93,6 @@ export default function BookingFormComp({
 
   const handlePassengerInfo = (e, index) => {
     e.preventDefault();
-    console.log("Passenger information saved");
 
     const isValid = validatePassengers(passengerData);
     if (isValid) {
@@ -102,7 +101,6 @@ export default function BookingFormComp({
     }
   };
 
-  console.log(passenger, passengerData);
   return (
     <div>
       <div className="py-6 px-4 md:px-16  shadow-custom_shadow">

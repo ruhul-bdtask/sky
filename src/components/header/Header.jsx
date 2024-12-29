@@ -239,10 +239,7 @@ export default function Header() {
 
   const handleRemoveFlight = async (flight) => {
     let filteredData = [];
-    // console.log(
-    //   selectedSavedTrip.flights[0].air_pricing_solution_key !==
-    //     flight.air_pricing_solution_key
-    // );
+
     if (token) {
       filteredData = selectedSavedTrip.flights.filter(
         (f) => f.uid !== flight.uid
@@ -280,7 +277,7 @@ export default function Header() {
     }
 
     // remove local if not loggedin
-    // console.log("outside");
+
     // filteredData = selectedSavedTrip.flights.filter(
     //   (f) =>
     //     f.flight_data.air_pricing_solution_key !==

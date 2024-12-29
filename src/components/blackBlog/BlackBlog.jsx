@@ -7,7 +7,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 export default function BlackBlog({ position }) {
-  console.log(position);
   const pathname = usePathname();
   const lastSegment = pathname.split("/").pop();
   return (

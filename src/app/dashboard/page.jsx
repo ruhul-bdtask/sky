@@ -40,6 +40,7 @@ export default function Page() {
 
       if (!token) {
         Cookies.remove("auth-token");
+        setToken(null);
         router.push("/login");
         return;
       }
@@ -50,12 +51,14 @@ export default function Page() {
 
         if (decodedToken.exp && decodedToken.exp < currentTime) {
           Cookies.remove("auth-token");
+          setToken(null);
           router.push("/login");
         } else {
           setUser(decodedToken);
         }
       } catch (error) {
         Cookies.remove("auth-token");
+        setToken(null);
         router.push("/login");
       } finally {
         setIsLoading(false);

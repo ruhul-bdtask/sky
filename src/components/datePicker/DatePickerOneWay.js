@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import Calender from "@/public/icons/Calender";
+import { LuChevronsLeftRight } from "react-icons/lu";
 
 export default function DatePickerOneWay({
   className,
@@ -26,7 +27,7 @@ export default function DatePickerOneWay({
               !oneWayDate && "text-muted-foreground"
             )}
           >
-            <div className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+            <div className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5] flex  justify-between items-center hover:bg-[#d9e2e8] ">
               <div className="absolute left-3 text-gray-400">
                 <Calender />
               </div>
@@ -35,6 +36,7 @@ export default function DatePickerOneWay({
               ) : (
                 <span>Pick a date</span>
               )}
+              <LuChevronsLeftRight size={20} />
             </div>
           </button>
         </PopoverTrigger>

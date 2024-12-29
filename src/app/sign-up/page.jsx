@@ -111,7 +111,6 @@ export default function Page() {
       registerDataRefetch();
     }
 
-    console.log("Payload:", payload);
   };
 
   useEffect(() => {
@@ -126,7 +125,6 @@ export default function Page() {
       const errorMessage =
         registerDataError.message || "An error occurred during registration.";
       toast.error(errorMessage);
-      console.log("Registration failed", registerDataError);
     }
   }, [registerData, registerDataError]);
 
