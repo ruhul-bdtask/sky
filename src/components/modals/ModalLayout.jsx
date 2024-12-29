@@ -387,10 +387,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
         },
         RPH: "1",
       });
-    } else {
-      console.log(
-        "Return trip not added, check if selectedWay is 'return' and roundDate?.to is valid"
-      );
     }
 
     setOriginDestinationInformation(originDestinationInfo);
@@ -501,8 +497,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       document.querySelector("body").style.overflow = "auto";
     }
   }, [isModalOpen, setIsModalOpen]);
-
-  console.log(originAirport, destinationAirport);
 
   return (
     <div>
@@ -810,21 +804,19 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               >
                                 {originAirport !== ""
                                   ? originAirport + " " + searchQueryDestination
-                                  : searchQueryDestination}
+                                  : ""}
                                 <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
                                   <FaTimes onClick={handleClear} />
                                 </span>
                               </p>
                               <input
-                                // value={
-                                //   originAirport !== "" ? "" : searchQueryDestination
-                                // }
+                                value={searchQueryDestination}
                                 type="text"
                                 onChange={(e) =>
                                   setSearchQueryDestination(e.target.value)
                                 }
                                 // placeholder="From ?"
-                                className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                                className="hover:bg-[#d9e2e8] uppercase w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                               />
 
                               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
@@ -948,21 +940,19 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   ? destinationAirport +
                                     " " +
                                     searchQueryArrival
-                                  : searchQueryArrival}
+                                  : ""}
                                 <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
                                   <FaTimes onClick={handleClearArrival} />
                                 </span>
                               </p>
                               <input
-                                // value={
-                                //   destinationAirport !== "" ? "" : searchQueryArrival
-                                // }
+                                value={searchQueryArrival}
                                 type="text"
                                 onChange={(e) =>
                                   setSearchQueryArrival(e.target.value)
                                 }
                                 // placeholder="To ?"
-                                className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                                className="hover:bg-[#d9e2e8] uppercase w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                               />
                               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                                 <Airplane />
@@ -1230,21 +1220,19 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                     ? originAirport +
                                       " " +
                                       searchQueryDestination
-                                    : searchQueryDestination}
+                                    : ""}
                                   <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
                                     <FaTimes onClick={handleClear} />
                                   </span>
                                 </p>
                                 <input
-                                  // value={
-                                  //   originAirport !== "" ? "" : searchQueryDestination
-                                  // }
+                                  value={searchQueryDestination}
                                   type="text"
                                   onChange={(e) =>
                                     setSearchQueryDestination(e.target.value)
                                   }
                                   // placeholder="From ?"
-                                  className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                                  className="hover:bg-[#d9e2e8] uppercase w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                                 />
 
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
@@ -1372,21 +1360,19 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                     ? destinationAirport +
                                       " " +
                                       searchQueryArrival
-                                    : searchQueryArrival}
+                                    : ""}
                                   <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
                                     <FaTimes onClick={handleClearArrival} />
                                   </span>
                                 </p>
                                 <input
-                                  // value={
-                                  //   destinationAirport !== "" ? "" : searchQueryArrival
-                                  // }
+                                  value={searchQueryArrival}
                                   type="text"
                                   onChange={(e) =>
                                     setSearchQueryArrival(e.target.value)
                                   }
                                   // placeholder="To ?"
-                                  className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                                  className="hover:bg-[#d9e2e8] uppercase w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                                 />
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                                   <Airplane />
