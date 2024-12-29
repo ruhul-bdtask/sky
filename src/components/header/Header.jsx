@@ -713,14 +713,17 @@ export default function Header() {
                     {/* ======== Rename Trip ============= */}
                     {isRenameTrip && (
                       <div className="p-4">
-                        <h4 className="font-semibold text-lg mb-2">
+                        <h4 className="font-semibold text-xl text-gray-800 mb-2">
                           Rename trip
                         </h4>
                         <span className="text-gray-400 block text-sm mb-6">
                           Organize, manage and plan where you&apos;re going— no
                           matter where you book.
                         </span>
-                        <label htmlFor="rename-trip" className="text-sm">
+                        <label
+                          htmlFor="rename-trip"
+                          className="text-sm text-gray-600"
+                        >
                           Trip name
                         </label>
                         <input
@@ -740,10 +743,10 @@ export default function Header() {
                         <button
                           onClick={handleRenameTrip}
                           disabled={renameTripTerm === selectedSavedTrip.name}
-                          className={`w-full rounded py-2 px-3 font-semibold text-sm ${
+                          className={`w-full rounded-xl p-3 font-semibold text-sm ${
                             renameTripTerm !== selectedSavedTrip.name
                               ? "bg-gray-700 text-white"
-                              : "bg-gray-300 text-gray-400"
+                              : "bg-slate-100 text-gray-400"
                           }`}
                         >
                           Rename trip
