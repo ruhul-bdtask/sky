@@ -604,7 +604,7 @@ export default function SearchPad() {
 
   return (
     <div>
-      <main className={``}>
+      <main >
         <div className=" mx-auto ">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
             Where do you want to go?

@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { format } from "date-fns";
+import { format, addDays, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -9,16 +9,31 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import Calender from "@/public/icons/Calender";
-import { LuChevronsLeftRight } from "react-icons/lu";
+import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 
 export default function DatePickerOneWay({
   className,
   setOneWayDate,
   oneWayDate,
 }) {
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const handlePrevDate = (e) => {
+    e.stopPropagation(); // Prevent popover from opening
+    if (oneWayDate) {
+      setOneWayDate(subDays(oneWayDate, 1));
+    }
+  };
+
+  const handleNextDate = (e) => {
+    e.stopPropagation(); // Prevent popover from opening
+    if (oneWayDate) {
+      setOneWayDate(addDays(oneWayDate, 1));
+    }
+  };
+
   return (
     <div className={cn("grid gap-2", className)}>
-      <Popover>
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
           <button
             id="date"
@@ -26,6 +41,7 @@ export default function DatePickerOneWay({
               `justify-start text-left font-normal`,
               !oneWayDate && "text-muted-foreground"
             )}
+            onClick={() => setIsPopoverOpen(!isPopoverOpen)}
           >
             <div className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5] flex  justify-between items-center hover:bg-[#d9e2e8] ">
               <div className="absolute left-3 text-gray-400">
@@ -36,7 +52,18 @@ export default function DatePickerOneWay({
               ) : (
                 <span>Pick a date</span>
               )}
-              <LuChevronsLeftRight size={20} />
+              <div className="flex ">
+                <LuChevronLeft
+                  size={20}
+                  className="cursor-pointer"
+                  onClick={handlePrevDate}
+                />
+                <LuChevronRight
+                  size={20}
+                  className="cursor-pointer"
+                  onClick={handleNextDate}
+                />
+              </div>
             </div>
           </button>
         </PopoverTrigger>
@@ -56,7 +83,7 @@ export default function DatePickerOneWay({
               caption_label: "text-sm font-medium",
               nav: "space-x-1 flex items-center",
               nav_button: cn(
-                "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border",
                 "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
               ),
               nav_button_previous: "absolute left-1",
