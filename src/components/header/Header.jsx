@@ -722,7 +722,7 @@ export default function Header() {
                           Rename trip
                         </h4>
                         <span className="text-gray-400 block text-sm mb-6">
-                          Organize, manage and plan where you're going— no
+                          Organize, manage and plan where you&apos;re going— no
                           matter where you book.
                         </span>
                         <label htmlFor="rename-trip" className="text-sm">
