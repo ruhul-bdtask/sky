@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { format } from "date-fns";
+import { format, addDays, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -9,14 +9,28 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import Calender from "@/public/icons/Calender";
+import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 
 export default function TripDatePicker({
-  setData,
-  data,
+  date,
+  setDate,
   numberOfMonths = 1,
   triggerStyles,
   triggerWrapperStyles,
 }) {
+  const handlePrevDate = (e) => {
+    e.stopPropagation(); // Prevent popover from opening
+    if (date) {
+      setDate(subDays(date, 1));
+    }
+  };
+  const handleNextDate = (e) => {
+    e.stopPropagation(); // Prevent popover from opening
+    if (date) {
+      setDate(addDays(date, 1));
+    }
+  };
+
   return (
     <div className={cn("grid gap-2", triggerWrapperStyles)}>
       <Popover>
@@ -25,24 +39,36 @@ export default function TripDatePicker({
             id="date"
             className={cn(
               `justify-start text-left font-normal`,
-              !data && "text-muted-foreground"
+              !date && "text-muted-foreground"
             )}
           >
             <div
-              className={`relative w-full pl-10 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded focus:outline-none ${triggerStyles}`}
+              className={`relative w-full pl-10 flex items-center justify-between cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded focus:outline-none border border-gray-400 p-2 text-sm ${triggerStyles}`}
             >
-              <div className="absolute left-3 top-3 text-gray-400">
+              <div className="absolute left-3 top-2 text-gray-400">
                 <Calender />
               </div>
-              {data ? format(data, "LLL dd, y") : <span>Pick a date</span>}
+              {date ? format(date, "EEE M/d") : <span>Pick date</span>}
+              <div className="flex space-x-0">
+                <LuChevronLeft
+                  size={18}
+                  className="cursor-pointer"
+                  onClick={handlePrevDate} // Navigate to previous date for 'from'
+                />
+                <LuChevronRight
+                  size={18}
+                  className="cursor-pointer"
+                  onClick={handleNextDate} // Navigate to next date for 'from'
+                />
+              </div>
             </div>
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-auto bg-white p-0" align="start">
           <Calendar
             mode="single"
-            selected={data}
-            onSelect={setData}
+            selected={date}
+            onSelect={setDate}
             initialFocus
             numberOfMonths={numberOfMonths}
             className="p-3"

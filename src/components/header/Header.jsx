@@ -882,28 +882,10 @@ export default function Header() {
                                   <label className="block text-gray-600">
                                     Start Date
                                   </label>
-                                  {/* <input
-                                    className="border border-gray-400 rounded outline-none p-1.5 hover:bg-gray-100"
-                                    type="date"
-                                    name="start_date"
-                                    onChange={onTripChange}
-                                    value={formData.start_date}
-                                    required
-                                  /> */}
-                                  {/* <DatePickerOneWay
-                                    oneWayDate={formData.start_date}
-                                    setOneWayDate={(date) =>
-                                      onTripDateChange("start_date", date)
-                                    }
-                                    numberOfMonths={1}
-                                  /> */}
                                   <TripDatePicker
-                                    data={formData.start_date}
-                                    setData={(date) =>
+                                    date={formData.start_date}
+                                    setDate={(date) =>
                                       onTripDateChange("start_date", date)
-                                    }
-                                    triggerStyles={
-                                      "border border-gray-400 p-2 w-full "
                                     }
                                   />
                                 </span>
@@ -912,28 +894,10 @@ export default function Header() {
                                   <label className="block text-gray-600">
                                     End Date
                                   </label>
-                                  {/* <input
-                                    className="border border-gray-400 rounded outline-none p-1.5 hover:bg-gray-100"
-                                    type="date"
-                                    name="end_date"
-                                    onChange={onTripChange}
-                                    value={formData.end_date}
-                                    required
-                                  /> */}
-                                  {/* <DatePickerOneWay
-                                    oneWayDate={formData.end_date}
-                                    setOneWayDate={(date) =>
-                                      onTripDateChange("end_date", date)
-                                    }
-                                    numberOfMonths={1}
-                                  /> */}
                                   <TripDatePicker
-                                    data={formData.end_date}
-                                    setData={(date) =>
+                                    date={formData.end_date}
+                                    setDate={(date) =>
                                       onTripDateChange("end_date", date)
-                                    }
-                                    triggerStyles={
-                                      "border border-gray-400 p-2 w-full "
                                     }
                                   />
                                 </span>
