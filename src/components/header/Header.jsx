@@ -321,7 +321,13 @@ export default function Header() {
     setRenameTripTerm(trip.name);
   };
 
+  const [isRenameError, setIsRenameError] = useState(false);
   const onChangeTrip = (e) => {
+    if (selectedSavedTrip.name === e.target.value) {
+      setIsRenameError(true);
+    } else {
+      setIsRenameError(false);
+    }
     setRenameTripTerm(e.target.value);
   };
 
@@ -509,7 +515,7 @@ export default function Header() {
                     className="absolute inset-0 "
                     onClick={handleSaved}
                   ></div>
-                  <div className="absolute right-0 top-[80px] h-full w-full max-w-[380px] overflow-y-auto bg-white shadow-xl transition-transform duration-300 ease-in-out">
+                  <div className="absolute right-0 top-[80px] h-[calc(100vh-80px)] w-full max-w-[380px] overflow-y-auto bg-white shadow-xl transition-transform duration-300 ease-in-out">
                     <div className="sticky top-0 z-10 border-b bg-white p-4">
                       <div className="flex items-center justify-between">
                         <button
@@ -741,8 +747,8 @@ export default function Header() {
                           Trip name
                         </label>
                         <input
-                          className={`w-full rounded p-2 hover:bg-gray-100 transition-all duration-500 outline-none border focus:border-gray-500 ${
-                            renameTripTerm === selectedSavedTrip.name &&
+                          className={`w-full rounded p-2 hover:bg-gray-100 transition-all duration-500 outline-none border border-gray-400 focus:border-gray-500 ${
+                            isRenameError &&
                             "border-red-500 focus:border-red-500"
                           }`}
                           id="rename-trip"
