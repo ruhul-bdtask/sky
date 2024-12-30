@@ -57,6 +57,7 @@ export default function SearchPad() {
   const [searchQueryDestination, setSearchQueryDestination] = useState();
   const [originAirport, setOriginAirport] = useState("");
   const [destinationAirport, setDestinationAirport] = useState("");
+
   const [cities, setCities] = useState([
     {
       id: 1,
@@ -155,6 +156,13 @@ export default function SearchPad() {
     }
   };
   const toggleField = (id, field) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === id ? { ...city, [field]: true } : city
+      )
+    );
+  };
+  const toggleFieldClick = (id, field) => {
     setCities((prevCities) =>
       prevCities.map((city) =>
         city.id === id ? { ...city, [field]: !city[field] } : city
@@ -297,8 +305,35 @@ export default function SearchPad() {
     );
   };
 
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+  //       setIsPassengerOpen(false);
+  //     }
+
+  //     if (
+  //       dropdownRefDestination.current &&
+  //       !dropdownRefDestination.current.contains(event.target)
+  //     ) {
+  //       setIsOpenDestination(false);
+  //     }
+  //     if (
+  //       dropdownRefArrival.current &&
+  //       !dropdownRefArrival.current.contains(event.target)
+  //     ) {
+  //       setIsOpenArrival(false);
+  //     }
+  //   };
+
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Handling clicks outside the passenger, destination, and arrival dropdowns
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsPassengerOpen(false);
       }
@@ -309,19 +344,49 @@ export default function SearchPad() {
       ) {
         setIsOpenDestination(false);
       }
+
       if (
         dropdownRefArrival.current &&
         !dropdownRefArrival.current.contains(event.target)
       ) {
         setIsOpenArrival(false);
       }
+
+      // Handling clicks outside city-specific dropdowns (origin, destination, arrival)
+      setCities((prevCities) =>
+        prevCities.map((city, index) => {
+          const originDropdownRef = document.getElementById(
+            `origin-dropdown-${index}`
+          );
+          const arrivalDropdownRef = document.getElementById(
+            `arrival-dropdown-${index}`
+          );
+
+          let updatedCity = { ...city };
+
+          // Close destination dropdown if clicked outside
+          if (originDropdownRef && !originDropdownRef.contains(event.target)) {
+            updatedCity.isOpenOrigin = false;
+          }
+
+          // Close arrival dropdown if clicked outside
+          if (
+            arrivalDropdownRef &&
+            !arrivalDropdownRef.contains(event.target)
+          ) {
+            updatedCity.isOpenDestination = false;
+          }
+          return updatedCity;
+        })
+      );
     };
 
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [cities]);
 
   useEffect(() => {
     const dateToUse = selectedWay === "one_way" ? oneWayDate : roundDate?.from;
@@ -504,6 +569,32 @@ export default function SearchPad() {
   const handleClear = () => {
     setSearchQueryDestination("");
     setOriginAirport("");
+  };
+  const handleClearMulti = (cityId) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === cityId
+          ? {
+              ...city,
+              searchQueryDestination: "",
+              originAirport: "",
+            }
+          : city
+      )
+    );
+  };
+  const handleClearMultiArrival = (cityId) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === cityId
+          ? {
+              ...city,
+              searchQueryArrival: "",
+              destinationAirport: "",
+            }
+          : city
+      )
+    );
   };
 
   const handleClearArrival = () => {
@@ -720,9 +811,41 @@ export default function SearchPad() {
                     key={row.id}
                     className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2 items-center"
                   >
-                    <div className="relative" ref={dropdownRefDestination}>
+                    <div className="relative" id={`origin-dropdown-${index}`}>
                       <div onClick={() => toggleField(row.id, "isOpenOrigin")}>
+                        <p
+                          className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
+                            row?.originAirport == "" ||
+                            row?.originAirport == undefined ||
+                            row.searchQueryDestination == "" ||
+                            row.searchQueryDestination == undefined
+                              ? ""
+                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                          }`}
+                        >
+                          {row?.originAirport !== "" ? row?.originAirport : ""}
+                          <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                            <FaTimes onClick={() => handleClearMulti(row.id)} />
+                          </span>
+                        </p>
                         <input
+                          value={row.searchQueryDestination}
+                          type="text"
+                          onChange={(e) =>
+                            updateCityData(
+                              row.id,
+                              "searchQueryDestination",
+                              e.target.value
+                            )
+                          }
+                          placeholder="From ?"
+                          className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                        />
+
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                          <Airplane />
+                        </div>
+                        {/* <input
                           value={row.searchQueryDestination}
                           type="text"
                           onChange={(e) =>
@@ -737,7 +860,7 @@ export default function SearchPad() {
                         />
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                           <Airplane />
-                        </div>
+                        </div> */}
                       </div>
                       {row?.isOpenOrigin ? (
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
@@ -749,14 +872,13 @@ export default function SearchPad() {
                                     key={index}
                                     className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                     onClick={() => {
-                                      toggleField(row.id, "isOpenOrigin"),
+                                      toggleFieldClick(row.id, "isOpenOrigin"),
                                         updateCityData(
                                           row.id,
                                           "searchQueryDestination",
                                           destination.value
                                         );
 
-                                      setIsOpenDestination(false);
                                       updateCityData(
                                         row.id,
                                         "originAirport",
@@ -788,10 +910,29 @@ export default function SearchPad() {
                       )}
                     </div>
 
-                    <div className="relative" ref={dropdownRefArrival}>
+                    <div className="relative" id={`arrival-dropdown-${index}`}>
                       <div
                         onClick={() => toggleField(row.id, "isOpenDestination")}
                       >
+                        <p
+                          className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
+                            row?.destinationAirport == "" ||
+                            row?.destinationAirport == undefined ||
+                            row.searchQueryArrival == "" ||
+                            row.searchQueryArrival == undefined
+                              ? ""
+                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                          }`}
+                        >
+                          {row?.destinationAirport !== ""
+                            ? row?.destinationAirport
+                            : ""}
+                          <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                            <FaTimes
+                              onClick={() => handleClearMultiArrival(row.id)}
+                            />
+                          </span>
+                        </p>
                         <input
                           value={row.searchQueryArrival}
                           type="text"
@@ -802,10 +943,11 @@ export default function SearchPad() {
                               e.target.value
                             )
                           }
-                          placeholder="To ?"
-                          className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                          placeholder="From ?"
+                          className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                         />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                           <Airplane />
                         </div>
                       </div>
@@ -819,13 +961,16 @@ export default function SearchPad() {
                                     key={index}
                                     className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                     onClick={() => {
-                                      toggleField(row.id, "isOpenDestination"),
+                                      toggleFieldClick(
+                                        row.id,
+                                        "isOpenDestination"
+                                      ),
                                         updateCityData(
                                           row.id,
                                           "searchQueryArrival",
                                           arrival.value
                                         );
-                                      setIsOpenArrival(false);
+
                                       updateCityData(
                                         row.id,
                                         "destinationAirport",
@@ -927,9 +1072,7 @@ export default function SearchPad() {
                 <div className="grid grid-cols-1 md:grid-cols-4  gap-2 relative">
                   <div className="col-span-2 flex gap-1 ">
                     <div className="relative" ref={dropdownRefDestination}>
-                      <div
-                        onClick={() => setIsOpenDestination(!isOpenDestination)}
-                      >
+                      <div onClick={() => setIsOpenDestination(true)}>
                         <p
                           className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                             originAirport == "" ||
@@ -1062,7 +1205,7 @@ export default function SearchPad() {
                       />
                     </button>
                     <div className="relative" ref={dropdownRefArrival}>
-                      <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
+                      <div onClick={() => setIsOpenArrival(true)}>
                         <p
                           className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                             destinationAirport == "" ||
@@ -1207,11 +1350,7 @@ export default function SearchPad() {
                   <div className="grid grid-cols-1 md:grid-cols-4  gap-2 relative">
                     <div className="col-span-2 flex gap-1 ">
                       <div className="relative" ref={dropdownRefDestination}>
-                        <div
-                          onClick={() =>
-                            setIsOpenDestination(!isOpenDestination)
-                          }
-                        >
+                        <div onClick={() => setIsOpenDestination(true)}>
                           <p
                             className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                               originAirport == "" ||
@@ -1347,7 +1486,7 @@ export default function SearchPad() {
                         />
                       </button>
                       <div className="relative" ref={dropdownRefArrival}>
-                        <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
+                        <div onClick={() => setIsOpenArrival(true)}>
                           <p
                             className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                               destinationAirport == "" ||
