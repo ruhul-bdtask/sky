@@ -604,7 +604,7 @@ export default function SearchPad() {
 
   return (
     <div>
-      <main >
+      <main>
         <div className=" mx-auto ">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
             Where do you want to go?
@@ -1394,7 +1394,7 @@ export default function SearchPad() {
                                         setSearchQueryDestination(
                                           destination.value
                                         );
-                                        setOriginAirport(destination.name);
+                                        setOriginAirport(destination.label);
                                         setIsOpenDestination(false);
                                       }}
                                     >
@@ -1528,7 +1528,7 @@ export default function SearchPad() {
                                       className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                       onClick={() => {
                                         setSearchQueryArrival(arrival.value);
-                                        setDestinationAirport(arrival.name);
+                                        setDestinationAirport(arrival.label);
                                         setIsOpenArrival(false);
                                       }}
                                     >
