@@ -26,6 +26,8 @@ import ModalLayout from "../modals/ModalLayout";
 import { LuChevronsLeftRight } from "react-icons/lu";
 import { fetchData, saveSingleTrip } from "@/utils/api";
 import DatePickerOneWay from "../datePicker/DatePickerOneWay";
+import { formatTripDate } from "@/lib/formatTripDate";
+import TripDatePicker from "../datePicker/TripDatePicker";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -59,7 +61,6 @@ export default function Header() {
     setSelectedSavedTrip,
     searchData,
   } = useAirlineStore();
-
   const { destination, arrival, journeyDate, returnDate, tripType } =
     searchData;
 
@@ -172,11 +173,17 @@ export default function Header() {
     setIsShowPopupBtn(null);
   };
 
-  const handleOnTripChange = (e) => {
+  const onTripChange = (e) => {
     const { name, value } = e.target;
     const nextFormData = { ...formData };
     nextFormData[name] = value;
     setFormData(nextFormData);
+  };
+
+  const onTripDateChange = (property, value) => {
+    setFormData((prevData) => {
+      return { ...prevData, [property]: value };
+    });
   };
 
   const handleCreateTrip = async (e) => {
@@ -197,11 +204,17 @@ export default function Header() {
       return;
     }
 
+    const payload = {
+      ...formData,
+      start_date: formatTripDate(formData.start_date),
+      end_date: formatTripDate(formData.end_date),
+    };
+
     if (token) {
       const response = await fetchData(
         "/gds/create-trip",
         "POST",
-        formData,
+        payload,
         token
       );
       if (response.success) {
@@ -219,8 +232,8 @@ export default function Header() {
         setTripError("");
       }
     } else {
-      setSavedTrips([...savedTrips, formData]);
-      setSelectedSavedTrip(formData);
+      setSavedTrips([...savedTrips, payload]);
+      setSelectedSavedTrip(payload);
       setIsCreateTrip(false);
       setIsChangeTrip(false);
       setFormData({
@@ -778,40 +791,42 @@ export default function Header() {
                             </div>
                             {/* Show trip lists */}
                             {savedTrips.length > 0 &&
-                              savedTrips.map((trip) => (
-                                <div key={trip.name} className="my-2 ">
-                                  <button
-                                    className="flex space-x-3 items-center"
-                                    onClick={() => onSelectSavedTrip(trip)}
-                                  >
-                                    <Image
-                                      className="rounded-md"
-                                      width={50}
-                                      height={50}
-                                      src={weather}
-                                      alt="place"
-                                    />
-                                    <div className="text-start flex items-start justify-between">
-                                      <div>
+                              savedTrips
+                                .slice(0, savedTrips.length)
+                                .map((trip) => (
+                                  <div key={trip.name} className="my-2 ">
+                                    <button
+                                      className="flex space-x-3 items-center"
+                                      onClick={() => onSelectSavedTrip(trip)}
+                                    >
+                                      <Image
+                                        className="rounded-md"
+                                        width={50}
+                                        height={50}
+                                        src={weather}
+                                        alt="place"
+                                      />
+                                      <div className="text-start flex items-start justify-between">
                                         <div>
-                                          <span className="font-semibold text-sm">
-                                            {trip.name}
-                                          </span>
-                                          {trip.name ===
-                                            selectedSavedTrip.name && (
-                                            <span className="ml-3 border border-green-400 shadow-md px-2 py-0 bg-green-100 text-green-600 rounded-full text-xs">
-                                              Selected
+                                          <div>
+                                            <span className="font-semibold text-sm">
+                                              {trip.name}
                                             </span>
-                                          )}
-                                        </div>
-                                        <div className="text-sm">
-                                          {trip.start_date} - {trip.end_date}
+                                            {trip.name ===
+                                              selectedSavedTrip.name && (
+                                              <span className="ml-3 border border-green-400 shadow-md px-2 py-0 bg-green-100 text-green-600 rounded-full text-xs">
+                                                Selected
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div className="text-sm">
+                                            {trip.start_date} - {trip.end_date}
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </button>
-                                </div>
-                              ))}
+                                    </button>
+                                  </div>
+                                ))}
                           </div>
                         )}
 
@@ -834,7 +849,7 @@ export default function Header() {
                                   className="block border border-gray-400 rounded w-full outline-none p-1.5 hover:bg-gray-100"
                                   type="text"
                                   name="destination"
-                                  onChange={handleOnTripChange}
+                                  onChange={onTripChange}
                                   value={formData.destination}
                                   required
                                 />
@@ -847,7 +862,7 @@ export default function Header() {
                                   className="block border border-gray-400 rounded w-full outline-none p-1.5 hover:bg-gray-100"
                                   type="text"
                                   name="name"
-                                  onChange={handleOnTripChange}
+                                  onChange={onTripChange}
                                   value={formData.name}
                                   required
                                 />
@@ -856,35 +871,68 @@ export default function Header() {
                                 )}
                               </div>
 
-                              <div className="flex justify-between">
-                                <span>
+                              <div className="flex space-x-5 justify-between">
+                                <span className="w-1/2">
                                   <label className="block text-gray-600">
                                     Start Date
                                   </label>
-                                  <input
+                                  {/* <input
                                     className="border border-gray-400 rounded outline-none p-1.5 hover:bg-gray-100"
                                     type="date"
                                     name="start_date"
-                                    onChange={handleOnTripChange}
+                                    onChange={onTripChange}
                                     value={formData.start_date}
                                     required
+                                  /> */}
+                                  {/* <DatePickerOneWay
+                                    oneWayDate={formData.start_date}
+                                    setOneWayDate={(date) =>
+                                      onTripDateChange("start_date", date)
+                                    }
+                                    numberOfMonths={1}
+                                  /> */}
+                                  <TripDatePicker
+                                    data={formData.start_date}
+                                    setData={(date) =>
+                                      onTripDateChange("start_date", date)
+                                    }
+                                    triggerStyles={
+                                      "border border-gray-400 p-2 w-full "
+                                    }
                                   />
                                 </span>
-                                <span>
+
+                                <span className="w-1/2">
                                   <label className="block text-gray-600">
                                     End Date
                                   </label>
-                                  <input
+                                  {/* <input
                                     className="border border-gray-400 rounded outline-none p-1.5 hover:bg-gray-100"
                                     type="date"
                                     name="end_date"
-                                    onChange={handleOnTripChange}
+                                    onChange={onTripChange}
                                     value={formData.end_date}
                                     required
+                                  /> */}
+                                  {/* <DatePickerOneWay
+                                    oneWayDate={formData.end_date}
+                                    setOneWayDate={(date) =>
+                                      onTripDateChange("end_date", date)
+                                    }
+                                    numberOfMonths={1}
+                                  /> */}
+                                  <TripDatePicker
+                                    data={formData.end_date}
+                                    setData={(date) =>
+                                      onTripDateChange("end_date", date)
+                                    }
+                                    triggerStyles={
+                                      "border border-gray-400 p-2 w-full "
+                                    }
                                   />
                                 </span>
                               </div>
-                              <div className="flex space-x-5 pt-5">
+                              <div className="flex space-x-5 pt-3">
                                 <button
                                   className={`p-3 font-medium rounded ${
                                     !formData.name
