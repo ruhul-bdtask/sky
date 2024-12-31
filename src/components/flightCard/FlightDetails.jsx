@@ -91,12 +91,11 @@ const FlightDetails = ({ flight }) => {
                 {/* Airline Information */}
                 <div className="space-x-2 flex items-center text-sm text-gray-500">
                   {/* <Image src={airline_logo} width={50} height={50} alt="logo" /> */}
-                  <Image
+                  <img
                     src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${schedule?.operating_code}.png`}
                     // src={`https://pics.avs.io/200/200/${stop?.operating_code}@2x.png`}
                     alt="airline logo"
-                    height={30}
-                    width={30}
+                   className="w-[30px] h-[30px]"
                   />
                   <span>{getAirline(schedule.operating_code)}</span>
 
