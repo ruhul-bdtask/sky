@@ -601,7 +601,6 @@ export default function Header() {
                                   </span>
                                 </div>
                               </div>
-
                               {selectedSavedTrip?.flights?.map(
                                 (flight, index) => (
                                   <div
@@ -730,13 +729,27 @@ export default function Header() {
                         </div>
                       )}
 
+                    {!isChangeTrip && !savedTrips.length && (
+                      <div className="h-[calc(100vh-170px)] p-4 space-y-2 flex flex-col items-center justify-center">
+                        <h2 className="text-2xl text-gray-500 font-semibold">
+                          Start planning your Trip
+                        </h2>
+                        <p className="text-center text-gray-600 text-sm font-thin p-4">
+                          Save flights, hotels and more so you can easily jump
+                          back in to Trips.
+                        </p>
+                        <button className="rounded-md text-sm bg-gray-700 font-medium text-white py-2 px-4">
+                          Find a destination
+                        </button>
+                      </div>
+                    )}
                     {/* ======== Rename Trip ============= */}
                     {isRenameTrip && (
                       <div className="p-4">
                         <h4 className="font-semibold text-xl text-gray-800 mb-2">
                           Rename trip
                         </h4>
-                        <span className="text-gray-400 block text-sm mb-6">
+                        <span className="text-gray-400 block text-xs mb-6">
                           Organize, manage and plan where you&apos;re going— no
                           matter where you book.
                         </span>
@@ -774,9 +787,10 @@ export default function Header() {
                       </div>
                     )}
 
-                    {/* ============ Create a new trip show trip lists   ============*/}
+                    {/* ============ Create a new trip and show trip lists   ============*/}
                     <div className="">
                       <div className="p-4">
+                        {/*  Show trip lists */}
                         {isChangeTrip && !isCreateTrip && (
                           <div>
                             <div className="border-b">
