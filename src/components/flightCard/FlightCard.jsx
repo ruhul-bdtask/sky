@@ -644,14 +644,14 @@ export default function FlightCard({ flight }) {
               </>
             )}
 
-            <div>
+            {/* <div>
               <p className="text-[#5F6D77] text-[14px]">{flight?.gds}</p>
-            </div>
+            </div> */}
           </div>
 
           {isShareModalOpen && (
             <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
-              <div className="bg-white rounded-lg p-6 max-w-full  md:max-w-[450px] py-8 flex flex-col gap-5">
+              <div className="bg-white rounded-lg p-6 max-w-full md:max-w-[450px] py-8 flex flex-col gap-5">
                 <div className="flex justify-between flex-wrap">
                   <h3 className="text-xl font-semibold text-center ">
                     Share this flight
@@ -679,7 +679,7 @@ export default function FlightCard({ flight }) {
                     </div>
                   </div>
                   <div>
-                    <span className="text-[16px] font-bold ">
+                    <span className="text-[16px] font-bold">
                       TK.{formatFlightFare(flight?.fare_details?.base_fare)}
                     </span>
                   </div>
