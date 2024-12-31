@@ -64,13 +64,21 @@ export default function Header() {
   const { destination, arrival, journeyDate, returnDate, tripType } =
     searchData;
 
-  const [tripError, setTripError] = useState("");
   const [formData, setFormData] = useState({
     destination: "",
     name: "",
     start_date: "",
     end_date: "",
     flights: [],
+  });
+
+  const [tripNameExistError, setTripNameExistError] = useState("");
+
+  const [tripErrors, setTripErrors] = useState({
+    destination: "",
+    name: "",
+    start_date: "",
+    end_date: "",
   });
 
   const [renameTripTerm, setRenameTripTerm] = useState("");
@@ -185,12 +193,7 @@ export default function Header() {
       return { ...prevData, [property]: value };
     });
   };
-  const [tripErrors, setTripErrors] = useState({
-    destination: "",
-    name: "",
-    start_date: "",
-    end_date: "",
-  });
+
   const handleCreateTrip = async (e) => {
     e.preventDefault();
 
@@ -201,6 +204,7 @@ export default function Header() {
       start_date: "",
       end_date: "",
     });
+    setTripNameExistError("");
 
     const { destination, name, start_date, end_date } = formData;
     const newTripName = name.trim();
@@ -236,28 +240,49 @@ export default function Header() {
     );
 
     if (tripExists) {
-      setTripError(`${newTripName} is already taken`);
+      setTripNameExistError(`Trip name "${newTripName}" is already taken`);
       return;
     }
 
+    // Prepare payload for API request
     const payload = {
       ...formData,
-      start_date: formatTripDate(formData.start_date),
-      end_date: formatTripDate(formData.end_date),
+      start_date: formatTripDate(start_date),
+      end_date: formatTripDate(end_date),
     };
 
-    if (token) {
-      const response = await fetchData(
-        "/gds/create-trip",
-        "POST",
-        payload,
-        token
-      );
-      if (response.success) {
-        setSavedTrips([...savedTrips, { ...response.data, flights: [] }]);
-        setSelectedSavedTrip(response.data);
-        setIsCreateTrip(false);
-        setIsChangeTrip(false);
+    try {
+      if (token) {
+        const response = await fetchData(
+          "/gds/create-trip",
+          "POST",
+          payload,
+          token
+        );
+        if (response.success) {
+          // Add the new trip to saved trips and reset the form
+          toast.success("Trip created successfully");
+          setSavedTrips([...savedTrips, { ...response.data, flights: [] }]);
+          setSelectedSavedTrip(response.data);
+          setFormData({
+            destination: "",
+            name: "",
+            start_date: "",
+            end_date: "",
+            flights: [],
+          });
+          setTripNameExistError("");
+          setIsCreateTrip(false);
+          setIsChangeTrip(false);
+        } else {
+          console.error("Error creating trip:", response.message);
+          toast.error("An error occurred while creating the trip.");
+        }
+      } else {
+        // Handle the case where there is no token (e.g., user not logged in)
+        toast.success("Trip created successfully");
+        setSavedTrips([...savedTrips, payload]);
+        setSelectedSavedTrip(payload);
         setFormData({
           destination: "",
           name: "",
@@ -265,21 +290,13 @@ export default function Header() {
           end_date: "",
           flights: [],
         });
-        setTripError("");
+        setTripNameExistError("");
+        setIsCreateTrip(false);
+        setIsChangeTrip(false);
       }
-    } else {
-      setSavedTrips([...savedTrips, payload]);
-      setSelectedSavedTrip(payload);
-      setIsCreateTrip(false);
-      setIsChangeTrip(false);
-      setFormData({
-        destination: "",
-        name: "",
-        start_date: "",
-        end_date: "",
-        flights: [],
-      });
-      setTripError("");
+    } catch (error) {
+      console.error("Error creating trip:", error);
+      toast.error("An error occurred while creating the trip.");
     }
   };
 
@@ -930,6 +947,11 @@ export default function Header() {
                                 {tripErrors.name && (
                                   <p className="text-red-500 text-xs">
                                     {tripErrors.name}*
+                                  </p>
+                                )}
+                                {tripNameExistError && (
+                                  <p className="text-red-500 text-xs">
+                                    {tripNameExistError}*
                                   </p>
                                 )}
                               </div>
