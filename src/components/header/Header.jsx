@@ -13,7 +13,7 @@ import { Menu, Pencil, SearchIcon, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiDotsHorizontal } from "react-icons/hi";
 import { MdOutlineArrowRightAlt } from "react-icons/md";
@@ -64,13 +64,21 @@ export default function Header() {
   const { destination, arrival, journeyDate, returnDate, tripType } =
     searchData;
 
-  const [tripError, setTripError] = useState("");
   const [formData, setFormData] = useState({
     destination: "",
     name: "",
     start_date: "",
     end_date: "",
     flights: [],
+  });
+
+  const [tripNameExistError, setTripNameExistError] = useState("");
+
+  const [tripErrors, setTripErrors] = useState({
+    destination: "",
+    name: "",
+    start_date: "",
+    end_date: "",
   });
 
   const [renameTripTerm, setRenameTripTerm] = useState("");
@@ -188,40 +196,93 @@ export default function Header() {
 
   const handleCreateTrip = async (e) => {
     e.preventDefault();
-    const newTripName = e.target.name.value;
-    if (formData.name.trim().length === 0) {
-      setTripError(`Please give a valid trip name`);
+
+    // Reset errors before validation
+    setTripErrors({
+      destination: "",
+      name: "",
+      start_date: "",
+      end_date: "",
+    });
+    setTripNameExistError("");
+
+    const { destination, name, start_date, end_date } = formData;
+    const newTripName = name.trim();
+
+    // Validate form fields
+    let errors = {};
+
+    if (!destination.trim()) {
+      errors.destination = "Please give a trip destination";
+    }
+
+    if (!newTripName) {
+      errors.name = "Please give a valid trip name";
+    }
+
+    if (!start_date) {
+      errors.start_date = "Please select start date";
+    }
+
+    if (!end_date) {
+      errors.end_date = "Please select end date";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setTripErrors(errors);
       return;
     }
 
+    // Check if the trip name already exists
     const tripExists = savedTrips.some(
       (trip) =>
         trip.name.toLowerCase().trim() === newTripName.toLowerCase().trim()
     );
 
     if (tripExists) {
-      setTripError(`${newTripName} is already taken`);
+      setTripNameExistError(`Trip name "${newTripName}" is already taken`);
       return;
     }
 
+    // Prepare payload for API request
     const payload = {
       ...formData,
-      start_date: formatTripDate(formData.start_date),
-      end_date: formatTripDate(formData.end_date),
+      start_date: formatTripDate(start_date),
+      end_date: formatTripDate(end_date),
     };
 
-    if (token) {
-      const response = await fetchData(
-        "/gds/create-trip",
-        "POST",
-        payload,
-        token
-      );
-      if (response.success) {
-        setSavedTrips([...savedTrips, { ...response.data, flights: [] }]);
-        setSelectedSavedTrip(response.data);
-        setIsCreateTrip(false);
-        setIsChangeTrip(false);
+    try {
+      if (token) {
+        const response = await fetchData(
+          "/gds/create-trip",
+          "POST",
+          payload,
+          token
+        );
+        if (response.success) {
+          // Add the new trip to saved trips and reset the form
+          toast.success("Trip created successfully");
+          setSavedTrips([...savedTrips, { ...response.data, flights: [] }]);
+          setSelectedSavedTrip(response.data);
+          setFormData({
+            destination: "",
+            name: "",
+            start_date: "",
+            end_date: "",
+            flights: [],
+          });
+          setTripNameExistError("");
+          setIsCreateTrip(false);
+          setIsChangeTrip(false);
+        } else {
+          console.error("Error creating trip:", response.message);
+          toast.error("An error occurred while creating the trip.");
+        }
+      } else {
+        // Handle the case where there is no token (e.g., user not logged in)
+        toast.success("Trip created successfully");
+        setSavedTrips([...savedTrips, payload]);
+        setSelectedSavedTrip(payload);
         setFormData({
           destination: "",
           name: "",
@@ -229,21 +290,13 @@ export default function Header() {
           end_date: "",
           flights: [],
         });
-        setTripError("");
+        setTripNameExistError("");
+        setIsCreateTrip(false);
+        setIsChangeTrip(false);
       }
-    } else {
-      setSavedTrips([...savedTrips, payload]);
-      setSelectedSavedTrip(payload);
-      setIsCreateTrip(false);
-      setIsChangeTrip(false);
-      setFormData({
-        destination: "",
-        name: "",
-        start_date: "",
-        end_date: "",
-        flights: [],
-      });
-      setTripError("");
+    } catch (error) {
+      console.error("Error creating trip:", error);
+      toast.error("An error occurred while creating the trip.");
     }
   };
 
@@ -601,7 +654,6 @@ export default function Header() {
                                   </span>
                                 </div>
                               </div>
-
                               {selectedSavedTrip?.flights?.map(
                                 (flight, index) => (
                                   <div
@@ -730,13 +782,27 @@ export default function Header() {
                         </div>
                       )}
 
+                    {!isChangeTrip && !savedTrips.length && (
+                      <div className="h-[calc(100vh-170px)] p-4 space-y-2 flex flex-col items-center justify-center">
+                        <h2 className="text-2xl text-gray-500 font-semibold">
+                          Start planning your Trip
+                        </h2>
+                        <p className="text-center text-gray-600 text-sm font-thin p-4">
+                          Save flights, hotels and more so you can easily jump
+                          back in to Trips.
+                        </p>
+                        <button className="rounded-md text-sm bg-gray-700 font-medium text-white py-2 px-4">
+                          Find a destination
+                        </button>
+                      </div>
+                    )}
                     {/* ======== Rename Trip ============= */}
                     {isRenameTrip && (
                       <div className="p-4">
                         <h4 className="font-semibold text-xl text-gray-800 mb-2">
                           Rename trip
                         </h4>
-                        <span className="text-gray-400 block text-sm mb-6">
+                        <span className="text-gray-400 block text-xs mb-6">
                           Organize, manage and plan where you&apos;re going— no
                           matter where you book.
                         </span>
@@ -774,9 +840,10 @@ export default function Header() {
                       </div>
                     )}
 
-                    {/* ============ Create a new trip show trip lists   ============*/}
+                    {/* ============ Create a new trip and show trip lists   ============*/}
                     <div className="">
                       <div className="p-4">
+                        {/*  Show trip lists */}
                         {isChangeTrip && !isCreateTrip && (
                           <div>
                             <div className="border-b">
@@ -848,7 +915,7 @@ export default function Header() {
                               </h2>
 
                               <div>
-                                <label className="block text-gray-600">
+                                <label className="block text-gray-600  text-sm">
                                   Add a destination
                                 </label>
                                 <input
@@ -857,11 +924,16 @@ export default function Header() {
                                   name="destination"
                                   onChange={onTripChange}
                                   value={formData.destination}
-                                  required
+                                  // required
                                 />
+                                {tripErrors.destination && (
+                                  <p className="text-red-500 text-xs">
+                                    {tripErrors.destination}*
+                                  </p>
+                                )}
                               </div>
                               <div>
-                                <label className="block text-gray-600">
+                                <label className="block text-gray-600 text-sm">
                                   Name your Trip
                                 </label>
                                 <input
@@ -870,16 +942,23 @@ export default function Header() {
                                   name="name"
                                   onChange={onTripChange}
                                   value={formData.name}
-                                  required
+                                  // required
                                 />
-                                {tripError && (
-                                  <p className="text-red-500">{tripError}*</p>
+                                {tripErrors.name && (
+                                  <p className="text-red-500 text-xs">
+                                    {tripErrors.name}*
+                                  </p>
+                                )}
+                                {tripNameExistError && (
+                                  <p className="text-red-500 text-xs">
+                                    {tripNameExistError}*
+                                  </p>
                                 )}
                               </div>
 
                               <div className="flex space-x-5 justify-between">
                                 <span className="w-1/2">
-                                  <label className="block text-gray-600">
+                                  <label className="block text-gray-600  text-sm">
                                     Start Date
                                   </label>
                                   <TripDatePicker
@@ -888,10 +967,15 @@ export default function Header() {
                                       onTripDateChange("start_date", date)
                                     }
                                   />
+                                  {tripErrors.start_date && (
+                                    <p className="text-red-500 text-xs">
+                                      {tripErrors.start_date}*
+                                    </p>
+                                  )}
                                 </span>
 
                                 <span className="w-1/2">
-                                  <label className="block text-gray-600">
+                                  <label className="block text-gray-600  text-sm">
                                     End Date
                                   </label>
                                   <TripDatePicker
@@ -900,6 +984,11 @@ export default function Header() {
                                       onTripDateChange("end_date", date)
                                     }
                                   />
+                                  {tripErrors.end_date && (
+                                    <p className="text-red-500 text-xs">
+                                      {tripErrors.end_date}*
+                                    </p>
+                                  )}
                                 </span>
                               </div>
                               <div className="flex space-x-5 pt-3">
