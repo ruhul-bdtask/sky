@@ -28,6 +28,7 @@ import { fetchData, saveSingleTrip } from "@/utils/api";
 import DatePickerOneWay from "../datePicker/DatePickerOneWay";
 import { formatTripDate } from "@/lib/formatTripDate";
 import TripDatePicker from "../datePicker/TripDatePicker";
+import SearchDestination from "./SearchDestination";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -83,6 +84,7 @@ export default function Header() {
 
   const [renameTripTerm, setRenameTripTerm] = useState("");
   const [isRenameTrip, setIsRenameTrip] = useState(false);
+  const [isShowSearchDestination, setIsShowSearchDestination] = useState(false);
 
   // useEffect(() => {
   //   const authToken = Cookies.get("auth-token");
@@ -182,6 +184,7 @@ export default function Header() {
   };
 
   const onTripChange = (e) => {
+    console.log(e.target.value);
     const { name, value } = e.target;
     const nextFormData = { ...formData };
     nextFormData[name] = value;
@@ -450,6 +453,34 @@ export default function Header() {
       );
     }
   };
+
+  const handleDestinationSelect = (selectedDestination) => {
+    setFormData({
+      ...formData,
+      destination: selectedDestination,
+      name: selectedDestination + " Trip",
+    });
+    setIsShowSearchDestination(false);
+  };
+
+  const containerRef = useRef(); // Reference for the input and dropdown container
+
+  // Close dropdown if clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
+        setIsShowSearchDestination(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const totalPassengers = searchData?.passengers?.reduce(
     (sum, category) => sum + category.quantity,
@@ -914,8 +945,8 @@ export default function Header() {
                                 Create a new Trip
                               </h2>
 
-                              <div>
-                                <label className="block text-gray-600  text-sm">
+                              <div className="relative" ref={containerRef}>
+                                <label className="block text-gray-600 text-sm">
                                   Add a destination
                                 </label>
                                 <input
@@ -924,12 +955,28 @@ export default function Header() {
                                   name="destination"
                                   onChange={onTripChange}
                                   value={formData.destination}
-                                  // required
+                                  onFocus={() =>
+                                    setIsShowSearchDestination(true)
+                                  }
+                                  // onBlur={() =>
+                                  //   setTimeout(
+                                  //     () => setIsShowSearchDestination(false),
+                                  //     200
+                                  //   )
+                                  // }
                                 />
                                 {tripErrors.destination && (
                                   <p className="text-red-500 text-xs">
                                     {tripErrors.destination}*
                                   </p>
+                                )}
+                                {isShowSearchDestination && (
+                                  <SearchDestination
+                                    onSelectDestination={
+                                      handleDestinationSelect
+                                    }
+                                    currentInput={formData.destination}
+                                  />
                                 )}
                               </div>
                               <div>
