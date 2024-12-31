@@ -13,7 +13,7 @@ import { Menu, Pencil, SearchIcon, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiDotsHorizontal } from "react-icons/hi";
 import { MdOutlineArrowRightAlt } from "react-icons/md";
@@ -185,15 +185,51 @@ export default function Header() {
       return { ...prevData, [property]: value };
     });
   };
-
+  const [tripErrors, setTripErrors] = useState({
+    destination: "",
+    name: "",
+    start_date: "",
+    end_date: "",
+  });
   const handleCreateTrip = async (e) => {
     e.preventDefault();
-    const newTripName = e.target.name.value;
-    if (formData.name.trim().length === 0) {
-      setTripError(`Please give a valid trip name`);
+
+    // Reset errors before validation
+    setTripErrors({
+      destination: "",
+      name: "",
+      start_date: "",
+      end_date: "",
+    });
+
+    const { destination, name, start_date, end_date } = formData;
+    const newTripName = name.trim();
+
+    // Validate form fields
+    let errors = {};
+
+    if (!destination.trim()) {
+      errors.destination = "Please give a trip destination";
+    }
+
+    if (!newTripName) {
+      errors.name = "Please give a valid trip name";
+    }
+
+    if (!start_date) {
+      errors.start_date = "Please select start date";
+    }
+
+    if (!end_date) {
+      errors.end_date = "Please select end date";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setTripErrors(errors);
       return;
     }
 
+    // Check if the trip name already exists
     const tripExists = savedTrips.some(
       (trip) =>
         trip.name.toLowerCase().trim() === newTripName.toLowerCase().trim()
@@ -862,7 +898,7 @@ export default function Header() {
                               </h2>
 
                               <div>
-                                <label className="block text-gray-600">
+                                <label className="block text-gray-600  text-sm">
                                   Add a destination
                                 </label>
                                 <input
@@ -871,11 +907,16 @@ export default function Header() {
                                   name="destination"
                                   onChange={onTripChange}
                                   value={formData.destination}
-                                  required
+                                  // required
                                 />
+                                {tripErrors.destination && (
+                                  <p className="text-red-500 text-xs">
+                                    {tripErrors.destination}*
+                                  </p>
+                                )}
                               </div>
                               <div>
-                                <label className="block text-gray-600">
+                                <label className="block text-gray-600 text-sm">
                                   Name your Trip
                                 </label>
                                 <input
@@ -884,16 +925,18 @@ export default function Header() {
                                   name="name"
                                   onChange={onTripChange}
                                   value={formData.name}
-                                  required
+                                  // required
                                 />
-                                {tripError && (
-                                  <p className="text-red-500">{tripError}*</p>
+                                {tripErrors.name && (
+                                  <p className="text-red-500 text-xs">
+                                    {tripErrors.name}*
+                                  </p>
                                 )}
                               </div>
 
                               <div className="flex space-x-5 justify-between">
                                 <span className="w-1/2">
-                                  <label className="block text-gray-600">
+                                  <label className="block text-gray-600  text-sm">
                                     Start Date
                                   </label>
                                   <TripDatePicker
@@ -902,10 +945,15 @@ export default function Header() {
                                       onTripDateChange("start_date", date)
                                     }
                                   />
+                                  {tripErrors.start_date && (
+                                    <p className="text-red-500 text-xs">
+                                      {tripErrors.start_date}*
+                                    </p>
+                                  )}
                                 </span>
 
                                 <span className="w-1/2">
-                                  <label className="block text-gray-600">
+                                  <label className="block text-gray-600  text-sm">
                                     End Date
                                   </label>
                                   <TripDatePicker
@@ -914,6 +962,11 @@ export default function Header() {
                                       onTripDateChange("end_date", date)
                                     }
                                   />
+                                  {tripErrors.end_date && (
+                                    <p className="text-red-500 text-xs">
+                                      {tripErrors.end_date}*
+                                    </p>
+                                  )}
                                 </span>
                               </div>
                               <div className="flex space-x-5 pt-3">
