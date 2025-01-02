@@ -1,3 +1,4 @@
+import { fetchAirportsData } from "@/utils/api";
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import { ImSpinner6 } from "react-icons/im";
@@ -21,7 +22,7 @@ const SearchDestination = ({ onSelectDestination, currentInput }) => {
 
   // Fetch Data
   const fetchData = async (query) => {
-    if (!query.trim()) {
+    if (!query?.trim()) {
       setFilteredData([]); // Clear results when query is empty
       setNoData(false);
       setIsLoading(false);
@@ -30,8 +31,7 @@ const SearchDestination = ({ onSelectDestination, currentInput }) => {
 
     setIsLoading(true); // Show loading spinner
     try {
-      const response = await fetch("/utils/airports.json");
-      const data = await response.json();
+      const data = await fetchAirportsData();
 
       // Filter based on search query
       const filtered = data.filter((destination) =>
@@ -92,7 +92,6 @@ const SearchDestination = ({ onSelectDestination, currentInput }) => {
                 <Image
                   src={destination.img || "/default-image.png"} // Fallback image
                   alt={destination.label || "Destination"}
-                  //   className="w-[60px] h-[60px] object-cover"
                   height={40}
                   width={40}
                 />

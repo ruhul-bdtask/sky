@@ -54,7 +54,7 @@ const fetchJsonData = async (url) => {
 export const fetchAirlinesData = () => fetchJsonData("/utils/airlines.json");
 export const fetchAirportsData = () => fetchJsonData("/utils/airports.json");
 
-// save single trip for loggedin user
+// save single trip for logged in user
 // export const saveSingleTrip = async () => {
 //   try {
 //     const response = await fetch(`${API_BASE_URL}${"/gds/create-trip"}`, {
