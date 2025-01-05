@@ -813,7 +813,7 @@ export default function Header() {
                         </div>
                       )}
 
-                    {!isChangeTrip && !savedTrips.length && (
+                    {!isChangeTrip && !selectedSavedTrip.name && (
                       <div className="h-[calc(100vh-170px)] p-4 space-y-2 flex flex-col items-center justify-center">
                         <h2 className="text-2xl text-gray-500 font-semibold">
                           Start planning your Trip
