@@ -17,7 +17,6 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
       .padStart(2, "0")}:00`;
   };
 
-
   return (
     <div>
       <div className="hidden w-[260px] h-[160px] bg-white rounded-lg border p-4 md:flex flex-col justify-between  ">
