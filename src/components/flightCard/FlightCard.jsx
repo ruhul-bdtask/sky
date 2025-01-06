@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { RxCross2 } from "react-icons/rx";
 
 import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
+import copy from "copy-to-clipboard";
 import { Heart, Share2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,7 +24,6 @@ import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
-import copy from "copy-to-clipboard";
 
 export default function FlightCard({ flight }) {
   const router = useRouter();
@@ -85,12 +85,6 @@ export default function FlightCard({ flight }) {
     }
   };
 
-  // useEffect(() => {
-  //   if (selectedFlight && Object.keys(selectedFlight).length > 0) {
-  //     router.push("/bookingForm");
-  //   }
-  // }, [allFlights]);
-
   useEffect(() => {
     const existingDepartureTime = searchParams.get("departure_time");
     const existingArrivalTime = searchParams.get("arrival_time");
@@ -105,122 +99,154 @@ export default function FlightCard({ flight }) {
     setSharedInfo(filterInfo);
   }, [router]);
 
-  // const handleSavedFlights = (id) => {
-  //   const isFlightSaved = selectedSavedTrip.flights.some(
-  //     (savedFlight) =>
-  //       savedFlight?.trip_data?.air_pricing_solution_key ===
-  //       flight?.air_pricing_solution_key
-  //   );
-
-  //   // if (token) {
-  //   //   syncSavedFlights(token);
-  //   // }
-
-  //   if (isFlightSaved) {
-  //     setSavedTrips(
-  //       selectedSavedTrip.flights.filter(
-  //         (savedFlight) =>
-  //           savedFlight?.trip_data?.air_pricing_solution_key !==
-  //           flight?.air_pricing_solution_key
-  //       )
-  //     );
-  //     // toast.success("Flight removed from saved!", {
-  //     //   position: "top-center",
-  //     //   autoClose: 5000,
-  //     //   hideProgressBar: false,
-  //     //   closeOnClick: true,
-  //     //   pauseOnHover: true,
-  //     //   draggable: true,
-  //     //   progress: undefined,
-  //     //   theme: "colored",
-  //     // });
-  //   } else {
-  //     setSavedTrips([...savedTrips, { flight_data: flight }]);
-  //     setIsOpenSavedDialog(true);
-  //     // toast.success("Flight saved successfully!", {
-  //     //   position: "top-center",
-  //     //   autoClose: 5000,
-  //     //   hideProgressBar: false,
-  //     //   closeOnClick: true,
-  //     //   pauseOnHover: true,
-  //     //   draggable: true,
-  //     //   progress: undefined,
-  //     //   theme: "colored",
-  //     // });
-  //   }
-  // };
-
-  const handleSavedFlights = async (solution_key) => {
-    // Check if the flight is already saved in the selected trip's flights
-    // const isFlightSaved = selectedSavedTrip.flights.some(
-    //   (savedFlight) =>
-    //     savedFlight?.trip_data?.air_pricing_solution_key === solution_key
-    // );
-
+  const handleSavedFlights = async (flight, action) => {
+    // open SaveDialog
     setIsOpenSavedDialog(true);
-    if (savedTrips.length === 0) {
+
+    // Check if the savedTrips array is empty
+    if (action === "save" && savedTrips.length === 0) {
       setIsChangeTrip(true);
       toast.info("Please create a trip first");
       return;
     }
-    if (!selectedSavedTrip?.name) {
+
+    // Always prompt the user to select a trip
+    if (action === "save" && !selectedSavedTrip?.name) {
       setIsChangeTrip(true);
-      toast.info("Please select a trip first");
+      toast.info("Please select a trip to save the flight");
       return;
     }
 
-    // Update the savedTrips array
-    const updatedSavedTrips = savedTrips.map((trip) => {
-      if (trip.name === selectedSavedTrip.name) {
-        // Found the selected trip to update
+    // getting matching flight to remove
+    const matchingFlight = savedTrips
+      .map((trip) =>
+        trip.flights.find(
+          (fl) =>
+            fl?.flight_data?.airline_code === flight?.airline_code &&
+            fl?.flight_data?.destination_code === flight?.destination_code &&
+            fl?.flight_data?.origin_code === flight?.origin_code &&
+            fl?.flight_data?.departure_date === flight?.departure_date &&
+            fl?.flight_data?.arrival_date === flight?.arrival_date &&
+            fl?.flight_data?.arrival_time === flight?.arrival_time &&
+            fl?.flight_data?.departure_time === flight?.departure_time
+        )
+      )
+      .find((flight) => flight !== undefined);
+
+    let flightAlreadySaved = false;
+
+    // Check if the flight already exists in any trip and update the trips
+    let updatedSavedTrips = savedTrips.map((trip) => {
+      const flightExists = trip?.flights.some(
+        (fl) =>
+          fl?.flight_data?.airline_code === flight?.airline_code &&
+          fl?.flight_data?.destination_code === flight?.destination_code &&
+          fl?.flight_data?.origin_code === flight?.origin_code &&
+          fl?.flight_data?.departure_date === flight?.departure_date &&
+          fl?.flight_data?.arrival_date === flight?.arrival_date &&
+          fl?.flight_data?.arrival_time === flight?.arrival_time &&
+          fl?.flight_data?.departure_time === flight?.departure_time
+      );
+
+      if (flightExists) {
+        flightAlreadySaved = true;
+
+        // Remove the flight from the current trip
         return {
           ...trip,
-          flights: [...trip?.flights, { flight_data: flight }],
+          flights: trip.flights.filter(
+            (fl) =>
+              !(
+                fl?.flight_data?.airline_code === flight?.airline_code &&
+                fl?.flight_data?.destination_code ===
+                  flight?.destination_code &&
+                fl?.flight_data?.origin_code === flight?.origin_code &&
+                fl?.flight_data?.departure_date === flight?.departure_date &&
+                fl?.flight_data?.arrival_date === flight?.arrival_date &&
+                fl?.flight_data?.arrival_time === flight?.arrival_time &&
+                fl?.flight_data?.departure_time === flight?.departure_time
+              )
+          ),
         };
       }
-      // Return other trips unchanged
-      return trip;
+      return trip; // Keep other trips unchanged
     });
 
-    // if (token) {
-    //   syncSavedFlights(token);
-    // }
-
-    if (token) {
-      const payload = {
-        data: [{ trip_id: selectedSavedTrip?.id, flight_data: flight }],
-      };
-
-      const response = await fetchData(
-        "/gds/save-flights",
-        "POST",
-        payload,
-        token
-      );
-      if (response.success) {
-        toast.success("Flight saved successfully");
-        // Update the state with the modified savedTrips array
-        setSavedTrips(updatedSavedTrips);
-        return;
+    if (flightAlreadySaved) {
+      // Send DELETE request to remove the flight from the database
+      if (token) {
+        const payload = { flight_uid: matchingFlight.uid };
+        const response = await fetchData(
+          "/gds/remove-flight",
+          "POST",
+          payload,
+          token
+        );
+        if (response.success) {
+          const res = await fetchData(
+            "/gds/get-saved-trips",
+            "GET",
+            null,
+            token
+          );
+          if (res.success) {
+            toast.success("Flight removed successfully!");
+            setSavedTrips(res.data); // update the state with the modified trips
+          }
+          return;
+        } else {
+          console.error(response);
+          toast.error(response.errors[0]);
+          return;
+        }
+      }
+    } else {
+      // Send POST request to save the flight to the database
+      if (token) {
+        const payload = {
+          data: [{ trip_id: selectedSavedTrip?.id, flight_data: flight }],
+        };
+        const response = await fetchData(
+          "/gds/save-flights",
+          "POST",
+          payload,
+          token
+        );
+        if (response.success) {
+          const res = await fetchData(
+            "/gds/get-saved-trips",
+            "GET",
+            null,
+            token
+          );
+          if (res.success) {
+            toast.success("Flight saved successfully!");
+            setSavedTrips(res.data); // Update the state with the modified trips
+          }
+          return;
+        } else {
+          console.error(response);
+          toast.error(response.errors[0]);
+          return;
+        }
       }
     }
 
-    setSavedTrips(updatedSavedTrips);
-    toast.success("Flight saved successfully");
-    //update selected saved trip data
-    updatedSavedTrips.forEach((trip) => {
-      if (trip.name === selectedSavedTrip.name) {
-        setSelectedSavedTrip(trip);
-      }
-    });
-
-    // if (isFlightSaved) {
-    //   // Optionally show a success message for removal
-    //   // toast.success("Flight removed from saved!", { ... });
-    // } else {
-    //   // Optionally show a success message for addition
-    //   // toast.success("Flight saved successfully!", { ... });
-    // }
+    if (flightAlreadySaved) {
+      setSavedTrips(updatedSavedTrips);
+    } else {
+      // Add the flight to the selectedSavedTrip
+      updatedSavedTrips = updatedSavedTrips.map((trip) => {
+        if (trip.name === selectedSavedTrip.name) {
+          return {
+            ...trip,
+            flights: [...trip.flights, { flight_data: flight }],
+          };
+        }
+        return trip;
+      });
+      setSavedTrips(updatedSavedTrips);
+    }
   };
 
   const handleShare = (platform) => {
@@ -468,6 +494,19 @@ export default function FlightCard({ flight }) {
     );
   };
 
+  const isSavedFlight = savedTrips.some((trip) =>
+    trip?.flights.some(
+      (fl) =>
+        fl?.flight_data?.airline_code === flight?.airline_code &&
+        fl?.flight_data?.destination_code === flight?.destination_code &&
+        fl?.flight_data?.origin_code === flight?.origin_code &&
+        fl?.flight_data?.departure_date === flight?.departure_date &&
+        fl?.flight_data?.arrival_date === flight?.arrival_date &&
+        fl?.flight_data?.arrival_time === flight?.arrival_time &&
+        fl?.flight_data?.departure_date === flight?.departure_date
+    )
+  );
+
   return (
     <>
       <div
@@ -499,25 +538,18 @@ export default function FlightCard({ flight }) {
                   >
                     <button
                       className={`border px-2 py-1 flex items-center gap-2 rounded-lg ${
-                        savedTrips.some(
-                          (savedFlight) =>
-                            savedFlight?.trip_data?.air_pricing_solution_key ===
-                            flight?.air_pricing_solution_key
-                        )
-                          ? "bg-black text-white"
-                          : "bg-transparent"
+                        isSavedFlight ? "bg-black text-white" : "bg-transparent"
                       }`}
                       onClick={() =>
-                        handleSavedFlights(flight.air_pricing_solution_key)
+                        handleSavedFlights(
+                          flight,
+                          isSavedFlight ? "remove" : "save"
+                        )
                       }
                     >
                       <Heart className="w-3 h-3" />
 
-                      {savedTrips.some(
-                        (savedFlight) =>
-                          savedFlight?.trip_data?.air_pricing_solution_key ===
-                          flight?.air_pricing_solution_key
-                      ) ? (
+                      {isSavedFlight ? (
                         <p className="text-[12px] ">Saved</p>
                       ) : (
                         <p className="text-[12px]">Save</p>

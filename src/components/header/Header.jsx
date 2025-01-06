@@ -1,33 +1,31 @@
 // app/components/Header.js
 import { useSidebar } from "@/context/sidebar-context";
 import { formatFlightFare } from "@/lib/formatFlightFare";
+import { formatTripDate } from "@/lib/formatTripDate";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import ActiveIcon from "@/public/icons/ActiveIcon";
 import AvatarIcon from "@/public/icons/AvatarIcon";
 import HeartIcon from "@/public/icons/HeartIcon";
 import logo from "@/public/images/logo.png";
-import verify from "@/public/images/verify.png";
 import weather from "@/public/images/weather.png";
+import { fetchData } from "@/utils/api";
 import Cookies from "js-cookie";
 import { Menu, Pencil, SearchIcon, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { use, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
-import { HiDotsHorizontal } from "react-icons/hi";
+import { FaExchangeAlt } from "react-icons/fa";
+import { LuChevronsLeftRight } from "react-icons/lu";
 import { MdOutlineArrowRightAlt } from "react-icons/md";
 import { isExpired } from "react-jwt";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaExchangeAlt } from "react-icons/fa";
 import useAirlineStore from "../../../stores/airlineStore";
-import ModalLayout from "../modals/ModalLayout";
-import { LuChevronsLeftRight } from "react-icons/lu";
-import { fetchData, saveSingleTrip } from "@/utils/api";
-import DatePickerOneWay from "../datePicker/DatePickerOneWay";
-import { formatTripDate } from "@/lib/formatTripDate";
 import TripDatePicker from "../datePicker/TripDatePicker";
+import ModalLayout from "../modals/ModalLayout";
+import PopupBtn from "./PopupBtn";
 import SearchDestination from "./SearchDestination";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
@@ -90,6 +88,37 @@ export default function Header() {
   //   const authToken = Cookies.get("auth-token");
   //   setToken(authToken);
   // }, []);
+
+  // Group flights into an array
+  const groupedFlights = selectedSavedTrip.flights?.reduce((acc, flight) => {
+    const { origin_code, destination_code, departure_date } =
+      flight.flight_data;
+
+    // Check if a group already exists for this origin and destination
+    let group = acc.find(
+      (item) =>
+        item.origin_code === origin_code &&
+        item.destination_code === destination_code &&
+        item.departure_date === departure_date
+    );
+
+    // If no group exists, create one
+    if (!group) {
+      group = {
+        ...flight.flight_data,
+        departure_date,
+        origin_code,
+        destination_code,
+        flights: [],
+      };
+      acc.push(group);
+    }
+
+    // Add the current flight to the group's flights array
+    group.flights.push(flight);
+    return acc;
+  }, []);
+
   const handleLogOut = () => {
     setIsOpenProfile(false);
     Cookies.remove("auth-token");
@@ -109,8 +138,8 @@ export default function Header() {
   // }, [selectedSavedTrip.name]);
 
   useEffect(() => {
-    savedTrips.forEach((trip) => {
-      if (trip.name === selectedSavedTrip.name) {
+    savedTrips?.forEach((trip) => {
+      if (trip?.name === selectedSavedTrip?.name) {
         setSelectedSavedTrip(trip);
       }
     });
@@ -159,6 +188,7 @@ export default function Header() {
 
   const handleSaved = () => {
     setIsOpenSavedDialog(!isOpenSavedDialog);
+    setIsShowPopupBtn(null);
   };
 
   const handleRoute = () => {
@@ -278,8 +308,8 @@ export default function Header() {
           setIsCreateTrip(false);
           setIsChangeTrip(false);
         } else {
-          console.error("Error creating trip:", response.message);
-          toast.error("An error occurred while creating the trip.");
+          console.error(response);
+          toast.error(response.errors[0]);
         }
       } else {
         // Handle the case where there is no token (e.g., user not logged in)
@@ -308,73 +338,11 @@ export default function Header() {
     setIsChangeTrip(false);
   };
 
-  const handleRemoveFlight = async (flight) => {
-    let filteredData = [];
-
-    if (token) {
-      filteredData = selectedSavedTrip.flights.filter(
-        (f) => f.uid !== flight.uid
-      );
-      const payload = { flight_uid: flight.uid };
-      const response = await fetchData(
-        "/gds/remove-flight",
-        "POST",
-        payload,
-        token
-      );
-      if (response.success) {
-        toast.success("Flight deleted successfully");
-        setIsShowPopupBtn(false);
-        // Update the state with the modified savedTrips array
-        // setSavedTrips(updatedSavedTrips);
-        // setSelectedSavedTrip({
-        //   ...selectedSavedTrip,
-        //   flights: filteredData,
-        // });
-
-        setSavedTrips(
-          savedTrips.map((trip) => {
-            if (trip.name === selectedSavedTrip.name) {
-              return { ...trip, flights: filteredData };
-            }
-            return trip;
-          })
-        );
-
-        return;
-      } else {
-        toast.error("Unable to delete the flight.");
-      }
-    }
-
-    // remove local if not loggedin
-
-    // filteredData = selectedSavedTrip.flights.filter(
-    //   (f) =>
-    //     f.flight_data.air_pricing_solution_key !==
-    //       flight.flight_data.air_pricing_solution_key &&
-    //     f.flight_data.departure_time !== flight.flight_data.departure_time &&
-    //     f.flight_data.arrival_time !== flight.flight_data.arrival_time
-    // );
-
-    // setSelectedSavedTrip({
-    //   ...selectedSavedTrip,
-    //   flights: filteredData,
-    // });
-    // setSavedTrips(
-    //   savedTrips.map((trip) => {
-    //     if (trip.name === selectedSavedTrip.name) {
-    //       return { ...trip, flights: filteredData };
-    //     }
-    //     return trip;
-    //   })
-    // );
-  };
-
   // handle rename trip
   const onEditTrip = (trip) => {
     setIsRenameTrip(true);
     setRenameTripTerm(trip.name);
+    setIsShowPopupBtn(null);
   };
 
   const [isRenameError, setIsRenameError] = useState(false);
@@ -424,7 +392,8 @@ export default function Header() {
           // Close the rename modal
           setIsRenameTrip(false);
         } else {
-          toast.error("Unable to rename the trip");
+          console.error(response);
+          toast.error(response.errors[0]);
         }
       } else {
         // toast.error("Authentication token is missing. Please log in again.");
@@ -669,24 +638,29 @@ export default function Header() {
                               </h4>
                             )}
 
-                            <div class="w-full shadow-xl rounded-[20px]">
-                              <div class="flex justify-between items-center bg-[#F0F3F5] border-b  rounded-t-[20px] p-4">
-                                <div class="text-left">
-                                  <div class="text-lg flex items-center space-x-1 font-semibold text-gray-800">
-                                    <span>DAC</span>
-                                    <MdOutlineArrowRightAlt />
-                                    <span>CXB</span>
+                            {groupedFlights?.map((data, index) => (
+                              <div
+                                key={index}
+                                class="w-full shadow-xl rounded-[20px] mb-6"
+                              >
+                                <div class="flex justify-between items-center bg-[#F0F3F5] border-b  rounded-t-[20px] p-4">
+                                  <div class="text-left">
+                                    <div class="text-lg flex items-center space-x-1 font-semibold text-gray-800">
+                                      <span>{data?.origin_code}</span>
+                                      <MdOutlineArrowRightAlt />
+                                      <span>{data?.destination_code}</span>
+                                    </div>
+                                    <div class="text-sm text-black">
+                                      {data?.departure_date}
+                                    </div>
                                   </div>
-                                  <div class="text-sm text-black">12/9</div>
+                                  <div class="text-right">
+                                    {/* <span class="text-xs font-medium text-black">
+                                      Economy
+                                    </span> */}
+                                  </div>
                                 </div>
-                                <div class="text-right">
-                                  <span class="text-xs font-medium text-black">
-                                    Economy
-                                  </span>
-                                </div>
-                              </div>
-                              {selectedSavedTrip?.flights?.map(
-                                (flight, index) => (
+                                {data?.flights?.map((flight, index) => (
                                   <div
                                     class="flex flex-col p-4 border-b"
                                     key={index}
@@ -695,41 +669,11 @@ export default function Header() {
                                       <span class="font-medium text-gray-800">
                                         {flight?.flight_data?.airline_name}
                                       </span>
-                                      <div className="font-medium text-gray-800 relative">
-                                        <button
-                                          className={`w-6 h-5 flex justify-center items-center rounded ${
-                                            isShowPopupBtn === index
-                                              ? "bg-gray-200"
-                                              : "bg-gray-100"
-                                          }`}
-                                          onClick={() =>
-                                            setIsShowPopupBtn(
-                                              isShowPopupBtn === index
-                                                ? null
-                                                : index
-                                            )
-                                          }
-                                        >
-                                          <HiDotsHorizontal />
-                                        </button>
-                                        {isShowPopupBtn === index && (
-                                          <div className="rounded-md border text-center absolute top-6 right-0 bg-white shadow-md">
-                                            <button className="block p-2 border-b w-full hover:text-[#0C7C99] transition-all">
-                                              Search
-                                            </button>
-                                            {token && (
-                                              <button
-                                                className="block p-2 w-full text-red-400 hover:text-[#0C7C99] transition-all"
-                                                onClick={() =>
-                                                  handleRemoveFlight(flight)
-                                                }
-                                              >
-                                                Remove
-                                              </button>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
+                                      <PopupBtn
+                                        flight={flight}
+                                        isShowPopupBtn={isShowPopupBtn}
+                                        setIsShowPopupBtn={setIsShowPopupBtn}
+                                      />
                                     </div>
                                     <div className="flex items-center gap-2 justify-between pt-2">
                                       <div className="">
@@ -806,14 +750,14 @@ export default function Header() {
                                       </div>
                                     </div>
                                   </div>
-                                )
-                              )}
-                            </div>
+                                ))}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
 
-                    {!isChangeTrip && !savedTrips.length && (
+                    {!isChangeTrip && !selectedSavedTrip.name && (
                       <div className="h-[calc(100vh-170px)] p-4 space-y-2 flex flex-col items-center justify-center">
                         <h2 className="text-2xl text-gray-500 font-semibold">
                           Start planning your Trip
