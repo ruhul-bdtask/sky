@@ -196,7 +196,7 @@ export default function FlightCard({ flight }) {
           return;
         } else {
           console.error(response);
-          toast.error(response.errors[0]);
+          toast.error(response?.errors?.[0] ?? "An unexpected error occurred.");
           return;
         }
       }
@@ -226,7 +226,7 @@ export default function FlightCard({ flight }) {
           return;
         } else {
           console.error(response);
-          toast.error(response.errors[0]);
+          toast.error(response?.errors?.[0] ?? "An unexpected error occurred.");
           return;
         }
       }

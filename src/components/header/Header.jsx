@@ -309,7 +309,7 @@ export default function Header() {
           setIsChangeTrip(false);
         } else {
           console.error(response);
-          toast.error(response.errors[0]);
+          toast.error(response?.errors?.[0] ?? "An unexpected error occurred.");
         }
       } else {
         // Handle the case where there is no token (e.g., user not logged in)
@@ -393,7 +393,7 @@ export default function Header() {
           setIsRenameTrip(false);
         } else {
           console.error(response);
-          toast.error(response.errors[0]);
+          toast.error(response?.errors?.[0] ?? 'An unexpected error occurred.');
         }
       } else {
         // toast.error("Authentication token is missing. Please log in again.");
