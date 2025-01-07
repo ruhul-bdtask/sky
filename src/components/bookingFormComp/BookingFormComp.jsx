@@ -42,6 +42,12 @@ export default function BookingFormComp({
     { value: "nid", label: "Nid", shortCode: "n" },
   ];
 
+  const titles = [
+    { value: "Mr", label: "Mr", shortCode: "Mr" },
+    { value: "Mrs", label: "Mrs", shortCode: "Mrs" },
+    { value: "Miss", label: "Miss", shortCode: "Miss" },
+  ];
+
   const countryOptions = [
     { value: "USA", label: "USA", shortCode: "US" },
     { value: "India", label: "India", shortCode: "IN" },
@@ -130,6 +136,26 @@ export default function BookingFormComp({
           </p>
           <form onSubmit={handlePassengerInfo}>
             <div className="flex flex-col gap-4 mt-4 ">
+              <div className="w-[100px] ">
+                <Select
+                  styles={customStyles}
+                  options={titles}
+                  value={
+                    titles.find(
+                      (option) =>
+                        option.value ===
+                        passengerData[index][`pxn_title_${index + 1}`]
+                    ) || { label: "Mr.", value: "Mr." } // Default to "Mr."
+                  }
+                  onChange={(selected) =>
+                    updatePassengerData(
+                      index,
+                      `pxn_title_${index + 1}`,
+                      selected.value
+                    )
+                  }
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="text"
