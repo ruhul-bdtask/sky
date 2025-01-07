@@ -80,8 +80,12 @@ export default function FlightCard({ flight }) {
   const handleRevalidate = async () => {
     const res = await refetchAllFlights();
     if (res?.status === "success") {
-      setSelectedFlight(res?.data?.data?.sortedItineraries);
-      router.push("/bookingForm");
+      if (res?.data?.data) {
+        setSelectedFlight(res?.data?.data?.sortedItineraries);
+        router.push("/bookingForm");
+      } else {
+        toast.error(res?.data?.message);
+      }
     }
   };
 
@@ -766,13 +770,15 @@ export default function FlightCard({ flight }) {
             <div className=" p-2 text-start flex flex-col gap-2">
               {/* <CardIcon /> */}
               <span className="text-[20px] font-bold ">
-                TK.{formatFlightFare(flight?.fare_details?.base_fare)}
+                TK.{formatFlightFare(flight?.fare_details?.total_fare)}
               </span>
-              <p className="text-sm text-[#1A2024] text[14px] font-semibold">
-                /Person
-              </p>
+
               <p className="text-xs text-[#1A2024] text-[14px]  font-semibold">
-                Tk.{formatFlightFare(flight?.fare_details?.total_fare)} total
+                Tk.
+                {formatFlightFare(
+                  flight?.passenger_infos[0]?.approximate_total_price
+                )}{" "}
+                /Person
               </p>
               <p className="text-xs text-[#1A2024] text-[14px]">
                 {normalizeSeatClass(flight?.passenger_infos[0]?.cabin_class)}

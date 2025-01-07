@@ -27,7 +27,11 @@ export default function Page({ searchParams }) {
     setMaxPrice,
     minPrice,
     maxPrice,
+    timer,
+    startTimer
   } = useAirlineStore();
+
+  console.log(timer)
 
   const { search, originDestinationInfo } = searchParams;
   let parsedSearchData;

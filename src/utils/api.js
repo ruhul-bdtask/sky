@@ -23,7 +23,6 @@ export const fetchData = async (
   }
 
   const response = await fetch(url, options);
-
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(
