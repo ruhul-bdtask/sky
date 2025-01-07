@@ -95,7 +95,7 @@ const FlightDetails = ({ flight }) => {
                     src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${schedule?.operating_code}.png`}
                     // src={`https://pics.avs.io/200/200/${stop?.operating_code}@2x.png`}
                     alt="airline logo"
-                   className="w-[30px] h-[30px]"
+                    className="w-[30px] h-[30px]"
                   />
                   <span>{getAirline(schedule.operating_code)}</span>
 

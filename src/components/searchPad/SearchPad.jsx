@@ -51,6 +51,7 @@ export default function SearchPad() {
     setDestinationQuery,
     setTravelPlanningDate,
     travelPlanningDate,
+    startTimer,
   } = useAirlineStore();
 
   const [searchQueryArrival, setSearchQueryArrival] = useState();

@@ -57,9 +57,10 @@ export default function BookingForm() {
 
   useEffect(() => {
     // Flatten passenger types into a single array of passenger objects
-    const totalPassengers = passengers?.flatMap((p) =>
-      Array.from({ length: p.quantity }, () => ({
+    const totalPassengers = passengers?.flatMap((p, index) =>
+      Array.from({ length: p.quantity }, (_, i) => ({
         pxn_type: p.type,
+        [`pxn_title_${i + 1}`]: "Mr.", // Dynamically assigning pxn_title for each passenger
         firstName: "",
         lastName: "",
         documentType: "",
@@ -78,11 +79,15 @@ export default function BookingForm() {
     acc[`pxn_title_${index + 1}`] = "Mr."; // Assign title, can adjust as needed
     return acc;
   }, {});
-
   const updatePassengerData = (index, field, value) => {
     setPassengerData((prevData) =>
       prevData.map((passenger, i) =>
-        i === index ? { ...passenger, [field]: value } : passenger
+        i === index
+          ? {
+              ...passenger,
+              [field]: value, // Dynamically add the pxn_title field
+            }
+          : passenger
       )
     );
   };
@@ -129,8 +134,16 @@ export default function BookingForm() {
     doc_expire_date: passengerData?.map((p) => p.doc_expire_date),
     doc_issue_country: passengerData?.map((p) => p.country || ""),
     nationality: passengerData?.map((p) => p.country || ""),
-    ...passengerTitles, // Spread in the dynamically created titles
+    ...passengerData?.reduce((acc, passenger, index) => {
+      const titleKey = `pxn_title_${index + 1}`;
+      if (passenger[titleKey]) {
+        acc[titleKey] = passenger[titleKey];
+      }
+      return acc;
+    }, {}),
   };
+
+  console.log(PassengerInformation);
 
   const payload = {
     Amount: selectedFlight?.fare_details?.total_fare,
