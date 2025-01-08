@@ -94,7 +94,7 @@ export default function Header() {
     const { origin_code, destination_code, departure_date } =
       flight.flight_data;
 
-    // Check if a group already exists for this origin and destination
+    // Check if a group already exists for this origin, destination and date
     let group = acc.find(
       (item) =>
         item.origin_code === origin_code &&
@@ -393,7 +393,7 @@ export default function Header() {
           setIsRenameTrip(false);
         } else {
           console.error(response);
-          toast.error(response?.errors?.[0] ?? 'An unexpected error occurred.');
+          toast.error(response?.errors?.[0] ?? "An unexpected error occurred.");
         }
       } else {
         // toast.error("Authentication token is missing. Please log in again.");
