@@ -19,6 +19,16 @@ const useAirlineStore = create()(
         isOpenSavedDialog: false,
         recentSearchData: [],
         airports: [],
+        airlines: [],
+        filterOptions: {
+          stops: [],
+          takeOffRange: [0, 24],
+          landingRange: [0, 72],
+          airlines: [],
+          airports: [],
+          legRange: [0, 1000], // in minutes
+          stopOverRange: [0, 1000], // in minutes
+        },
         minPrice: 0,
         maxPrice: Infinity,
         userData: {},
@@ -31,7 +41,10 @@ const useAirlineStore = create()(
         setUserData: (user) => set({ userData: user }),
         setMinPrice: (min) => set({ minPrice: min }),
         setMaxPrice: (max) => set({ maxPrice: max }),
-        setAirports: (airport) => set({ airports: airport }),
+        setAirports: (airports) => set({ airports: airports }),
+        setAirlines: (airlines) => set({ airlines: airlines }),
+        setFilterOptions: (filterOptions) =>
+          set({ filterOptions: { ...filterOptions } }),
         setRecentSearchData: (recent) => set({ recentSearchData: recent }),
         setIsOpenSavedDialog: (open = true) => set({ isOpenSavedDialog: open }),
         setPassengerInformation: (info) => set({ passengerInformation: info }),
