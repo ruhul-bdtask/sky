@@ -37,6 +37,42 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
   // Call applyFilters whenever filterOptions change
   const { airportsData, airportError, airportLoading } = useAirports();
   const { airlinesData, airlineError, airlineLoading } = useAirlines();
+  // const getAirport = (srtCode) => {
+  //   const airport = airportsData.find((airport) => airport?.value === srtCode);
+  //   return airport
+  //     ? airport
+  //     : { label: "Unknown City", name: "Unknown Airport" };
+  // };
+
+  // getAirport("DXB");
+
+  // console.log(sortedFlights);
+  // // Group flights into an array
+  // const groupedAirportsByCity = sortedFlights?.reduce((acc, flight) => {
+  //   const { origin_code, destination_code } = flight;
+
+  //   // Check if a group already exists for this origin, destination and date
+  //   let group = acc.find(
+  //     (item) =>
+  //       item.origin_code === origin_code &&
+  //       item.destination_code === destination_code
+  //   );
+
+  //   // If no group exists, create one
+  //   if (!group) {
+  //     group = {
+  //       ...flight,
+  //       origin_code,
+  //       destination_code,
+  //       flights: [],
+  //     };
+  //     acc.push(group);
+  //   }
+
+  //   // Add the current flight to the group's flights array
+  //   group.flights.push(flight);
+  //   return acc;
+  // }, []);
 
   const handleStopChange = (value) => {
     const updatedStops = filterOptions.stops.includes(value)

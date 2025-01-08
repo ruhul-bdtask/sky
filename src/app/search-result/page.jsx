@@ -28,9 +28,8 @@ export default function Page({ searchParams }) {
     minPrice,
     maxPrice,
     timer,
-    startTimer
+    startTimer,
   } = useAirlineStore();
-
 
   const { search, originDestinationInfo } = searchParams;
   let parsedSearchData;
@@ -251,7 +250,6 @@ export default function Page({ searchParams }) {
   };
 
   const filteredFlights = filterFlightData(sortFlights, filterOptions);
-  console.log(filterOptions);
 
   return (
     <>
