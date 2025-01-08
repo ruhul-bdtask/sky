@@ -135,6 +135,125 @@ export default function Page({ searchParams }) {
         return allFlights.data.sortedItineraries;
     }
   };
+
+  const filterOptions = useAirlineStore((state) => state.filterOptions);
+  const sortFlights = sortedFlights();
+  // const filterFlightData = (sortFlights, filterOptions) => {
+  //   return sortFlights.filter((flight) => {
+  //     const {
+  //       stops,
+  //       takeOffRange,
+  //       landingRange,
+  //       airlines,
+  //       airports,
+  //       legRange,
+  //       stopOverRange,
+  //     } = filterOptions;
+
+  //     const stopMapping = {
+  //       Direct: 0,
+  //       "Stop 1": 1,
+  //       "Stop 2": 2,
+  //       // add more mappings if needed
+  //     };
+
+  //     const stopCountsToFilter = filterOptions.stops.map(
+  //       (stop) => stopMapping[stop]
+  //     );
+
+  //     // Filter the data based on the stop_count
+  //     const filteredData = sortFlights.filter((flight) =>
+  //       stopCountsToFilter.includes(flight.total_stop)
+  //     );
+
+  //     console.log({ filteredData });
+  //     //// 2. Check for airline filter
+  //     // const isAirlineValid =
+  //     //   airlines.length === 0 || airlines.includes(flight.airline_name);
+
+  //     // // 3. Check for airport filter (origin and destination airports)
+  //     // const isAirportValid =
+  //     //   airports.length === 0 ||
+  //     //   airports.includes(flight.origin_airport_name) ||
+  //     //   airports.includes(flight.destination_airport_name);
+
+  //     // // 4. Check for takeOffRange filter (departure time in minutes)
+  //     // const departureTimeInMinutes = getMinutesFromTime(flight.departure_time);
+  //     // const isTakeOffRangeValid =
+  //     //   takeOffRange[0] <= departureTimeInMinutes &&
+  //     //   departureTimeInMinutes <= takeOffRange[1];
+
+  //     // // 5. Check for landingRange filter (arrival time in minutes)
+  //     // const arrivalTimeInMinutes = getMinutesFromTime(flight.arrival_time);
+  //     // const isLandingRangeValid =
+  //     //   landingRange[0] <= arrivalTimeInMinutes &&
+  //     //   arrivalTimeInMinutes <= landingRange[1];
+
+  //     // // 6. Check for legRange filter (flight duration in minutes)
+  //     // const flightDurationInMinutes = parseInt(
+  //     //   flight.itinerary_leg_descs[0][0].duration,
+  //     //   10
+  //     // );
+  //     // const isLegRangeValid =
+  //     //   legRange[0] <= flightDurationInMinutes &&
+  //     //   flightDurationInMinutes <= legRange[1];
+
+  //     // // 7. Check for stopOverRange filter (layover time)
+  //     // const isStopOverRangeValid =
+  //     //   stopOverRange[0] <= flight.itinerary_leg_descs[0][0].layover_time &&
+  //     //   flight.itinerary_leg_descs[0][0].layover_time <= stopOverRange[1];
+
+  //     // Return true if all conditions are satisfied
+  //     //return filteredData;
+  //     // &&
+  //     // isAirlineValid &&
+  //     // isAirportValid &&
+  //     // isTakeOffRangeValid &&
+  //     // isLandingRangeValid &&
+  //     // isLegRangeValid &&
+  //     // isStopOverRangeValid
+  //   });
+  // };
+
+  // Helper function to convert time in "HH:MM" format to minutes
+  // const getMinutesFromTime = (time) => {
+  //   const [hours, minutes] = time.split(":").map(Number);
+  //   return hours * 60 + minutes;
+  // };
+
+  const filterFlightData = (sortFlights, filterOptions) => {
+    // Define the mapping of stop labels to their corresponding stop counts
+    const stopMapping = {
+      Direct: 0,
+      "Stop 1": 1,
+      "Stop 2": 2,
+      // Add more mappings if needed
+    };
+
+    // Map the stop labels from filterOptions to their corresponding stop counts
+    const stopCountsToFilter = filterOptions.stops?.length
+      ? filterOptions.stops.map((stop) => stopMapping[stop])
+      : null;
+
+    // Check if the airline filter is applied
+    const airlinesToFilter = filterOptions.airlines?.length
+      ? filterOptions.airlines
+      : null;
+
+    // Filter the flights based on the total_stop and airline_name properties
+    return sortFlights.filter((flight) => {
+      const matchesStopCount =
+        !stopCountsToFilter || stopCountsToFilter.includes(flight.total_stop);
+      const matchesAirline =
+        !airlinesToFilter || airlinesToFilter.includes(flight.airline_name);
+
+      return matchesStopCount && matchesAirline;
+    });
+  };
+
+  const filteredFlights = filterFlightData(sortFlights, filterOptions);
+  console.log(filterOptions);
+
   return (
     <>
       <div className="bg-[#F0F3F5] py-10">
@@ -161,8 +280,8 @@ export default function Page({ searchParams }) {
                   ) : (
                     <p>No flights available</p>
                   )} */}
-                  {sortedFlights().length > 0 ? (
-                    sortedFlights().map((flight) => (
+                  {filteredFlights.length > 0 ? (
+                    filteredFlights.map((flight) => (
                       <FlightCard key={flight.id} flight={flight} />
                     ))
                   ) : (

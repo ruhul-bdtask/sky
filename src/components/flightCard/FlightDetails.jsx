@@ -1,10 +1,9 @@
+import { useAirlines } from "@/hooks/useAirlines";
+import { useAirports } from "@/hooks/useAirports";
 import { convertMinutesToHours } from "@/lib/formatMinutes";
 import { formatShortDate } from "@/lib/formatShortDate";
-import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import { GiCommercialAirplane } from "react-icons/gi";
 import IconDetails from "./IconDetails";
-import { fetchAirlinesData, fetchAirportsData } from "@/utils/api";
 
 const FlightDetails = ({ flight }) => {
   const {
@@ -20,23 +19,8 @@ const FlightDetails = ({ flight }) => {
     departure_date,
   } = flight;
 
-  const {
-    data: airlinesData = [],
-    error,
-    isLoading,
-  } = useQuery({
-    queryKey: ["airlines"],
-    queryFn: fetchAirlinesData,
-  });
-
-  const {
-    data: airportsData = [],
-    error: airportError,
-    isLoading: airportLoading,
-  } = useQuery({
-    queryKey: ["airports"],
-    queryFn: fetchAirportsData,
-  });
+  const { airportsData } = useAirports();
+  const { airlinesData } = useAirlines();
 
   const getAirline = (srtCode) => {
     const airline = airlinesData.find((airline) => airline?.iata === srtCode);

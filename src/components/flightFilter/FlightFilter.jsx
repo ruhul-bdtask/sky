@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpRight } from "lucide-react";
+import { fetchAirlinesData, fetchAirportsData } from "@/utils/api";
+import { useQuery } from "@tanstack/react-query";
+import { useAirports } from "@/hooks/useAirports";
+import { useAirlines } from "@/hooks/useAirlines";
+import useAirlineStore from "../../../stores/airlineStore";
 
 export default function FlightFilter({ sortedFlights, allFlights }) {
   const [takeoffTime, setTakeoffTime] = useState([0, 24]);
@@ -15,6 +20,94 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
     return `${days > 0 ? `${days}d ` : ""}${remainingHours
       .toString()
       .padStart(2, "0")}:00`;
+  };
+  // const [filterOptions, setFilterOptions] = useState({
+  //   stops: [],
+  //   takeOffRange: [0, 24],
+  //   landingRange: [0, 72],
+  //   airlines: [],
+  //   airports: [],
+  //   legRange: [0, 1000], // in minutes
+  //   stopOverRange: [0, 1000], // in minutes
+  // });
+
+  const filterOptions = useAirlineStore((state) => state.filterOptions);
+  const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
+
+  // Call applyFilters whenever filterOptions change
+  const { airportsData, airportError, airportLoading } = useAirports();
+  const { airlinesData, airlineError, airlineLoading } = useAirlines();
+
+  const handleStopChange = (value) => {
+    const updatedStops = filterOptions.stops.includes(value)
+      ? filterOptions.stops.filter((stop) => stop !== value)
+      : [...filterOptions.stops, value];
+
+    setFilterOptions({ ...filterOptions, stops: updatedStops });
+  };
+
+  const handleAirlinesChange = (flight) => {
+    const updatedAirlines = filterOptions.airlines.some(
+      (airline) => airline === flight?.airline_name
+    )
+      ? filterOptions.airlines.filter(
+          (airline) => airline !== flight?.airline_name
+        )
+      : [...filterOptions.airlines, flight?.airline_name];
+
+    setFilterOptions({
+      ...filterOptions,
+      airlines: updatedAirlines,
+    });
+  };
+
+  const handleAirportsChange = (airport) => {
+    const updatedAirports = filterOptions.airports.some(
+      (air) => air?.name === airport?.name
+    )
+      ? filterOptions.airports.filter((air) => air?.name !== airport?.name)
+      : [...filterOptions.airports, airport];
+
+    setFilterOptions({ ...filterOptions, airports: updatedAirports });
+  };
+
+  const uniqueAirlineByName = (flights) => {
+    const uniqueFlights = [];
+    const airlineSet = new Set();
+
+    flights.forEach((flight) => {
+      if (!airlineSet.has(flight.airline_name)) {
+        airlineSet.add(flight.airline_name); // Add the airline name to the Set
+        uniqueFlights.push(flight); // Add the unique flight to the array
+      }
+    });
+
+    return uniqueFlights;
+  };
+
+  const uniqueAirlines = uniqueAirlineByName(allFlights);
+
+  const handleSliderChange = (type, value) => {
+    setFilterOptions({
+      ...filterOptions,
+      [type]: value,
+    });
+  };
+
+  const applyFilters = () => {
+    const filteredFlights = allFlights.filter((flight) => {
+      // Implement filtering logic based on filterOptions
+      // For example, filter by stops:
+      if (
+        filterOptions.stops.length > 0 &&
+        !filterOptions.stops.includes(flight.stops)
+      ) {
+        return false;
+      }
+      // Add additional filtering logic for time ranges, airlines, etc.
+      return true;
+    });
+    // Update the displayed flights based on filteredFlights
   };
 
   return (
@@ -47,30 +140,20 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
         <section className="mb-6 border-t pt-3 ">
           <span className="text-[14px] font-semibold ">Stops </span>
           <div className="space-y-3 mt-4">
-            <label className="flex items-center">
-              <Checkbox id="direct" />
-              <span className="text-[14px] ml-2 ">Direct </span>
-
-              <span className="ml-auto text-[#64717B] text-[14px]">
-                Tk 23,404
-              </span>
-            </label>
-            <label className="flex items-center">
-              <Checkbox id="direct" />
-              <span className="text-[14px] ml-2 ">Stop 1 </span>
-
-              <span className="ml-auto text-[#64717B] text-[14px]">
-                Tk 23,404
-              </span>
-            </label>
-            <label className="flex items-center">
-              <Checkbox id="direct" />
-              <span className="text-[14px] ml-2 ">Stop 2 </span>
-
-              <span className="ml-auto text-[#64717B] text-[14px]">
-                Tk 23,404
-              </span>
-            </label>
+            {["Direct", "Stop 1", "Stop 2"].map((stop) => (
+              <label key={stop} className="flex items-center">
+                <Checkbox
+                  value={stop}
+                  onChange={handleStopChange}
+                  checked={filterOptions.stops.includes(stop)}
+                  onCheckedChange={(checked) => handleStopChange(stop)}
+                />
+                <span className="text-[14px] ml-2 ">{stop} </span>
+                <span className="ml-auto text-[#64717B] text-[14px]">
+                  {/* Display corresponding price */}
+                </span>
+              </label>
+            ))}
           </div>
         </section>
 
@@ -87,8 +170,10 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
                 min={0}
                 max={24}
                 step={1}
-                value={takeoffTime}
-                onValueChange={setTakeoffTime}
+                value={filterOptions.takeOffRange}
+                onValueChange={(value) =>
+                  handleSliderChange("takeOffRange", value)
+                }
                 className="w-full "
               />
             </div>
@@ -102,8 +187,10 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
                 min={0}
                 max={72}
                 step={1}
-                value={landingTime}
-                onValueChange={setLandingTime}
+                value={filterOptions.landingRange}
+                onValueChange={(value) =>
+                  handleSliderChange("landingRange", value)
+                }
                 className="w-full"
               />
             </div>
@@ -120,19 +207,19 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
             </div>
           </div>
           <div className="space-y-2">
-            {[
-              { name: "Air Asia", price: "Tk 23,404" },
-              { name: "Biman Bangladesh", price: "Tk 33,404" },
-              { name: "Singapur Airline", price: "Tk 192,404" },
-              { name: "Thai Lion Air", price: "Tk 23,404" },
-              { name: "Biman Bangladesh", price: "Tk 33,404" },
-              { name: "Singapur Airline", price: "Tk 23,404" },
-            ].map((airline, index) => (
+            {uniqueAirlines.map((flight, index) => (
               <label key={index} className="flex items-center">
-                <Checkbox id={`airline-${index}`} />
-                <span className="text-[14px] ml-2 ">{airline.name}</span>
+                <Checkbox
+                  id={`flight-${index}`}
+                  checked={filterOptions.airlines.some(
+                    (al) => al === flight.airline_name
+                  )}
+                  onCheckedChange={(checked) => handleAirlinesChange(flight)}
+                />
+
+                <span className="text-[14px] ml-2 ">{flight.airline_name}</span>
                 <span className="ml-auto text-[#64717B] text-[14px]">
-                  {airline.price}
+                  {flight.price}
                 </span>
               </label>
             ))}
@@ -141,28 +228,29 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
         <section className="mb-6 border-t pt-3 ">
           <span className="text-[14px] font-semibold ">Airports </span>
           <div className="space-y-3 mt-4">
-            <div className="space-y-3">
-              <span className="text-[14px] font-semibold ">Dhaka</span>
-              <label className="flex items-center">
-                <Checkbox id="direct" />
-                <span className="text-[14px] ml-2 ">Direct </span>
-
-                <span className="ml-auto text-[#64717B] text-[14px]">
-                  Tk 23,404
+            {[
+              { city: "Dhaka", name: "Hazrat Shahjalal Airport" },
+              { city: "Sylhet", name: "Sylhet International Airport" },
+            ].map((airport) => (
+              <div key={airport.name} className="space-y-3">
+                <span className="text-[14px] font-semibold ">
+                  {airport.city}
                 </span>
-              </label>
-            </div>
-            <div className="space-y-3">
-              <span className="text-[14px] font-semibold ">Kuala Lumpur</span>
-              <label className="flex items-center">
-                <Checkbox id="direct" />
-                <span className="text-[14px] ml-2 ">Stop 2 </span>
-
-                <span className="ml-auto text-[#64717B] text-[14px]">
-                  Tk 23,404
-                </span>
-              </label>
-            </div>
+                <label className="flex items-center">
+                  <Checkbox
+                    id="direct"
+                    checked={filterOptions.airports.some(
+                      (al) => al.name === airport.name
+                    )}
+                    onCheckedChange={(checked) => handleAirportsChange(airport)}
+                  />
+                  <span className="text-[14px] ml-2 ">{airport.name}</span>
+                  <span className="ml-auto text-[#64717B] text-[14px]">
+                    Tk 23,404
+                  </span>
+                </label>
+              </div>
+            ))}
           </div>
         </section>
         <section className="mb-6 border-t pt-3">
@@ -171,14 +259,18 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
             <div>
               <div className="py-4">
                 <p className="mb-2 text-[18px]">Flight Leg</p>
-                <p className="text-[12px]  mb-2">3h 50m - 94h 50m</p>
+                <p className="text-[12px]  mb-2">
+                  {/* 3h 50m - 94h 50m{" "} */}
+                  {filterOptions.legRange[0] + "-" + filterOptions.legRange[1]}
+                </p>
               </div>
               <Slider
+                defaultValue={100}
                 min={0}
                 max={24}
                 step={1}
-                value={takeoffTime}
-                onValueChange={setTakeoffTime}
+                value={filterOptions.legRange}
+                onValueChange={(value) => handleSliderChange("legRange", value)}
                 className="w-full"
               />
             </div>
@@ -192,8 +284,10 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
                 min={0}
                 max={72}
                 step={1}
-                value={landingTime}
-                onValueChange={setLandingTime}
+                value={filterOptions.stopOverRange}
+                onValueChange={(value) =>
+                  handleSliderChange("stopOverRange", value)
+                }
                 className="w-full"
               />
             </div>
