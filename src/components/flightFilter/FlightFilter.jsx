@@ -46,12 +46,14 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
     setFilterOptions({ ...filterOptions, stops: updatedStops });
   };
 
-  const handleAirlinesChange = (airline) => {
+  const handleAirlinesChange = (flight) => {
     const updatedAirlines = filterOptions.airlines.some(
-      (air) => air?.name === airline?.name
+      (airline) => airline === flight?.airline_name
     )
-      ? filterOptions.airlines.filter((air) => air?.name !== airline?.name)
-      : [...filterOptions.airlines, airline];
+      ? filterOptions.airlines.filter(
+          (airline) => airline !== flight?.airline_name
+        )
+      : [...filterOptions.airlines, flight?.airline_name];
 
     setFilterOptions({
       ...filterOptions,
@@ -68,6 +70,22 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
 
     setFilterOptions({ ...filterOptions, airports: updatedAirports });
   };
+
+  const uniqueAirlineByName = (flights) => {
+    const uniqueFlights = [];
+    const airlineSet = new Set();
+
+    flights.forEach((flight) => {
+      if (!airlineSet.has(flight.airline_name)) {
+        airlineSet.add(flight.airline_name); // Add the airline name to the Set
+        uniqueFlights.push(flight); // Add the unique flight to the array
+      }
+    });
+
+    return uniqueFlights;
+  };
+
+  const uniqueAirlines = uniqueAirlineByName(allFlights);
 
   const handleSliderChange = (type, value) => {
     setFilterOptions({
@@ -189,23 +207,19 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
             </div>
           </div>
           <div className="space-y-2">
-            {[
-              { name: "Air Asia", price: "Tk 23,404" },
-              { name: "Biman Bangladesh", price: "Tk 33,404" },
-              { name: "Singapur Airline", price: "Tk 192,404" },
-              { name: "Thai Lion Air", price: "Tk 23,404" },
-            ].map((airline, index) => (
+            {uniqueAirlines.map((flight, index) => (
               <label key={index} className="flex items-center">
                 <Checkbox
-                  id={`airline-${index}`}
+                  id={`flight-${index}`}
                   checked={filterOptions.airlines.some(
-                    (al) => al.name === airline.name
+                    (al) => al === flight.airline_name
                   )}
-                  onCheckedChange={(checked) => handleAirlinesChange(airline)}
+                  onCheckedChange={(checked) => handleAirlinesChange(flight)}
                 />
-                <span className="text-[14px] ml-2 ">{airline.name}</span>
+
+                <span className="text-[14px] ml-2 ">{flight.airline_name}</span>
                 <span className="ml-auto text-[#64717B] text-[14px]">
-                  {airline.price}
+                  {flight.price}
                 </span>
               </label>
             ))}

@@ -230,20 +230,29 @@ export default function Page({ searchParams }) {
       // Add more mappings if needed
     };
 
-    // Check if the stops filter is applied and map the stop labels to their corresponding stop counts
+    // Map the stop labels from filterOptions to their corresponding stop counts
     const stopCountsToFilter = filterOptions.stops?.length
       ? filterOptions.stops.map((stop) => stopMapping[stop])
       : null;
 
-    // Filter the flights based on the total_stop property if stop filters are applied
-    return stopCountsToFilter
-      ? sortFlights.filter((flight) =>
-          stopCountsToFilter.includes(flight.total_stop)
-        )
-      : sortFlights;
+    // Check if the airline filter is applied
+    const airlinesToFilter = filterOptions.airlines?.length
+      ? filterOptions.airlines
+      : null;
+
+    // Filter the flights based on the total_stop and airline_name properties
+    return sortFlights.filter((flight) => {
+      const matchesStopCount =
+        !stopCountsToFilter || stopCountsToFilter.includes(flight.total_stop);
+      const matchesAirline =
+        !airlinesToFilter || airlinesToFilter.includes(flight.airline_name);
+
+      return matchesStopCount && matchesAirline;
+    });
   };
 
   const filteredFlights = filterFlightData(sortFlights, filterOptions);
+  console.log(filterOptions);
 
   return (
     <>
