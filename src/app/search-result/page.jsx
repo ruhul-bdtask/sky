@@ -31,7 +31,6 @@ export default function Page({ searchParams }) {
     startTimer
   } = useAirlineStore();
 
-  console.log(timer)
 
   const { search, originDestinationInfo } = searchParams;
   let parsedSearchData;

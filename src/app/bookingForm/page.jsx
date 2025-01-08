@@ -143,8 +143,6 @@ export default function BookingForm() {
     }, {}),
   };
 
-  console.log(PassengerInformation);
-
   const payload = {
     Amount: selectedFlight?.fare_details?.total_fare,
     Coupon: false,
@@ -221,7 +219,9 @@ export default function BookingForm() {
     if (registerData?.success == true) {
       setToken(registerData?.authorization?.token);
       setUserData(registerData?.user);
-      refetchBookingData();
+      if (token) {
+        refetchBookingData();
+      }
     }
   }, [registerData, token]);
 

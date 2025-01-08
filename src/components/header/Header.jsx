@@ -471,6 +471,89 @@ export default function Header() {
     // Return the desired format
     return ` ${shortFormat}`; // Combine or use as needed
   };
+
+  function formatDateSaved(dateString) {
+    if (!dateString) return "";
+
+    const date = new Date(dateString.replace(" ", "T"));
+    date.setHours(0, 0, 0, 0);
+    return date.toISOString().slice(0, -1); // Remove the "Z"
+  }
+
+  const handleRedirect = (flight) => {
+    const typeMapping = {
+      ADT: "ADT",
+      CNN: "C06",
+      INF: "C02",
+      C04: "C04",
+      C06: "C06",
+      C08: "C08",
+    };
+
+    // Transform the array
+    const formattedPassengers = flight?.passenger_infos?.map((info) => ({
+      type: typeMapping[info.passenger_type] || info.passenger_type,
+      quantity: info.passenger_number,
+    }));
+
+    const cabinClassMapping = {
+      Economy: "Y", // Economy class maps to "Y"
+      Business: "C", // Business class maps to "C"
+      First: "F", // First class maps to "F"
+      "Premium Economy": "S", // Premium Economy maps to "S"
+    };
+
+    const cabinClass = flight?.passenger_infos[0]?.cabin_class;
+    const mappedClass = cabinClassMapping[cabinClass] || "Y";
+
+    const searchData = {
+      destination: flight?.origin_code,
+      arrival: flight?.destination_code,
+      tripType:
+        flight?.itinerary_leg_descs?.length == 0
+          ? "one_way"
+          : flight?.itinerary_leg_descs?.length == 1
+          ? "return"
+          : "multi_city",
+      class: mappedClass,
+      passengers: formattedPassengers,
+      journeyDate: formatDateSaved(flight?.departure_date),
+      returnDate:
+        flight?.itinerary_leg_descs?.length == 1
+          ? formatDateSaved(
+              flight?.itinerary_leg_descs?.[1]?.[0]?.departure_datetime
+            )
+          : "",
+    };
+
+    const originDestinationInfo = flight?.itinerary_leg_descs.map(
+      (flight, index) => {
+        const lastArrivalLocation = flight[flight.length - 1]?.arrival_location;
+
+        return {
+          DepartureDateTime: formatDateSaved(flight[0].departure_datetime),
+          OriginLocation: {
+            LocationCode: flight[0].departure_location,
+            LocationType: "A",
+          },
+          DestinationLocation: {
+            LocationCode: lastArrivalLocation,
+            LocationType: "A",
+          },
+          RPH: index.toString(),
+        };
+      }
+    );
+
+    const queryString = new URLSearchParams({
+      search: JSON.stringify(searchData),
+      originDestinationInfo: JSON.stringify(originDestinationInfo),
+    }).toString();
+
+    router.push(`/search-result?${queryString}`);
+    console.log(flight);
+  };
+
   return (
     <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
       <ModalLayout isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
@@ -662,7 +745,10 @@ export default function Header() {
                                 </div>
                                 {data?.flights?.map((flight, index) => (
                                   <div
-                                    class="flex flex-col p-4 border-b"
+                                    onClick={() =>
+                                      handleRedirect(flight?.flight_data)
+                                    }
+                                    class="flex flex-col p-4 border-b cursor-pointer"
                                     key={index}
                                   >
                                     <div className="flex items-center justify-between text-sm">
@@ -679,8 +765,8 @@ export default function Header() {
                                       <div className="">
                                         {flight?.flight_data?.schedules?.map(
                                           (schedule, index) => (
-                                            <div class="" key={index}>
-                                              <div class="text-xs text-black border px-2 inline-block rounded-md mb-2 font-semibold">
+                                            <div className="" key={index}>
+                                              <div class="text-xs text-black border px-2 inline-block rounded-md mb-2 font-semibold ">
                                                 {
                                                   flight?.flight_data
                                                     ?.departure_date
