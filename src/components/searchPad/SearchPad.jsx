@@ -51,7 +51,8 @@ export default function SearchPad() {
     setDestinationQuery,
     setTravelPlanningDate,
     travelPlanningDate,
-    startTimer,
+    setOriginAirportName,
+    setDestinationAirportName,
   } = useAirlineStore();
 
   const [searchQueryArrival, setSearchQueryArrival] = useState();
@@ -548,6 +549,8 @@ export default function SearchPad() {
     setOriginQuery(searchQueryDestination);
     setDestinationQuery(searchQueryArrival);
     setTravelPlanningDate(originalDate);
+    setDestinationAirportName(destinationAirport);
+    setOriginAirportName(originAirport);
 
     const queryString = new URLSearchParams({
       search: JSON.stringify(searchData),

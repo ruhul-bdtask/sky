@@ -48,6 +48,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     setOriginQuery,
     setDestinationQuery,
     setTravelPlanningDate,
+    originAirportName,
+    destinationAirportName,
   } = useAirlineStore();
   const { destination, arrival, journeyDate, tripType, returnDate } =
     searchData;
@@ -58,6 +60,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const [searchQueryDestination, setSearchQueryDestination] = useState();
   const [originAirport, setOriginAirport] = useState("");
   const [destinationAirport, setDestinationAirport] = useState("");
+
+
+
 
   useEffect(() => {
     if (tripType && searchData?.class) {
