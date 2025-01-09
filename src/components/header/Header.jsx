@@ -59,6 +59,8 @@ export default function Header() {
     setSavedTrips,
     setSelectedSavedTrip,
     searchData,
+    originAirportName,
+    destinationAirportName,
   } = useAirlineStore();
   const { destination, arrival, journeyDate, returnDate, tripType } =
     searchData;
@@ -70,6 +72,7 @@ export default function Header() {
     end_date: "",
     flights: [],
   });
+
 
   const [tripNameExistError, setTripNameExistError] = useState("");
 
@@ -592,12 +595,12 @@ export default function Header() {
                 </div>
 
                 <div className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm cursor-pointer  transition-all flex items-center gap-4 border-[#d9e2e8] border">
-                  <div>{destination}</div>
+                  <div>{originAirportName}</div>
                   <FaExchangeAlt
                     className="hover:bg-gray-300 p-1 rounded-md"
                     size={20}
                   />
-                  <div>{arrival}</div>
+                  <div>{destinationAirportName}</div>
                 </div>
 
                 <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-3">

@@ -1,6 +1,9 @@
+import { formatLongDate } from "@/lib/formatLongDate";
+import { formatShortDate } from "@/lib/formatShortDate";
 import React from "react";
 
 export default function Travelers({ userData, userDataLoading }) {
+  console.log(userData);
   return (
     <section>
       <h2 className="text-[24px] font-bold text-black mb-5">Travelers</h2>
@@ -26,87 +29,112 @@ export default function Travelers({ userData, userDataLoading }) {
               </div>
             </div>
 
-            <div className="flex items-center flex-wrap">
-              <div className="flex-1">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-10">
-                  <div>
-                    <label className="block text-[14px] text-black mb-1 font-[500]">
-                      First name
-                    </label>
-                    <div className="text-sm text-black">
-                      {" "}
-                      {userData?.data?.first_name}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[14px] text-black mb-1 font-[500]">
-                      Middle name
-                    </label>
-                    <div className="text-sm text-black">
-                      {userData?.data?.last_name}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[14px] text-black mb-1 font-[500]">
-                      Surname
-                    </label>
-                    <div className="text-sm text-black">
-                      {userData?.data?.first_name}
-                    </div>
-                  </div>
-                </div>
+            {userData?.data?.media?.map((traveler, index) => (
+              <div key={index}>
+                <div className="flex items-center flex-wrap">
+                  <div className="flex-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-10">
+                      <div>
+                        <label className="block text-[14px] text-black mb-1 font-[500]">
+                          First name
+                        </label>
+                        <div className="text-sm text-black">
+                          {" "}
+                          {traveler.first_name}
+                        </div>
+                      </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                  <div>
-                    <label className="block text-[14px] text-black mb-1 font-[500]">
-                      Date of birth
-                    </label>
-                    <div className="text-sm text-black">
-                      {userData?.data?.date_of_birth
-                        ? userData?.data?.date_of_birth
-                        : "-"}
+                      <div>
+                        <label className="block text-[14px] text-black mb-1 font-[500]">
+                          Last name
+                        </label>
+                        <div className="text-sm text-black">
+                          {traveler.last_name}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[14px] text-black mb-1 font-[500]">
+                          Date of birth
+                        </label>
+                        <div className="text-sm text-black">
+                          {formatLongDate(traveler?.dob)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                      <div>
+                        <label className="block text-[14px] text-black mb-1 font-[500]">
+                          Passenger type
+                        </label>
+                        <div className="text-sm text-black">
+                          {traveler?.pxn_type ? traveler?.pxn_type : "-"}
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <label className="block text-[14px] text-black mb-1 font-[500]">
+                          Nationality
+                        </label>
+                        <div className="text-sm text-black">
+                          {traveler?.document_nationality_country
+                            ? traveler?.document_nationality_country
+                            : "-"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[14px] text-black mb-1 font-[500]">
+                          Document type
+                        </label>
+                        <div className="text-sm text-black">
+                          {traveler?.document_type == "p" ? "Passport" : "NID"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                      <div>
+                        <label className="block text-[14px] text-black mb-1 font-[500]">
+                          Document Number
+                        </label>
+                        <div className="text-sm text-black">
+                          {traveler?.document_number
+                            ? traveler?.document_number
+                            : "-"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[14px] text-black mb-1 font-[500]">
+                          Document Expiration date
+                        </label>
+                        <div className="text-sm text-black">
+                          {traveler?.document_expiration_date
+                            ? formatLongDate(traveler?.document_expiration_date)
+                            : "-"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[14px] text-black mb-1 font-[500]">
+                          Document Issuing Country
+                        </label>
+                        <div className="text-sm text-black">
+                          {traveler?.document_issuing_country
+                            ? traveler?.document_issuing_country
+                            : "-"}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-[14px] text-black mb-1 font-[500]">
-                      Gender
-                    </label>
-                    <div className="text-sm text-black">
-                      {userData?.data?.gender ? userData?.data?.gender : "-"}
-                    </div>
+                  <div className="text-right">
+                    <button className="text-sm text-[#007799] hover:text-[#297f97] focus:outline-none font-[500]">
+                      Edit traveler
+                    </button>
                   </div>
                 </div>
-
-                <div className="mt-4">
-                  <label className="block text-[14px] text-black mb-1 font-[500]">
-                    Mobile number
-                  </label>
-                  <div className="text-sm text-black">
-                    {userData?.data?.phone ? userData?.data?.phone : "-"}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                  <div>
-                    <label className="block text-[14px] text-black mb-1 font-[500]">
-                      DHS redress number
-                    </label>
-                    <div className="text-sm text-black">-</div>
-                  </div>
-                  <div>
-                    <label className="block text-[14px] text-black mb-1 font-[500]">
-                      Known traveler number
-                    </label>
-                    <div className="text-sm text-black">-</div>
-                  </div>
-                </div>
+                {index < userData?.data?.media.length - 1 && (
+                  <div className="my-8 border-t border-dashed border-gray-300" />
+                )}
               </div>
-              <div className="text-right">
-                <button className="text-sm text-[#007799] hover:text-[#297f97] focus:outline-none font-[500]">
-                  Edit traveler
-                </button>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-10">

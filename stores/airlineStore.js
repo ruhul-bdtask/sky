@@ -33,11 +33,16 @@ const useAirlineStore = create()(
         maxPrice: Infinity,
         userData: {},
         originQuery: "",
+        originAirportName: "",
+        destinationAirportName: "",
         destinationQuery: "",
         travelPlanningDate: "",
         setTravelPlanningDate: (plan) => set({ travelPlanningDate: plan }),
         setDestinationQuery: (des) => set({ destinationQuery: des }),
+        setDestinationAirportName: (des) =>
+          set({ destinationAirportName: des }),
         setOriginQuery: (origin) => set({ originQuery: origin }),
+        setOriginAirportName: (origin) => set({ originAirportName: origin }),
         setUserData: (user) => set({ userData: user }),
         setMinPrice: (min) => set({ minPrice: min }),
         setMaxPrice: (max) => set({ maxPrice: max }),
@@ -82,6 +87,8 @@ const useAirlineStore = create()(
           originQuery: state.originQuery,
           destinationQuery: state.destinationQuery,
           travelPlanningDate: state.travelPlanningDate,
+          originAirportName: state.originAirportName,
+          destinationAirportName: state.destinationAirportName,
         }),
       }
     )
