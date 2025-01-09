@@ -9,6 +9,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useAirports } from "@/hooks/useAirports";
 import { useAirlines } from "@/hooks/useAirlines";
 import useAirlineStore from "../../../stores/airlineStore";
+import { getAirline } from "@/utils/getAirline";
+import { getAirport } from "@/utils/getAirport";
+import { getChangingCity } from "@/utils/getChangingCity";
 
 export default function FlightFilter({ sortedFlights, allFlights }) {
   const [takeoffTime, setTakeoffTime] = useState([0, 24]);
@@ -37,43 +40,8 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
   // Call applyFilters whenever filterOptions change
   const { airportsData, airportError, airportLoading } = useAirports();
   const { airlinesData, airlineError, airlineLoading } = useAirlines();
-  // const getAirport = (srtCode) => {
-  //   const airport = airportsData.find((airport) => airport?.value === srtCode);
-  //   return airport
-  //     ? airport
-  //     : { label: "Unknown City", name: "Unknown Airport" };
-  // };
 
-  // getAirport("DXB");
-
-  // console.log(sortedFlights);
-  // // Group flights into an array
-  // const groupedAirportsByCity = sortedFlights?.reduce((acc, flight) => {
-  //   const { origin_code, destination_code } = flight;
-
-  //   // Check if a group already exists for this origin, destination and date
-  //   let group = acc.find(
-  //     (item) =>
-  //       item.origin_code === origin_code &&
-  //       item.destination_code === destination_code
-  //   );
-
-  //   // If no group exists, create one
-  //   if (!group) {
-  //     group = {
-  //       ...flight,
-  //       origin_code,
-  //       destination_code,
-  //       flights: [],
-  //     };
-  //     acc.push(group);
-  //   }
-
-  //   // Add the current flight to the group's flights array
-  //   group.flights.push(flight);
-  //   return acc;
-  // }, []);
-
+  // stops change handler
   const handleStopChange = (value) => {
     const updatedStops = filterOptions.stops.includes(value)
       ? filterOptions.stops.filter((stop) => stop !== value)
@@ -82,6 +50,7 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
     setFilterOptions({ ...filterOptions, stops: updatedStops });
   };
 
+  // airlines change handler
   const handleAirlinesChange = (flight) => {
     const updatedAirlines = filterOptions.airlines.some(
       (airline) => airline === flight?.airline_name
@@ -97,21 +66,29 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
     });
   };
 
+  // airports change handler
   const handleAirportsChange = (airport) => {
-    const updatedAirports = filterOptions.airports.some(
-      (air) => air?.name === airport?.name
-    )
-      ? filterOptions.airports.filter((air) => air?.name !== airport?.name)
+    const updatedAirports = filterOptions.airports.some((ap) => ap === airport)
+      ? filterOptions.airports.filter((air) => air !== airport)
       : [...filterOptions.airports, airport];
 
     setFilterOptions({ ...filterOptions, airports: updatedAirports });
   };
 
-  const uniqueAirlineByName = (flights) => {
+  // slider change handler
+  const handleSliderChange = (type, value) => {
+    setFilterOptions({
+      ...filterOptions,
+      [type]: value,
+    });
+  };
+
+  // unique airlines name list
+  const uniqueAirlinesByName = (sortedFlights) => {
     const uniqueFlights = [];
     const airlineSet = new Set();
 
-    flights.forEach((flight) => {
+    sortedFlights.forEach((flight) => {
       if (!airlineSet.has(flight.airline_name)) {
         airlineSet.add(flight.airline_name); // Add the airline name to the Set
         uniqueFlights.push(flight); // Add the unique flight to the array
@@ -121,30 +98,29 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
     return uniqueFlights;
   };
 
-  const uniqueAirlines = uniqueAirlineByName(allFlights);
+  const uniqueAirlines = uniqueAirlinesByName(sortedFlights);
 
-  const handleSliderChange = (type, value) => {
-    setFilterOptions({
-      ...filterOptions,
-      [type]: value,
+  // unique airports name list
+  const uniqueAirportsByName = (sortedFlights) => {
+    const uniqueAirlines = [];
+    const airlineSet = new Set();
+    sortedFlights?.forEach((flight) => {
+      flight.schedules.forEach((schedule) => {
+        if (!airlineSet.has(schedule?.departure_airport)) {
+          airlineSet.add(schedule?.departure_airport);
+          uniqueAirlines.push(schedule?.departure_airport);
+        } else if (!airlineSet.has(schedule?.arrival_airport)) {
+          airlineSet.add(schedule?.arrival_airport);
+          uniqueAirlines.push(schedule?.arrival_airport);
+        }
+      });
     });
+    return uniqueAirlines;
   };
 
-  const applyFilters = () => {
-    const filteredFlights = allFlights.filter((flight) => {
-      // Implement filtering logic based on filterOptions
-      // For example, filter by stops:
-      if (
-        filterOptions.stops.length > 0 &&
-        !filterOptions.stops.includes(flight.stops)
-      ) {
-        return false;
-      }
-      // Add additional filtering logic for time ranges, airlines, etc.
-      return true;
-    });
-    // Update the displayed flights based on filteredFlights
-  };
+  const uniqueAirports = uniqueAirportsByName(sortedFlights);
+
+  console.log(filterOptions);
 
   return (
     <div>
@@ -264,26 +240,28 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
         <section className="mb-6 border-t pt-3 ">
           <span className="text-[14px] font-semibold ">Airports </span>
           <div className="space-y-3 mt-4">
-            {[
-              { city: "Dhaka", name: "Hazrat Shahjalal Airport" },
-              { city: "Sylhet", name: "Sylhet International Airport" },
-            ].map((airport) => (
-              <div key={airport.name} className="space-y-3">
+            {uniqueAirports.map((airport) => (
+              <div key={airport} className="space-y-3">
                 <span className="text-[14px] font-semibold ">
-                  {airport.city}
+                  {getChangingCity(airportsData, airport).split(",")[0]}
                 </span>
                 <label className="flex items-center">
                   <Checkbox
                     id="direct"
                     checked={filterOptions.airports.some(
-                      (al) => al.name === airport.name
+                      (ap) => ap === airport
                     )}
                     onCheckedChange={(checked) => handleAirportsChange(airport)}
                   />
-                  <span className="text-[14px] ml-2 ">{airport.name}</span>
-                  <span className="ml-auto text-[#64717B] text-[14px]">
-                    Tk 23,404
+                  <span className="text-sm ml-2">
+                    {`${airport}: ${getAirport(airportsData, airport)
+                      .split(" ")
+                      .slice(0, 2)
+                      .join(" ")}`}
                   </span>
+                  {/* <span className="ml-auto text-[#64717B] text-[14px]">
+                    Tk 23,404
+                  </span> */}
                 </label>
               </div>
             ))}
