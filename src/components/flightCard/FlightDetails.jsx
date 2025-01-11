@@ -2,6 +2,10 @@ import { useAirlines } from "@/hooks/useAirlines";
 import { useAirports } from "@/hooks/useAirports";
 import { convertMinutesToHours } from "@/lib/formatMinutes";
 import { formatShortDate } from "@/lib/formatShortDate";
+import { getAirline } from "@/utils/getAirline";
+import { getAirlineLogo } from "@/utils/getAirlineLogo";
+import { getAirport } from "@/utils/getAirport";
+import { getChangingCity } from "@/utils/getChangingCity";
 import { GiCommercialAirplane } from "react-icons/gi";
 import IconDetails from "./IconDetails";
 
@@ -21,21 +25,6 @@ const FlightDetails = ({ flight }) => {
 
   const { airportsData } = useAirports();
   const { airlinesData } = useAirlines();
-
-  const getAirline = (srtCode) => {
-    const airline = airlinesData.find((airline) => airline?.iata === srtCode);
-    return airline ? airline.name : "Unknown Airline";
-  };
-
-  const getAirport = (srtCode) => {
-    const airport = airportsData.find((airport) => airport?.value === srtCode);
-    return airport ? airport.label : "Unknown Airport";
-  };
-
-  const getChangingCity = (srtCode) => {
-    const airport = airportsData.find((airport) => airport?.value === srtCode);
-    return airport ? airport.label : "Unknown City";
-  };
 
   return (
     <div
@@ -59,7 +48,7 @@ const FlightDetails = ({ flight }) => {
                 <span>•</span>
                 <span>
                   Changes Planes in{" "}
-                  {getChangingCity(schedule?.departure_airport)}
+                  {getChangingCity(airportsData, schedule?.departure_airport)}
                 </span>
                 {schedule.layover_time > 180 && (
                   <span className="py-1 px-2 bg-red-100 rounded-md text-red-900 font-[500]">
@@ -76,12 +65,14 @@ const FlightDetails = ({ flight }) => {
                 <div className="space-x-2 flex items-center text-sm text-gray-500">
                   {/* <Image src={airline_logo} width={50} height={50} alt="logo" /> */}
                   <img
-                    src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${schedule?.operating_code}.png`}
+                    src={getAirlineLogo(schedule?.operating_code)}
                     // src={`https://pics.avs.io/200/200/${stop?.operating_code}@2x.png`}
                     alt="airline logo"
                     className="w-[30px] h-[30px]"
                   />
-                  <span>{getAirline(schedule.operating_code)}</span>
+                  <span>
+                    {getAirline(airlinesData, schedule?.operating_code)}
+                  </span>
 
                   <div className="border border-gray-700 py-0.5 px-2 rounded focus:outline-none">
                     {schedule?.equipment}
@@ -99,7 +90,13 @@ const FlightDetails = ({ flight }) => {
                     <strong className="font-semibold ">
                       {schedule?.departure_time}
                     </strong>
-                    <span>{getAirport(schedule?.departure_airport)}</span>
+                    <span>
+                      {getAirport(airportsData, schedule?.departure_airport) +
+                        " " +
+                        "(" +
+                        schedule?.departure_airport +
+                        ")"}
+                    </span>
                   </div>
 
                   {/* Flight Duration */}
@@ -117,7 +114,13 @@ const FlightDetails = ({ flight }) => {
                     <strong className="font-semibold">
                       {schedule?.arrival_time}
                     </strong>
-                    <span>{getAirport(schedule?.arrival_airport)}</span>
+                    <span>
+                      {getAirport(airportsData, schedule?.arrival_airport) +
+                        " " +
+                        "(" +
+                        schedule?.arrival_airport +
+                        ")"}
+                    </span>
                   </div>
                 </div>
               </div>
