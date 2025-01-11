@@ -220,12 +220,10 @@ export default function Page({ searchParams }) {
   // };
 
   const filterFlightData = (sortFlights, filterOptions) => {
-    // Define the mapping of stop labels to their corresponding stop counts
     const stopMapping = {
-      Direct: 0,
-      "Stop 1": 1,
-      "Stop 2": 2,
-      // Add more mappings if needed
+      Nonstop: 0,
+      "1 stop": 1,
+      "2+ stops": Infinity, // Represents 2 or more stops
     };
 
     // Map the stop labels from filterOptions to their corresponding stop counts
@@ -238,14 +236,31 @@ export default function Page({ searchParams }) {
       ? filterOptions.airlines
       : null;
 
-    // Filter the flights based on the total_stop and airline_name properties
+    // Check if the airport filter is applied
+    const airportsToFilter = filterOptions.airports?.length
+      ? filterOptions.airports
+      : null;
+
+    // Filter the flights based on the conditions
     return sortFlights.filter((flight) => {
+      // const matchesStopCount = !stopCountsToFilter || stopCountsToFilter.includes(flight.total_stop);
       const matchesStopCount =
-        !stopCountsToFilter || stopCountsToFilter.includes(flight.total_stop);
+        !stopCountsToFilter ||
+        stopCountsToFilter.some((stopCount) =>
+          stopCount === Infinity
+            ? flight.total_stop >= 2
+            : flight.total_stop === stopCount
+        );
+
       const matchesAirline =
         !airlinesToFilter || airlinesToFilter.includes(flight.airline_name);
 
-      return matchesStopCount && matchesAirline;
+      const matchesAirport =
+        !airportsToFilter ||
+        flight.schedules.some((schedule) =>
+          airportsToFilter.includes(schedule.arrival_airport)
+        );
+      return matchesStopCount && matchesAirline && matchesAirport;
     });
   };
 

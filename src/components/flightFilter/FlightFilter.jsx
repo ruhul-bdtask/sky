@@ -106,10 +106,14 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
     const airlineSet = new Set();
     sortedFlights?.forEach((flight) => {
       flight.schedules.forEach((schedule) => {
-        if (!airlineSet.has(schedule?.departure_airport)) {
-          airlineSet.add(schedule?.departure_airport);
-          uniqueAirlines.push(schedule?.departure_airport);
-        } else if (!airlineSet.has(schedule?.arrival_airport)) {
+        // if (!airlineSet.has(schedule?.departure_airport)) {
+        //   airlineSet.add(schedule?.departure_airport);
+        //   uniqueAirlines.push(schedule?.departure_airport);
+        // } else if (!airlineSet.has(schedule?.arrival_airport)) {
+        //   airlineSet.add(schedule?.arrival_airport);
+        //   uniqueAirlines.push(schedule?.arrival_airport);
+        // }
+        if (!airlineSet.has(schedule?.arrival_airport)) {
           airlineSet.add(schedule?.arrival_airport);
           uniqueAirlines.push(schedule?.arrival_airport);
         }
@@ -119,8 +123,6 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
   };
 
   const uniqueAirports = uniqueAirportsByName(sortedFlights);
-
-  console.log(filterOptions);
 
   return (
     <div>
@@ -152,12 +154,12 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
         <section className="mb-6 border-t pt-3 ">
           <span className="text-[14px] font-semibold ">Stops </span>
           <div className="space-y-3 mt-4">
-            {["Direct", "Stop 1", "Stop 2"].map((stop) => (
+            {["Nonstop", "1 stop", "2+ stops"].map((stop) => (
               <label key={stop} className="flex items-center">
                 <Checkbox
                   value={stop}
                   onChange={handleStopChange}
-                  checked={filterOptions.stops.includes(stop)}
+                  checked={filterOptions.stops?.includes(stop)}
                   onCheckedChange={(checked) => handleStopChange(stop)}
                 />
                 <span className="text-[14px] ml-2 ">{stop} </span>
@@ -223,7 +225,7 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
               <label key={index} className="flex items-center">
                 <Checkbox
                   id={`flight-${index}`}
-                  checked={filterOptions.airlines.some(
+                  checked={filterOptions.airlines?.some(
                     (al) => al === flight.airline_name
                   )}
                   onCheckedChange={(checked) => handleAirlinesChange(flight)}
@@ -241,14 +243,14 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
           <span className="text-[14px] font-semibold ">Airports </span>
           <div className="space-y-3 mt-4">
             {uniqueAirports.map((airport) => (
-              <div key={airport} className="space-y-3">
-                <span className="text-[14px] font-semibold ">
+              <div key={airport} className="space-y-0">
+                <span className="text-sm font-semibold">
                   {getChangingCity(airportsData, airport).split(",")[0]}
                 </span>
                 <label className="flex items-center">
                   <Checkbox
                     id="direct"
-                    checked={filterOptions.airports.some(
+                    checked={filterOptions.airports?.some(
                       (ap) => ap === airport
                     )}
                     onCheckedChange={(checked) => handleAirportsChange(airport)}
@@ -275,7 +277,9 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
                 <p className="mb-2 text-[18px]">Flight Leg</p>
                 <p className="text-[12px]  mb-2">
                   {/* 3h 50m - 94h 50m{" "} */}
-                  {filterOptions.legRange[0] + "-" + filterOptions.legRange[1]}
+                  {filterOptions.legRange?.[0] +
+                    "-" +
+                    filterOptions.legRange?.[1]}
                 </p>
               </div>
               <Slider
