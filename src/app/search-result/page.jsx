@@ -1,15 +1,15 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
 import FlightCard from "@/components/flightCard/FlightCard";
 import FlightFilter from "@/components/flightFilter/FlightFilter";
 import TopFilter from "@/components/topFilter/TopFilter";
-import { useQuery } from "@tanstack/react-query";
-import { fetchData } from "@/utils/api";
-import useAirlineStore from "../../../stores/airlineStore";
 import ResultPageSkeleton from "@/skeletons/ResultPageSkeleton";
 import LoadingBar from "react-top-loading-bar";
 import { notFound, useRouter } from "next/navigation";
+import { fetchData } from "@/utils/api";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import useAirlineStore from "../../../stores/airlineStore";
 export default function Page({ searchParams }) {
   const ref = useRef(null);
   useEffect(() => {

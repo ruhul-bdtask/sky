@@ -12,6 +12,7 @@ import useAirlineStore from "../../../stores/airlineStore";
 import { getAirline } from "@/utils/getAirline";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
+import MultiRangeSlider from "../ui/multiRangeSlider";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const [takeoffTime, setTakeoffTime] = useState([0, 24]);
@@ -84,6 +85,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       [type]: value,
     });
   };
+  // slider change handler
+  const handleSliderChangeRange = (type, value) => {
+    setFilterOptions({
+      ...filterOptions,
+      [type]: value,
+    });
+  };
 
   // unique airlines name list
   const uniqueAirlinesByName = (sortedFlights) => {
@@ -125,6 +133,10 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   };
 
   const uniqueAirports = uniqueAirportsByName(sortedFlights);
+  console.log(filterOptions);
+  console.log(sortedFlights);
+
+  const [values, setValues] = useState([20, 80]);
 
   return (
     <div>
@@ -192,7 +204,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                 <p className="mb-2 text-[18px]">Take-off from DAC</p>
                 <p className="text-[12px]  mb-2">Tue 00:30 - Wed 00:30</p>
               </div>
-              <Slider
+              {/* <Slider
                 min={0}
                 max={24}
                 step={1}
@@ -201,6 +213,17 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                   handleSliderChange("takeOffRange", value)
                 }
                 className="w-full "
+              /> */}
+            </div>
+            <div className="max-w-full mx-auto">
+              <MultiRangeSlider
+                min={0}
+                max={100}
+                step={1}
+                values={filterOptions.takeOffRange}
+                onChange={(newValues) =>
+                  handleSliderChangeRange("takeOffRange", newValues)
+                }
               />
             </div>
             <div>
