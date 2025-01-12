@@ -24,6 +24,7 @@ import airportsData from "../../../public/utils/airports.json";
 import moment from "moment";
 import { FaTimes } from "react-icons/fa";
 import airImg from "@/public/images/weather.png";
+import formatLabel from "@/lib/formatLabel";
 export default function SearchPad() {
   const [isPassengerOpen, setIsPassengerOpen] = useState(false);
   const [isWayOpen, setIsWayOpen] = useState(false);
@@ -198,16 +199,17 @@ export default function SearchPad() {
     )
   );
 
+  
   useEffect(() => {
     if (Object.keys(userData).length > 0) {
       setSearchQueryDestination(
         userData?.home_airport?.match(/\((.*?)\)/)?.[1]
       );
-      setOriginAirport(userData?.home_airport);
+      setOriginAirport(formatLabel(userData?.home_airport));
       setSearchQueryArrival(
         userData?.secondary_airports?.[0]?.match(/\((.*?)\)/)?.[1]
       );
-      setDestinationAirport(userData?.secondary_airports?.[0]);
+      setDestinationAirport(formatLabel(userData?.secondary_airports?.[0]));
     } else {
       setOriginAirport("Dhaka (DAC)");
       setDestinationAirport("Cox's Bazar (CXB)");
@@ -1119,7 +1121,9 @@ export default function SearchPad() {
                                       setSearchQueryDestination(
                                         destination.value
                                       );
-                                      setOriginAirport(destination.label);
+                                      setOriginAirport(
+                                        formatLabel(destination.label)
+                                      );
                                       setIsOpenDestination(false);
                                     }}
                                   >
@@ -1248,7 +1252,9 @@ export default function SearchPad() {
                                   className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   onClick={() => {
                                     setSearchQueryArrival(arrival.value);
-                                    setDestinationAirport(arrival.label);
+                                    setDestinationAirport(
+                                      formatLabel(arrival.label)
+                                    );
                                     setIsOpenArrival(false);
                                   }}
                                 >
@@ -1398,7 +1404,9 @@ export default function SearchPad() {
                                         setSearchQueryDestination(
                                           destination.value
                                         );
-                                        setOriginAirport(destination.label);
+                                        setOriginAirport(
+                                          formatLabel(destination.label)
+                                        );
                                         setIsOpenDestination(false);
                                       }}
                                     >
@@ -1532,7 +1540,9 @@ export default function SearchPad() {
                                       className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                       onClick={() => {
                                         setSearchQueryArrival(arrival.value);
-                                        setDestinationAirport(arrival.label);
+                                        setDestinationAirport(
+                                          formatLabel(arrival.label)
+                                        );
                                         setIsOpenArrival(false);
                                       }}
                                     >

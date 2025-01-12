@@ -335,7 +335,6 @@ export default function FlightCard({ flight }) {
     customFlightFilter.push(item?.OriginLocation.LocationCode);
   });
 
-  console.log(OriginDestinationInformation);
 
   const scheduleInfo = flight.schedules.map((schedule) => {
     return {
