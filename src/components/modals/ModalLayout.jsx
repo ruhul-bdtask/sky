@@ -61,9 +61,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const [originAirport, setOriginAirport] = useState("");
   const [destinationAirport, setDestinationAirport] = useState("");
 
-
-
-
   useEffect(() => {
     if (tripType && searchData?.class) {
       setSelectedWay(tripType);

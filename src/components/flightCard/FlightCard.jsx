@@ -24,6 +24,8 @@ import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
+import formatDateTime from "@/lib/formatDateTime";
+import { useAirlines } from "@/hooks/useAirlines";
 
 export default function FlightCard({ flight }) {
   const router = useRouter();
@@ -49,6 +51,8 @@ export default function FlightCard({ flight }) {
   const { syncSavedFlights } = useSyncSavedFlights();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
+  const { airlinesData } = useAirlines();
+
   const toggleFlightDetails = (e) =>
     setIsShowFlightDetails(!isShowFlightDetails);
   const [sharedInfo, setSharedInfo] = useState();
@@ -87,6 +91,11 @@ export default function FlightCard({ flight }) {
         toast.error(res?.data?.message);
       }
     }
+  };
+
+  const getAirline = (srtCode) => {
+    const airline = airlinesData.find((airline) => airline?.iata === srtCode);
+    return airline ? airline.name : "Unknown Airline";
   };
 
   useEffect(() => {
@@ -325,6 +334,8 @@ export default function FlightCard({ flight }) {
   OriginDestinationInformation.map((item) => {
     customFlightFilter.push(item?.OriginLocation.LocationCode);
   });
+
+  console.log(OriginDestinationInformation);
 
   const scheduleInfo = flight.schedules.map((schedule) => {
     return {
@@ -584,8 +595,61 @@ export default function FlightCard({ flight }) {
                     <p className="text-sm font-semibold text-start">
                       {flight?.schedules.length > 1 ? "Multi city" : "Direct"}
                     </p> */}
+            <div className="flex flex-col gap-3">
+              {flight?.itinerary_leg_descs?.map((leg, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center gap-5 flex-wrap"
+                >
+                  <div className="flex items-center gap-5">
+                    {/* <Image
+                    width={50}
+                    height={50}
+                    alt="air"
+                    src={flight?.airline_logo}
+                  ></Image> */}
+                    <img
+                      src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${leg?.marketing_code}.png`}
+                      // src={`https://pics.avs.io/200/200/${stop?.operating_code}@2x.png`}
+                      alt="airline logo"
+                      className="w-[30px] h-[30px]"
+                    />
 
-            {flight?.itinerary_leg_descs?.length == 1 ? (
+                    <div>
+                      <p className="text-[13px]">
+                        {leg?.departure_location} - {leg?.arrival_location}
+                      </p>
+                      <p className="text-lg font-semibold">
+                        {formatDateTime(leg?.departure_datetime).time} -{" "}
+                        {formatDateTime(leg?.arrival_datetime).time}
+                      </p>
+
+                      <div>
+                        <p className="text-[#5F6D77] text-[14px]">
+                          {getAirline(leg?.marketing_code)}
+                        </p>
+                        <p className="text-[#5F6D77] text-[14px]">
+                          {formatDateTime(leg?.departure_datetime).date}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-5">
+                    <p className="text-sm font-semibold text-start">
+                      {convertMinutesToHours(leg?.duration)}
+                    </p>
+                    <p className="text-sm font-semibold text-start">
+                      {leg?.stop_count === 0 && " Direct"}
+                      {leg?.stop_count === 1 && "1 Stop"}
+                      {leg?.stop_count > 1 &&
+                        leg?.stop_count + " " + "Stops"}{" "}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* {flight?.itinerary_leg_descs?.length == 1 ? (
               <div className="flex justify-between items-center gap-5 flex-wrap">
                 <div className="flex items-center gap-5">
                   <Image
@@ -652,14 +716,7 @@ export default function FlightCard({ flight }) {
                               {air?.departure_datetime}
                             </p>
 
-                            {/* <div>
-                            <p className="text-[#5F6D77] text-[14px]">
-                              {flight?.airline_name}
-                            </p>
-                            <p className="text-[#5F6D77] text-[14px]">
-                              {flight?.departure_date}
-                            </p>
-                          </div> */}
+                            
                           </div>
                         </div>
                         <div className="flex gap-5">
@@ -678,11 +735,7 @@ export default function FlightCard({ flight }) {
                   ))}
                 </div>
               </>
-            )}
-
-            {/* <div>
-              <p className="text-[#5F6D77] text-[14px]">{flight?.gds}</p>
-            </div> */}
+            )} */}
           </div>
 
           {isShareModalOpen && (

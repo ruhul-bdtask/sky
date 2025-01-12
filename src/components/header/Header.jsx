@@ -73,7 +73,6 @@ export default function Header() {
     flights: [],
   });
 
-
   const [tripNameExistError, setTripNameExistError] = useState("");
 
   const [tripErrors, setTripErrors] = useState({
@@ -506,7 +505,7 @@ export default function Header() {
       "Premium Economy": "S", // Premium Economy maps to "S"
     };
 
-    const cabinClass = flight?.passenger_infos[0]?.cabin_class;
+    const cabinClass = flight?.passenger_infos?.[0]?.cabin_class;
     const mappedClass = cabinClassMapping[cabinClass] || "Y";
 
     const searchData = {
@@ -529,7 +528,7 @@ export default function Header() {
           : "",
     };
 
-    const originDestinationInfo = flight?.itinerary_leg_descs.map(
+    const originDestinationInfo = flight?.itinerary_leg_descs?.map(
       (flight, index) => {
         const lastArrivalLocation = flight[flight.length - 1]?.arrival_location;
 
@@ -758,11 +757,15 @@ export default function Header() {
                                       <span class="font-medium text-gray-800">
                                         {flight?.flight_data?.airline_name}
                                       </span>
-                                      <PopupBtn
-                                        flight={flight}
-                                        isShowPopupBtn={isShowPopupBtn}
-                                        setIsShowPopupBtn={setIsShowPopupBtn}
-                                      />
+                                      <div
+                                        onClick={(e) => e.stopPropagation()} // Prevent propagation from the dropdown
+                                      >
+                                        <PopupBtn
+                                          flight={flight}
+                                          isShowPopupBtn={isShowPopupBtn}
+                                          setIsShowPopupBtn={setIsShowPopupBtn}
+                                        />
+                                      </div>
                                     </div>
                                     <div className="flex items-center gap-2 justify-between pt-2">
                                       <div className="">

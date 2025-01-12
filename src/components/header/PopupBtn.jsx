@@ -104,7 +104,10 @@ const PopupBtn = ({ flight, isShowPopupBtn, setIsShowPopupBtn }) => {
         <HiDotsHorizontal />
       </button>
       {isShowPopupBtn === uniqueFlightString && (
-        <div className="rounded-md border text-center absolute top-6 right-0 bg-white shadow-md">
+        <div
+          className="rounded-md border text-center absolute top-6 right-0 bg-white shadow-md"
+          onClick={(e) => e.stopPropagation()}
+        >
           <button className="block p-2 border-b w-full hover:text-[#0C7C99] transition-all">
             Search
           </button>
