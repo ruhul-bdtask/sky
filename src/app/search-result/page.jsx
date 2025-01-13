@@ -214,13 +214,24 @@ export default function Page({ searchParams }) {
           airportsToFilter.includes(schedule.arrival_airport)
         );
 
-      const matchesTakeOffRange = flight.schedules.some((schedule) => {
-        const departureTime = dateTimeToMilliseconds(
-          schedule.departure_date,
-          schedule.departure_time
-        );
-        return departureTime >= takeOffStart && departureTime <= takeOffEnd;
-      });
+      const matchesTakeOffRange =
+        filterOptions.takeOffRange[0] === 0 &&
+        filterOptions.takeOffRange[1] === 0
+          ? true // If range is [0, 0], include all flights
+          : flight.schedules.some((schedule) => {
+              const departureTime = dateTimeToMilliseconds(
+                schedule.departure_date,
+                schedule.departure_time
+              );
+
+              // Extract start and end range from filterOptions
+              const [takeOffStart, takeOffEnd] = filterOptions.takeOffRange;
+
+              // Check if departureTime is within the range
+              return (
+                departureTime >= takeOffStart && departureTime <= takeOffEnd
+              );
+            });
 
       return (
         matchesStopCount &&
