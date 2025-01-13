@@ -29,7 +29,7 @@ const MultiRangeSlider = ({ min, max, step, values, onChange }) => {
             {...props}
             className="w-6 h-6 rounded-full bg-white border border-blue-500 focus:outline-none shadow-md flex items-center justify-center"
           >
-            <span className="text-xs text-white">{values[index]}</span>
+            {/* <span className="text-xs text-white">{values[index]}</span> */}
           </div>
         )}
       />

@@ -1,48 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowUpRight } from "lucide-react";
-import { fetchAirlinesData, fetchAirportsData } from "@/utils/api";
-import { useQuery } from "@tanstack/react-query";
-import { useAirports } from "@/hooks/useAirports";
+import { Slider } from "@/components/ui/slider";
 import { useAirlines } from "@/hooks/useAirlines";
-import useAirlineStore from "../../../stores/airlineStore";
-import { getAirline } from "@/utils/getAirline";
+import { useAirports } from "@/hooks/useAirports";
+
+import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
+import { millisecondsToDateTime } from "@/lib/millisecondsToDateTime";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
+import { ArrowUpRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import useAirlineStore from "../../../stores/airlineStore";
 import MultiRangeSlider from "../ui/multiRangeSlider";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
-  const [takeoffTime, setTakeoffTime] = useState([0, 24]);
-  const [landingTime, setLandingTime] = useState([0, 72]);
-
-  const formatTime = (hours) => {
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
-    return `${days > 0 ? `${days}d ` : ""}${remainingHours
-      .toString()
-      .padStart(2, "0")}:00`;
-  };
-
-  const { minutes, seconds } = timer;
-  // const [filterOptions, setFilterOptions] = useState({
-  //   stops: [],
-  //   takeOffRange: [0, 24],
-  //   landingRange: [0, 72],
-  //   airlines: [],
-  //   airports: [],
-  //   legRange: [0, 1000], // in minutes
-  //   stopOverRange: [0, 1000], // in minutes
-  // });
-
+  // const { filterOptions, setFilterOptions } = useAirlineStore();
   const filterOptions = useAirlineStore((state) => state.filterOptions);
   const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
 
   // Call applyFilters whenever filterOptions change
   const { airportsData, airportError, airportLoading } = useAirports();
   const { airlinesData, airlineError, airlineLoading } = useAirlines();
+
+  const { minutes, seconds } = timer;
 
   // stops change handler
   const handleStopChange = (value) => {
@@ -76,21 +57,6 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       : [...filterOptions.airports, airport];
 
     setFilterOptions({ ...filterOptions, airports: updatedAirports });
-  };
-
-  // slider change handler
-  const handleSliderChange = (type, value) => {
-    setFilterOptions({
-      ...filterOptions,
-      [type]: value,
-    });
-  };
-  // slider change handler
-  const handleSliderChangeRange = (type, value) => {
-    setFilterOptions({
-      ...filterOptions,
-      [type]: value,
-    });
   };
 
   // unique airlines name list
@@ -133,10 +99,65 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   };
 
   const uniqueAirports = uniqueAirportsByName(sortedFlights);
-  console.log(filterOptions);
-  console.log(sortedFlights);
 
-  const [values, setValues] = useState([20, 80]);
+  const [values, setValues] = useState([0, 0]); // Default to [0, 0] initially
+  const [min, setMin] = useState(0); // Default to [0, 0] initially
+  const [max, setMax] = useState(0); // Default to [0, 0] initially
+
+  // slider change handler
+  // const handleSliderChange = (type, value) => {
+  //   setFilterOptions({
+  //     ...filterOptions,
+  //     [type]: value,
+  //   });
+  // };
+
+  const handleSliderChange = (key, newValues) => {
+    // console.log(key);
+    // console.log("released");
+    setValues(newValues); // Update local state while dragging
+    const updatedFilterOptions = { ...filterOptions, [key]: newValues };
+    // console.log(updatedFilterOptions);
+    setFilterOptions(updatedFilterOptions);
+    // setFilterOptions((prevOptions) => ({
+    //   ...prevOptions,
+    //   [key]: newValues, // Update the specific filter range
+    // }));
+  };
+
+  const handleAfterRelease = (key, newValues) => {
+    setFilterOptions({
+      ...filterOptions,
+      [key]: newValues, // Update the specific range in Zustand store
+    });
+  };
+
+  useEffect(() => {
+    if (sortedFlights && sortedFlights.length > 0) {
+      const timestamps = sortedFlights.map((flight) =>
+        dateTimeToMilliseconds(flight.departure_date, flight.departure_time)
+      );
+      const initialMin = Math.min(...timestamps);
+      const initialMax = Math.max(...timestamps);
+
+      setValues([initialMin, initialMax]); // Update slider values
+      setMin(initialMin); // Update slider values
+      setMax(initialMax); // Update slider values
+    }
+  }, [sortedFlights]); // Run whenever sortedFlights changes
+
+  // useEffect(() => {
+  //   if (sortedFlights && sortedFlights.length > 0) {
+  //     setFilterOptions((prevOptions) => ({
+  //       ...prevOptions,
+  //       takeOffRange: values, // Update the specific filter range
+  //     }));
+  //   }
+  // }, []); // Run whenever sortedFlights changes
+
+  // console.log(filterOptions);
+  // console.log(values);
+  // console.log(smallest, largest);
 
   return (
     <div>
@@ -159,7 +180,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           <div className=" text-3xl font-mono text-[#FC660F]">
             {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
           </div>
-          <p className="text-[12px] text-center">Make sure to book before this time.</p>
+          <p className="text-[12px] text-center">
+            Make sure to book before this time.
+          </p>
         </div>
 
         {/* <div className="flex items-center justify-between">
@@ -202,29 +225,31 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             <div>
               <div className="py-4">
                 <p className="mb-2 text-[18px]">Take-off from DAC</p>
-                <p className="text-[12px]  mb-2">Tue 00:30 - Wed 00:30</p>
+                {/* <p className="text-[12px]  mb-2">Tue 00:30 - Wed 00:30</p> */}
+                <p className="text-[12px]  mb-2">
+                  {millisecondsToDateTime(filterOptions.takeOffRange[0])} -{" "}
+                  {millisecondsToDateTime(filterOptions.takeOffRange[1])}
+                </p>
               </div>
-              {/* <Slider
-                min={0}
-                max={24}
-                step={1}
-                value={filterOptions.takeOffRange}
-                onValueChange={(value) =>
-                  handleSliderChange("takeOffRange", value)
-                }
-                className="w-full "
-              /> */}
             </div>
             <div className="max-w-full mx-auto">
-              <MultiRangeSlider
-                min={0}
-                max={100}
-                step={1}
-                values={filterOptions.takeOffRange}
-                onChange={(newValues) =>
-                  handleSliderChangeRange("takeOffRange", newValues)
-                }
-              />
+              {min && max ? (
+                <MultiRangeSlider
+                  min={min}
+                  max={max}
+                  step={1000 * 60 * 5} // 5-minute intervals
+                  values={
+                    filterOptions.takeOffRange[0] > 0
+                      ? filterOptions.takeOffRange
+                      : values
+                  }
+                  onChange={(newValues) =>
+                    handleSliderChange("takeOffRange", newValues)
+                  }
+                />
+              ) : (
+                <p>Loading slider...</p>
+              )}
             </div>
             <div>
               <div className="py-4">
