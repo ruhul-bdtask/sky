@@ -398,7 +398,6 @@ export default function FlightCard({ flight }) {
 
   const condition = shareExtraConditions.every((inc) => inc === true);
 
-  console.log(sharedInfo, condition);
 
   const generateComp = (schedules) => {
     const dacToJfkStart = schedules.findIndex(
