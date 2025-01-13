@@ -199,9 +199,9 @@ export default function SearchPad() {
     )
   );
 
-  
+  console.log(userData);
   useEffect(() => {
-    if (Object.keys(userData).length > 0) {
+    if (Object.keys(userData).length > 0 && userData?.home_airport) {
       setSearchQueryDestination(
         userData?.home_airport?.match(/\((.*?)\)/)?.[1]
       );
@@ -607,6 +607,8 @@ export default function SearchPad() {
     setSearchQueryArrival("");
     setDestinationAirport("");
   };
+
+  console.log(originAirport);
 
   return (
     <div>
