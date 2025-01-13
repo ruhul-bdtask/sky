@@ -61,6 +61,7 @@ export default function Header() {
     searchData,
     originAirportName,
     destinationAirportName,
+    setSavedSingleFlight,
   } = useAirlineStore();
   const { destination, arrival, journeyDate, returnDate, tripType } =
     searchData;
@@ -478,8 +479,11 @@ export default function Header() {
     if (!dateString) return "";
 
     const date = new Date(dateString.replace(" ", "T"));
-    date.setHours(0, 0, 0, 0);
-    return date.toISOString().slice(0, -1); // Remove the "Z"
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}T00:00:00`;
   }
 
   const handleRedirect = (flight) => {
@@ -523,23 +527,21 @@ export default function Header() {
       returnDate:
         flight?.itinerary_leg_descs?.length == 1
           ? formatDateSaved(
-              flight?.itinerary_leg_descs?.[1]?.[0]?.departure_datetime
+              flight?.itinerary_leg_descs?.[1]?.departure_datetime
             )
           : "",
     };
 
     const originDestinationInfo = flight?.itinerary_leg_descs?.map(
       (flight, index) => {
-        const lastArrivalLocation = flight[flight.length - 1]?.arrival_location;
-
         return {
-          DepartureDateTime: formatDateSaved(flight[0].departure_datetime),
+          DepartureDateTime: formatDateSaved(flight.departure_datetime),
           OriginLocation: {
-            LocationCode: flight[0].departure_location,
+            LocationCode: flight.departure_location,
             LocationType: "A",
           },
           DestinationLocation: {
-            LocationCode: lastArrivalLocation,
+            LocationCode: flight?.arrival_location,
             LocationType: "A",
           },
           RPH: index.toString(),
@@ -547,20 +549,48 @@ export default function Header() {
       }
     );
 
+    const scheduleInfo = flight.schedules.map((schedule) => {
+      return {
+        flight_number: schedule.flight_number,
+        operating_code: schedule.operating_code,
+      };
+    });
+
+    const newFilter = {
+      departure_time: flight?.departure_time,
+      arrival_time: flight?.arrival_time,
+      flight_number: scheduleInfo.map((pro) => pro.flight_number),
+      operating_code: scheduleInfo.map((pro) => pro.operating_code),
+    };
+    if (
+      newFilter.departure_time &&
+      newFilter.arrival_time &&
+      newFilter.flight_number &&
+      newFilter.operating_code
+    ) {
+      setSavedSingleFlight(newFilter);
+    }
+
     const queryString = new URLSearchParams({
       search: JSON.stringify(searchData),
       originDestinationInfo: JSON.stringify(originDestinationInfo),
     }).toString();
 
     router.push(`/search-result?${queryString}`);
-    console.log(flight);
   };
+
+  useEffect(() => {
+    if (pathname !== "/search-result") {
+      setSavedSingleFlight({});
+    }
+  }, [router]);
 
   return (
     <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
-      <ModalLayout isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
-        sjfhfdgv
-      </ModalLayout>
+      <ModalLayout
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+      ></ModalLayout>
       <div className="max-w-full sm:px-6 lg:px-2 h-full">
         <div className="flex justify-between items-center h-full">
           <div className="flex items-center gap-5">

@@ -11,7 +11,7 @@ import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
 import copy from "copy-to-clipboard";
 import { Heart, Share2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   FaFacebook,
@@ -47,12 +47,14 @@ export default function FlightCard({ flight }) {
     setIsCreateTrip,
     setSavedTrips,
     setIsChangeTrip,
+    savedSingleFlight,
+    setSavedSingleFlight,
   } = useAirlineStore();
   const { syncSavedFlights } = useSyncSavedFlights();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
   const { airlinesData } = useAirlines();
-
+  const pathname = usePathname();
   const toggleFlightDetails = (e) =>
     setIsShowFlightDetails(!isShowFlightDetails);
   const [sharedInfo, setSharedInfo] = useState();
@@ -103,13 +105,34 @@ export default function FlightCard({ flight }) {
     const existingArrivalTime = searchParams.get("arrival_time");
     const flight_number = searchParams.get("flight_number");
     const operating_code = searchParams.get("operating_code");
-    const filterInfo = {
-      departure_time: existingDepartureTime,
-      arrival_time: existingArrivalTime,
-      flight_number,
-      operating_code,
-    };
-    setSharedInfo(filterInfo);
+    if (
+      !existingDepartureTime &&
+      !existingArrivalTime &&
+      !flight_number &&
+      !operating_code
+    ) {
+      const filterInfo = {
+        departure_time: savedSingleFlight?.departure_time,
+        arrival_time: savedSingleFlight?.arrival_time,
+        flight_number: savedSingleFlight?.flight_number,
+        operating_code: savedSingleFlight?.operating_code,
+      };
+      setSharedInfo(filterInfo);
+    } else {
+      const filterInfo = {
+        departure_time: existingDepartureTime,
+        arrival_time: existingArrivalTime,
+        flight_number,
+        operating_code,
+      };
+      setSharedInfo(filterInfo);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (pathname !== "/search-result") {
+      setSavedSingleFlight({});
+    }
   }, [router]);
 
   const handleSavedFlights = async (flight, action) => {
@@ -335,7 +358,6 @@ export default function FlightCard({ flight }) {
     customFlightFilter.push(item?.OriginLocation.LocationCode);
   });
 
-
   const scheduleInfo = flight.schedules.map((schedule) => {
     return {
       flight_number: schedule.flight_number,
@@ -375,6 +397,9 @@ export default function FlightCard({ flight }) {
   });
 
   const condition = shareExtraConditions.every((inc) => inc === true);
+
+  console.log(sharedInfo, condition);
+
   const generateComp = (schedules) => {
     const dacToJfkStart = schedules.findIndex(
       (flight) => flight.departure_airport === customFlightFilter[0]
