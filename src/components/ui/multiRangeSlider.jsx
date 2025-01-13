@@ -34,8 +34,8 @@ const MultiRangeSlider = ({ min, max, step, values, onChange }) => {
         )}
       />
       <div className="flex justify-between w-full mt-2 text-sm text-gray-600">
-        <span>{min}</span>
-        <span>{max}</span>
+        {/* <span>{min}</span>
+        <span>{max}</span> */}
       </div>
     </div>
   );
