@@ -37,6 +37,8 @@ const useAirlineStore = create()(
         destinationAirportName: "",
         destinationQuery: "",
         travelPlanningDate: "",
+        savedSingleFlight: {},
+        setSavedSingleFlight: (flight) => set({ savedSingleFlight: flight }),
         setTravelPlanningDate: (plan) => set({ travelPlanningDate: plan }),
         setDestinationQuery: (des) => set({ destinationQuery: des }),
         setDestinationAirportName: (des) =>
@@ -89,6 +91,7 @@ const useAirlineStore = create()(
           travelPlanningDate: state.travelPlanningDate,
           originAirportName: state.originAirportName,
           destinationAirportName: state.destinationAirportName,
+          savedSingleFlight: state.savedSingleFlight,
         }),
       }
     )

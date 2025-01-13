@@ -20,6 +20,7 @@ import moment from "moment";
 import { FaTimes } from "react-icons/fa";
 import DatePickerOneWay from "@/components/datePicker/DatePickerOneWay";
 import DatePicker from "@/components/datePicker/DatePicker";
+import formatLabel from "@/lib/formatLabel";
 
 export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const [isPassengerOpen, setIsPassengerOpen] = useState(false);
@@ -789,11 +790,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             className="relative"
                             ref={dropdownRefDestination}
                           >
-                            <div
-                              onClick={() =>
-                                setIsOpenDestination(!isOpenDestination)
-                              }
-                            >
+                            <div onClick={() => setIsOpenDestination(true)}>
                               <p
                                 className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                                   originAirport == "" ||
@@ -804,9 +801,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                     : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                 }`}
                               >
-                                {originAirport !== ""
-                                  ? originAirport + " " + searchQueryDestination
-                                  : ""}
+                                {originAirport !== "" ? originAirport : ""}
                                 <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
                                   <FaTimes onClick={handleClear} />
                                 </span>
@@ -838,7 +833,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                             setSearchQueryDestination(
                                               destination.value
                                             );
-                                            setOriginAirport(destination.name);
+                                            setOriginAirport(
+                                              formatLabel(destination.label)
+                                            );
                                             setIsOpenDestination(false);
                                           }}
                                         >
@@ -925,9 +922,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             />
                           </button>
                           <div className="relative" ref={dropdownRefArrival}>
-                            <div
-                              onClick={() => setIsOpenArrival(!isOpenArrival)}
-                            >
+                            <div onClick={() => setIsOpenArrival(true)}>
                               <p
                                 className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                                   destinationAirport == "" ||
@@ -939,10 +934,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 }`}
                               >
                                 {destinationAirport !== ""
-                                  ? destinationAirport +
-                                    " " +
-                                    searchQueryArrival
+                                  ? destinationAirport
                                   : ""}
+
                                 <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
                                   <FaTimes onClick={handleClearArrival} />
                                 </span>
@@ -973,7 +967,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                             setSearchQueryArrival(
                                               arrival.value
                                             );
-                                            setDestinationAirport(arrival.name);
+                                            setDestinationAirport(
+                                              formatLabel(arrival.label)
+                                            );
                                             setIsOpenArrival(false);
                                           }}
                                         >
@@ -1203,11 +1199,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               className="relative"
                               ref={dropdownRefDestination}
                             >
-                              <div
-                                onClick={() =>
-                                  setIsOpenDestination(!isOpenDestination)
-                                }
-                              >
+                              <div onClick={() => setIsOpenDestination(true)}>
                                 <p
                                   className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                                     originAirport == "" ||
@@ -1255,7 +1247,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                                 destination.value
                                               );
                                               setOriginAirport(
-                                                destination.name
+                                                formatLabel(destination.label)
                                               );
                                               setIsOpenDestination(false);
                                             }}
@@ -1345,9 +1337,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               />
                             </button>
                             <div className="relative" ref={dropdownRefArrival}>
-                              <div
-                                onClick={() => setIsOpenArrival(!isOpenArrival)}
-                              >
+                              <div onClick={() => setIsOpenArrival(true)}>
                                 <p
                                   className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                                     destinationAirport == "" ||
@@ -1394,7 +1384,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                                 arrival.value
                                               );
                                               setDestinationAirport(
-                                                arrival.name
+                                                formatLabel(arrival.label)
                                               );
                                               setIsOpenArrival(false);
                                             }}
