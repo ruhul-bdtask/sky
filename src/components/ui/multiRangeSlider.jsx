@@ -15,7 +15,7 @@ const MultiRangeSlider = ({ min, max, step, values, onChange }) => {
             style={{
               background: getTrackBackground({
                 values,
-                colors: ["#ccc", "#3b82f6", "#ccc"],
+                colors: ["#ccc", "#FC660F", "#ccc"],
                 min,
                 max,
               }),
@@ -27,7 +27,7 @@ const MultiRangeSlider = ({ min, max, step, values, onChange }) => {
         renderThumb={({ props, index }) => (
           <div
             {...props}
-            className="w-6 h-6 rounded-full bg-white border border-blue-500 focus:outline-none shadow-md flex items-center justify-center"
+            className="w-6 h-6 rounded-full bg-white border border-gray-400 focus:outline-none shadow-md flex items-center justify-center"
           >
             {/* <span className="text-xs text-white">{values[index]}</span> */}
           </div>
