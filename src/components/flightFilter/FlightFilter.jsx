@@ -21,16 +21,18 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
   const [localFilterOptions, setLocalFilterOptions] = useState({
     stops: [],
-    takeOffRange: [1, 100],
-    landingRange: [1, 100],
+    takeOffRange: [0, 100],
+    landingRange: [0, 100],
     airlines: [],
     airports: [],
     legRange: [0, 100],
     stopOverRange: [0, 100],
   });
 
-  const [minTakeOff, setMinTakeOff] = useState(1);
+  const [minTakeOff, setMinTakeOff] = useState(0);
   const [maxTakeOff, setMaxTakeOff] = useState(100);
+  const [minLanding, setMinLanding] = useState(0);
+  const [maxLanding, setMaxLanding] = useState(100);
 
   //load airports data from JSON
   const { airportsData, airportError, airportLoading } = useAirports();
@@ -136,17 +138,26 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       const takeOffTimestamps = allFlights.map((flight) =>
         dateTimeToMilliseconds(flight.departure_date, flight.departure_time)
       );
+      const landingTimestamps = allFlights.map((flight) =>
+        dateTimeToMilliseconds(flight.arrival_date, flight.arrival_time)
+      );
       const initialMinTakeOff = Math.min(...takeOffTimestamps);
       const initialMaxTakeOff = Math.max(...takeOffTimestamps);
+
+      const initialMinLanding = Math.min(...landingTimestamps);
+      const initialMaxLanding = Math.max(...landingTimestamps);
 
       setLocalFilterOptions({
         ...filterOptions,
         takeOffRange: [initialMinTakeOff, initialMaxTakeOff],
+        landingRange: [initialMinLanding, initialMaxLanding],
       });
       setMinTakeOff(initialMinTakeOff);
       setMaxTakeOff(initialMaxTakeOff);
+      setMinLanding(initialMinLanding);
+      setMaxLanding(initialMaxLanding);
     }
-  }, [allFlights]);
+  }, []);
 
   return (
     <div>
@@ -209,64 +220,69 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
         <section className="mb-6 border-t pt-3">
           <span className="text-[14px] font-semibold ">Times </span>
-
           <div className="space-y-4">
-            <div>
-              <div className="py-4">
-                <p className="mb-2 text-[18px]">Take-off from DAC</p>
-                {/* <p className="text-[12px]  mb-2">Tue 00:30 - Wed 00:30</p> */}
-                <p className="text-[12px]  mb-2">
+            <div className="pt-4">
+              <div className="mb-4">
+                <p className="mb-1 text-sm">Take-off from DAC</p>
+                <p className="text-sm ">
                   {millisecondsToDateTime(localFilterOptions.takeOffRange?.[0])}{" "}
                   -{" "}
                   {millisecondsToDateTime(localFilterOptions.takeOffRange?.[1])}
                 </p>
               </div>
-            </div>
-            <div className="max-w-full mx-auto">
-              {minTakeOff && maxTakeOff ? (
-                <MultiRangeSlider
-                  min={minTakeOff}
-                  max={maxTakeOff}
-                  step={1000 * 60 * 5} // 5-minute intervals
-                  values={localFilterOptions.takeOffRange}
-                  onChange={(newValues) =>
-                    handleSliderChange("takeOffRange", newValues)
-                  }
-                />
-              ) : (
-                <p>Loading slider...</p>
-              )}
-            </div>
-            <div>
-              <div className="py-4">
-                <p className=" mb-2 text-[18px]">Landing at KUL</p>
-                <p className="text-[12px]  mb-2">Tue 00:30 - Wed 00:30</p>
+              <div>
+                {minTakeOff && maxTakeOff ? (
+                  <MultiRangeSlider
+                    min={minTakeOff}
+                    max={maxTakeOff}
+                    step={1000 * 60 * 5} // 5-minute intervals
+                    values={localFilterOptions.takeOffRange}
+                    onChange={(newValues) =>
+                      handleSliderChange("takeOffRange", newValues)
+                    }
+                  />
+                ) : (
+                  <p>Loading slider...</p>
+                )}
               </div>
-
-              <Slider
-                min={0}
-                max={72}
-                step={1}
-                value={filterOptions.landingRange}
-                onValueChange={(value) =>
-                  handleSliderChange("landingRange", value)
-                }
-                className="w-full"
-              />
+            </div>
+            <div className="pt-4">
+              <div className="mb-4">
+                <p className="mb-1 text-sm">Landing at KUL</p>
+                <p className="text-sm">
+                  {millisecondsToDateTime(localFilterOptions.landingRange?.[0])}{" "}
+                  -{" "}
+                  {millisecondsToDateTime(localFilterOptions.landingRange?.[1])}
+                </p>
+              </div>
+              <div>
+                {minTakeOff && maxTakeOff ? (
+                  <MultiRangeSlider
+                    min={minLanding}
+                    max={maxLanding}
+                    step={1000 * 60 * 5} // 5-minute intervals
+                    values={localFilterOptions.landingRange}
+                    onChange={(newValues) =>
+                      handleSliderChange("landingRange", newValues)
+                    }
+                  />
+                ) : (
+                  <p>Loading slider...</p>
+                )}
+              </div>
             </div>
           </div>
         </section>
 
         <section className="mb-6 border-t pt-3">
-          <div className="flex justify-between mb-2">
-            <span className="text-[14px] font-semibold ">Airlines </span>
-
+          <div className="flex justify-between">
+            <span className="text-[14px] font-semibold">Airlines </span>
             <div>
               <button className="text-blue-600 text-sm mr-4">Select All</button>
               <button className="text-blue-600 text-sm">Clear all</button>
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 mt-3">
             {uniqueAirlines.map((flight, index) => (
               <label key={index} className="flex items-center">
                 <Checkbox
@@ -287,10 +303,10 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
         </section>
         <section className="mb-6 border-t pt-3 ">
           <span className="text-[14px] font-semibold ">Airports </span>
-          <div className="space-y-3 mt-4">
+          <div className="mt-3 space-y-2">
             {uniqueAirports.map((airport) => (
               <div key={airport} className="space-y-0">
-                <span className="text-sm font-semibold">
+                <span className="text-sm font-medium ">
                   {getChangingCity(airportsData, airport).split(",")[0]}
                 </span>
                 <label className="flex items-center">
@@ -301,7 +317,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     )}
                     onCheckedChange={(checked) => handleAirportsChange(airport)}
                   />
-                  <span className="text-sm ml-2">
+                  <span className="text-sm ml-2 ">
                     {`${airport}: ${getAirport(airportsData, airport)
                       .split(" ")
                       .slice(0, 2)

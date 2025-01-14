@@ -216,7 +216,7 @@ export default function Page({ searchParams }) {
 
       const matchesTakeOffRange =
         filterOptions.takeOffRange[0] === 0 &&
-        filterOptions.takeOffRange[1] === 0
+        filterOptions.takeOffRange[1] === 100
           ? true // If range is [0, 0], include all flights
           : flight.schedules.some((schedule) => {
               const departureTime = dateTimeToMilliseconds(
@@ -233,11 +233,28 @@ export default function Page({ searchParams }) {
               );
             });
 
+      const matchesLandingRange =
+        filterOptions.landingRange[0] === 0 &&
+        filterOptions.landingRange[1] === 100
+          ? true // If range is [0, 0], include all flights
+          : flight.schedules.some((schedule) => {
+              const arrivalTime = dateTimeToMilliseconds(
+                schedule.arrival_date,
+                schedule.arrival_time
+              );
+              // Extract start and end range from filterOptions
+              const [landingStart, landingEnd] = filterOptions.landingRange;
+
+              // Check if arrivalTime is within the range
+              return arrivalTime >= landingStart && arrivalTime <= landingEnd;
+            });
+
       return (
         matchesStopCount &&
         matchesAirline &&
         matchesAirport &&
-        matchesTakeOffRange
+        matchesTakeOffRange &&
+        matchesLandingRange
       );
     });
   };

@@ -22,7 +22,7 @@ const useAirlineStore = create()(
         airlines: [],
         filterOptions: {
           stops: [],
-          takeOffRange: [0, 0],
+          takeOffRange: [0, 100],
           landingRange: [0, 100],
           airlines: [],
           airports: [],
