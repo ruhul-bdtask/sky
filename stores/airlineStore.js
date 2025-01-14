@@ -4,7 +4,7 @@ import { devtools, persist } from "zustand/middleware";
 const useAirlineStore = create()(
   devtools(
     persist(
-      (set) => ({
+      (set, get) => ({
         selectedFlight: {},
         OriginDestinationInformation: [],
         LegDescription: {},
@@ -67,6 +67,43 @@ const useAirlineStore = create()(
         setIsChangeTrip: (status) => set({ isChangeTrip: status }),
         setIsCreateTrip: (status) => set({ isCreateTrip: status }),
         setSearchData: (data) => set({ searchData: data }),
+
+        timeLeft: loadTimeFromLocalStorage(),
+        intervalId: null,
+        isRunning: false,
+
+        startCountdown: () => {
+          if (get().intervalId) return; // Prevent multiple intervals
+
+          set({ isRunning: true });
+
+          const interval = setInterval(() => {
+            const timeLeft = get().timeLeft;
+            if (timeLeft > 0) {
+              const newTimeLeft = timeLeft - 1;
+              set({ timeLeft: newTimeLeft });
+              saveTimeToLocalStorage(newTimeLeft);
+            } else {
+              clearInterval(get().intervalId);
+              set({ intervalId: null, isRunning: false });
+              saveTimeToLocalStorage(0); // Timer stops when it reaches 0
+            }
+          }, 1000);
+
+          set({ intervalId: interval });
+        },
+
+        resetTime: () => {
+          set({ timeLeft: 1800, intervalId: null, isRunning: false });
+          saveTimeToLocalStorage(1800); // Reset to 30 minutes when reset is called
+        },
+
+        stopCountdown: () => {
+          if (get().intervalId) {
+            clearInterval(get().intervalId);
+            set({ intervalId: null, isRunning: false });
+          }
+        },
       }),
       {
         name: "airline-storage",
@@ -97,5 +134,25 @@ const useAirlineStore = create()(
     )
   )
 );
+
+function saveTimeToLocalStorage(timeLeft) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("timeLeft", timeLeft);
+  }
+}
+
+function loadTimeFromLocalStorage() {
+  if (typeof window !== "undefined") {
+    const storedTime = localStorage.getItem("timeLeft");
+    // If storedTime is valid and not expired (i.e., not 0), return it
+    if (storedTime && !isNaN(storedTime)) {
+      const time = parseInt(storedTime, 10);
+      return time > 0 ? time : 0; // If timeLeft is 0, keep it as 0
+    }
+    // If no valid time is stored, return default (30 minutes)
+    return 1800;
+  }
+  return 1800;
+}
 
 export default useAirlineStore;

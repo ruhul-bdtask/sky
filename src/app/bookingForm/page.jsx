@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import BookingFormComp from "@/components/bookingFormComp/BookingFormComp";
-import { ChevronLeft, Info } from "lucide-react";
+import { ChevronLeft, Info, Timer } from "lucide-react";
 import Link from "next/link";
 import { isExpired, decodeToken } from "react-jwt";
 import {
@@ -28,10 +28,13 @@ export default function BookingForm() {
   const [showFareRules, setShowFareRules] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
   const [contactInfo, setContactInfo] = useState({
     email: "",
     phone: "",
   });
+  const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
 
   const {
     searchData,
@@ -49,7 +52,30 @@ export default function BookingForm() {
     setLegDescription,
     setSelectedFlight,
     setUserData,
+    timeLeft,
+    startCountdown,
   } = useAirlineStore();
+
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      setMinutes(minutes);
+      setSeconds(seconds);
+    }
+    if (timeLeft === 0) {
+      setIsTimeModalOpen(true);
+    }
+  }, [timeLeft]);
+
+  const handleGoHome = () => {
+    window.location.href = "/";
+  };
+
+  useEffect(() => {
+    startCountdown();
+  }, [startCountdown]);
+
   const isMyTokenExpired = isExpired(token);
 
   const { passengers } = searchData;
@@ -253,7 +279,30 @@ export default function BookingForm() {
 
   return (
     <div className="container_section_sm mx-auto p-4 max-w-7xl">
+      {isTimeModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center animate-fade-in">
+            <h2 className="text-2xl font-bold text-red-500 mb-4">Time's Up!</h2>
+            <p className="text-gray-700 mb-6">
+              Your session has expired. Please go back to the homepage.
+            </p>
+            <button
+              onClick={handleGoHome}
+              className="bg-[#FC660F] text-white px-4 py-2 rounded-md hover:bg-[#d8743a] transition"
+            >
+              Go to Home
+            </button>
+          </div>
+        </div>
+      )}
       <h1 className="text-2xl font-bold mb-6">Make A Booking</h1>
+      <p className="flex items-center gap-1">
+        {" "}
+        <Timer size={20} />{" "}
+        <span>
+          Time left: {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+        </span>
+      </p>
 
       <div className="flex mb-8 gap-5">
         {tabs.map((tab, index) => (

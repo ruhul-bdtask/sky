@@ -13,7 +13,7 @@ import { getAirline } from "@/utils/getAirline";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
 
-export default function FlightFilter({ sortedFlights, allFlights }) {
+export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const [takeoffTime, setTakeoffTime] = useState([0, 24]);
   const [landingTime, setLandingTime] = useState([0, 72]);
 
@@ -24,6 +24,8 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
       .toString()
       .padStart(2, "0")}:00`;
   };
+
+  const { minutes, seconds } = timer;
   // const [filterOptions, setFilterOptions] = useState({
   //   stops: [],
   //   takeOffRange: [0, 24],
@@ -127,17 +129,27 @@ export default function FlightFilter({ sortedFlights, allFlights }) {
   return (
     <div>
       <div className="hidden w-[260px] h-[160px] bg-white rounded-lg border p-4 md:flex flex-col justify-between  ">
-        <div className="">
+        {/* <div className="">
           <h2 className="text-lg font-semibold mb-1">Our Advice</h2>
           <div className="flex items-center mb-2">
             <span className="text-green-600 font-bold mr-2">Buy Now</span>
             <ArrowUpRight className="w-5 h-5 text-green-600" />
           </div>
           <p className="text-sm text-gray-600 mb-4">
+            Countdown: {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
             Prices are unlikely to decrease within 7 days
             <span className="inline-block ml-1 text-gray-400">ⓘ</span>
           </p>
+        </div> */}
+
+        <div className="p-4 flex justify-center flex-col gap-1 items-center">
+          <h2 className="text-xl font-bold text-gray-800">Time Left</h2>
+          <div className=" text-3xl font-mono text-[#FC660F]">
+            {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+          </div>
+          <p className="text-[12px] text-center">Make sure to book before this time.</p>
         </div>
+
         {/* <div className="flex items-center justify-between">
           <span className="text-sm font-medium">Track Price</span>
           <Switch />

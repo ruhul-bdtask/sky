@@ -7,7 +7,16 @@ import TravelPlanning from "../travelPlanning/TravelPlanning";
 import Travels from "../travels/Travels";
 import WishlistTravels from "../wishlistTravels/WishlistTravels";
 import { fetchData } from "@/utils/api";
+import useAirlineStore from "../../../stores/airlineStore";
+import { useEffect } from "react";
 export default function HomePage() {
+  const { stopCountdown, resetTime } = useAirlineStore();
+
+  useEffect(() => {
+    stopCountdown();
+    resetTime();
+  }, [stopCountdown, resetTime]);
+
   const {
     data: homeData,
     error: homeDataError,

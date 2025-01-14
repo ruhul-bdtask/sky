@@ -8,7 +8,7 @@ import { fetchData } from "@/utils/api";
 import useAirlineStore from "../../../stores/airlineStore";
 import ResultPageSkeleton from "@/skeletons/ResultPageSkeleton";
 import LoadingBar from "react-top-loading-bar";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import Link from "next/link";
 export default function Page({ searchParams }) {
   const ref = useRef(null);
@@ -27,10 +27,41 @@ export default function Page({ searchParams }) {
     setMaxPrice,
     minPrice,
     maxPrice,
-    timer,
-    startTimer,
+    timeLeft,
+    startCountdown,
+    resetTime,
   } = useAirlineStore();
+  const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  useEffect(() => {
+    if (timeLeft === 0) {
+      setIsModalOpen(true);
+    } else {
+      setIsModalOpen(false);
+    }
+  }, [timeLeft]);
+
+  useEffect(() => {
+    // Reset time first
+    resetTime();
+
+    // Then start countdown after a small delay (e.g., 50ms)
+    const timer = setTimeout(() => {
+      startCountdown();
+    }, 50);
+
+    // Cleanup timeout on component unmount
+    return () => clearTimeout(timer);
+  }, [resetTime, startCountdown]);
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  // Modal handler
+  const handleGoHome = () => {
+    window.location.href = "/";
+  };
   const { search, originDestinationInfo } = searchParams;
   let parsedSearchData;
   try {
@@ -274,9 +305,31 @@ export default function Page({ searchParams }) {
           <ResultPageSkeleton />
         ) : (
           <>
+            {isModalOpen && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center animate-fade-in">
+                  <h2 className="text-2xl font-bold text-red-500 mb-4">
+                    Time's Up!
+                  </h2>
+                  <p className="text-gray-700 mb-6">
+                    Your session has expired. Please go back to the homepage.
+                  </p>
+                  <button
+                    onClick={handleGoHome}
+                    className="bg-[#FC660F] text-white px-4 py-2 rounded-md hover:bg-[#d8743a] transition"
+                  >
+                    Go to Home
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="container_search max-w-5xl">
               <div className="flex gap-5">
                 <FlightFilter
+                  timer={{
+                    minutes,
+                    seconds,
+                  }}
                   allFlights={allFlights?.data?.sortedItineraries}
                   sortedFlights={sortedFlights()}
                 />
