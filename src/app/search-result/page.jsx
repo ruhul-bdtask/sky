@@ -1,15 +1,16 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
 import FlightCard from "@/components/flightCard/FlightCard";
 import FlightFilter from "@/components/flightFilter/FlightFilter";
 import TopFilter from "@/components/topFilter/TopFilter";
-import { useQuery } from "@tanstack/react-query";
-import { fetchData } from "@/utils/api";
-import useAirlineStore from "../../../stores/airlineStore";
 import ResultPageSkeleton from "@/skeletons/ResultPageSkeleton";
 import LoadingBar from "react-top-loading-bar";
 import { notFound, useRouter } from "next/navigation";
+import { fetchData } from "@/utils/api";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import useAirlineStore from "../../../stores/airlineStore";
+import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 export default function Page({ searchParams }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -167,88 +168,6 @@ export default function Page({ searchParams }) {
 
   const filterOptions = useAirlineStore((state) => state.filterOptions);
   const sortFlights = sortedFlights();
-  // const filterFlightData = (sortFlights, filterOptions) => {
-  //   return sortFlights.filter((flight) => {
-  //     const {
-  //       stops,
-  //       takeOffRange,
-  //       landingRange,
-  //       airlines,
-  //       airports,
-  //       legRange,
-  //       stopOverRange,
-  //     } = filterOptions;
-
-  //     const stopMapping = {
-  //       Direct: 0,
-  //       "Stop 1": 1,
-  //       "Stop 2": 2,
-  //       // add more mappings if needed
-  //     };
-
-  //     const stopCountsToFilter = filterOptions.stops.map(
-  //       (stop) => stopMapping[stop]
-  //     );
-
-  //     // Filter the data based on the stop_count
-  //     const filteredData = sortFlights.filter((flight) =>
-  //       stopCountsToFilter.includes(flight.total_stop)
-  //     );
-
-  //     console.log({ filteredData });
-  //     //// 2. Check for airline filter
-  //     // const isAirlineValid =
-  //     //   airlines.length === 0 || airlines.includes(flight.airline_name);
-
-  //     // // 3. Check for airport filter (origin and destination airports)
-  //     // const isAirportValid =
-  //     //   airports.length === 0 ||
-  //     //   airports.includes(flight.origin_airport_name) ||
-  //     //   airports.includes(flight.destination_airport_name);
-
-  //     // // 4. Check for takeOffRange filter (departure time in minutes)
-  //     // const departureTimeInMinutes = getMinutesFromTime(flight.departure_time);
-  //     // const isTakeOffRangeValid =
-  //     //   takeOffRange[0] <= departureTimeInMinutes &&
-  //     //   departureTimeInMinutes <= takeOffRange[1];
-
-  //     // // 5. Check for landingRange filter (arrival time in minutes)
-  //     // const arrivalTimeInMinutes = getMinutesFromTime(flight.arrival_time);
-  //     // const isLandingRangeValid =
-  //     //   landingRange[0] <= arrivalTimeInMinutes &&
-  //     //   arrivalTimeInMinutes <= landingRange[1];
-
-  //     // // 6. Check for legRange filter (flight duration in minutes)
-  //     // const flightDurationInMinutes = parseInt(
-  //     //   flight.itinerary_leg_descs[0][0].duration,
-  //     //   10
-  //     // );
-  //     // const isLegRangeValid =
-  //     //   legRange[0] <= flightDurationInMinutes &&
-  //     //   flightDurationInMinutes <= legRange[1];
-
-  //     // // 7. Check for stopOverRange filter (layover time)
-  //     // const isStopOverRangeValid =
-  //     //   stopOverRange[0] <= flight.itinerary_leg_descs[0][0].layover_time &&
-  //     //   flight.itinerary_leg_descs[0][0].layover_time <= stopOverRange[1];
-
-  //     // Return true if all conditions are satisfied
-  //     //return filteredData;
-  //     // &&
-  //     // isAirlineValid &&
-  //     // isAirportValid &&
-  //     // isTakeOffRangeValid &&
-  //     // isLandingRangeValid &&
-  //     // isLegRangeValid &&
-  //     // isStopOverRangeValid
-  //   });
-  // };
-
-  // Helper function to convert time in "HH:MM" format to minutes
-  // const getMinutesFromTime = (time) => {
-  //   const [hours, minutes] = time.split(":").map(Number);
-  //   return hours * 60 + minutes;
-  // };
 
   const filterFlightData = (sortFlights, filterOptions) => {
     const stopMapping = {
@@ -272,6 +191,9 @@ export default function Page({ searchParams }) {
       ? filterOptions.airports
       : null;
 
+    // Check if the takeOffRange filter is applied
+    const [takeOffStart, takeOffEnd] = filterOptions.takeOffRange || [0, 0];
+
     // Filter the flights based on the conditions
     return sortFlights.filter((flight) => {
       // const matchesStopCount = !stopCountsToFilter || stopCountsToFilter.includes(flight.total_stop);
@@ -291,7 +213,49 @@ export default function Page({ searchParams }) {
         flight.schedules.some((schedule) =>
           airportsToFilter.includes(schedule.arrival_airport)
         );
-      return matchesStopCount && matchesAirline && matchesAirport;
+
+      const matchesTakeOffRange =
+        filterOptions.takeOffRange[0] === 0 &&
+        filterOptions.takeOffRange[1] === 100
+          ? true // If range is [0, 0], include all flights
+          : flight.schedules.some((schedule) => {
+              const departureTime = dateTimeToMilliseconds(
+                schedule.departure_date,
+                schedule.departure_time
+              );
+
+              // Extract start and end range from filterOptions
+              const [takeOffStart, takeOffEnd] = filterOptions.takeOffRange;
+
+              // Check if departureTime is within the range
+              return (
+                departureTime >= takeOffStart && departureTime <= takeOffEnd
+              );
+            });
+
+      const matchesLandingRange =
+        filterOptions.landingRange[0] === 0 &&
+        filterOptions.landingRange[1] === 100
+          ? true // If range is [0, 0], include all flights
+          : flight.schedules.some((schedule) => {
+              const arrivalTime = dateTimeToMilliseconds(
+                schedule.arrival_date,
+                schedule.arrival_time
+              );
+              // Extract start and end range from filterOptions
+              const [landingStart, landingEnd] = filterOptions.landingRange;
+
+              // Check if arrivalTime is within the range
+              return arrivalTime >= landingStart && arrivalTime <= landingEnd;
+            });
+
+      return (
+        matchesStopCount &&
+        matchesAirline &&
+        matchesAirport &&
+        matchesTakeOffRange &&
+        matchesLandingRange
+      );
     });
   };
 
