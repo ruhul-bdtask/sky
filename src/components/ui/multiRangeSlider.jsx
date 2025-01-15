@@ -1,5 +1,12 @@
 import { Range, getTrackBackground } from "react-range";
-const MultiRangeSlider = ({ min, max, step, values, onChange }) => {
+const MultiRangeSlider = ({
+  min,
+  max,
+  step,
+  values,
+  onChange,
+  onFinalChange,
+}) => {
   return (
     <div className="flex flex-col items-center w-full">
       <Range
@@ -8,6 +15,7 @@ const MultiRangeSlider = ({ min, max, step, values, onChange }) => {
         min={min}
         max={max}
         onChange={onChange}
+        onFinalChange={onFinalChange}
         renderTrack={({ props, children }) => (
           <div
             {...props}

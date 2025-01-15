@@ -117,20 +117,19 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const uniqueAirports = uniqueAirportsByName(sortedFlights);
 
   const handleSliderChange = (key, newValues) => {
-    const updatedFilterOptions = { ...filterOptions, [key]: newValues };
-    setFilterOptions(updatedFilterOptions);
     const updatedLocalFilterOptions = {
       ...localFilterOptions,
       [key]: newValues,
     };
     setLocalFilterOptions(updatedLocalFilterOptions);
+    //TODO: remove the below two lines if only filter flights handler released
+    const updatedFilterOptions = { ...filterOptions, [key]: newValues };
+    setFilterOptions(updatedFilterOptions);
   };
 
-  const handleAfterRelease = (key, newValues) => {
-    setFilterOptions({
-      ...filterOptions,
-      [key]: newValues, // Update the specific range in Zustand store
-    });
+  const handleFinalChange = (key, newValues) => {
+    const updatedFilterOptions = { ...filterOptions, [key]: newValues };
+    setFilterOptions(updatedFilterOptions);
   };
 
   useEffect(() => {
@@ -240,6 +239,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     onChange={(newValues) =>
                       handleSliderChange("takeOffRange", newValues)
                     }
+                    onFinalChange={(newValues) =>
+                      handleFinalChange("takeOffRange", newValues)
+                    }
                   />
                 ) : (
                   <p>Loading slider...</p>
@@ -264,6 +266,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     values={localFilterOptions.landingRange}
                     onChange={(newValues) =>
                       handleSliderChange("landingRange", newValues)
+                    }
+                    onFinalChange={(newValues) =>
+                      handleFinalChange("landingRange", newValues)
                     }
                   />
                 ) : (
