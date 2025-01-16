@@ -58,7 +58,6 @@ export default function Page({ searchParams }) {
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-
   // Modal handler
   const handleGoHome = () => {
     window.location.href = "/";
@@ -191,9 +190,6 @@ export default function Page({ searchParams }) {
       ? filterOptions.airports
       : null;
 
-    // Check if the takeOffRange filter is applied
-    const [takeOffStart, takeOffEnd] = filterOptions.takeOffRange || [0, 0];
-
     // Filter the flights based on the conditions
     return sortFlights.filter((flight) => {
       // const matchesStopCount = !stopCountsToFilter || stopCountsToFilter.includes(flight.total_stop);
@@ -205,6 +201,7 @@ export default function Page({ searchParams }) {
             : flight.total_stop === stopCount
         );
 
+      // if matches airlines
       const matchesAirline =
         !airlinesToFilter || airlinesToFilter.includes(flight.airline_name);
 
@@ -214,6 +211,7 @@ export default function Page({ searchParams }) {
           airportsToFilter.includes(schedule.arrival_airport)
         );
 
+      // if matches take off times
       const matchesTakeOffRange =
         filterOptions.takeOffRange[0] === 0 &&
         filterOptions.takeOffRange[1] === 100
@@ -233,6 +231,7 @@ export default function Page({ searchParams }) {
               );
             });
 
+      // if matches landing times
       const matchesLandingRange =
         filterOptions.landingRange[0] === 0 &&
         filterOptions.landingRange[1] === 100
@@ -249,12 +248,21 @@ export default function Page({ searchParams }) {
               return arrivalTime >= landingStart && arrivalTime <= landingEnd;
             });
 
+      // if matches flight's durations
+      const [legDurationStart, legDurationEnd] = filterOptions.legRange;
+      const legDuration = flight.itinerary_leg_descs?.[0]?.duration;
+      const matchesLagDuration =
+        filterOptions.legRange[0] === 0 && filterOptions.legRange[1] === 100
+          ? true
+          : legDuration >= legDurationStart && legDuration <= legDurationEnd;
+
       return (
         matchesStopCount &&
         matchesAirline &&
         matchesAirport &&
         matchesTakeOffRange &&
-        matchesLandingRange
+        matchesLandingRange &&
+        matchesLagDuration
       );
     });
   };

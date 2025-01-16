@@ -1,13 +1,15 @@
 "use client";
 import { formatFlightFare } from "@/lib/formatFlightFare";
-import { convertMinutesToHours } from "@/lib/formatMinutes";
+import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 import { normalizeSeatClass } from "@/lib/normalizeSeatClass";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import { RxCross2 } from "react-icons/rx";
 
+import { useAirlines } from "@/hooks/useAirlines";
 import useSyncSavedFlights from "@/hooks/useSyncSavedFlights";
+import formatDateTime from "@/lib/formatDateTime";
 import copy from "copy-to-clipboard";
 import { Heart, Share2 } from "lucide-react";
 import Image from "next/image";
@@ -24,8 +26,6 @@ import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
-import formatDateTime from "@/lib/formatDateTime";
-import { useAirlines } from "@/hooks/useAirlines";
 
 export default function FlightCard({ flight }) {
   const router = useRouter();
@@ -398,7 +398,6 @@ export default function FlightCard({ flight }) {
 
   const condition = shareExtraConditions.every((inc) => inc === true);
 
-
   const generateComp = (schedules) => {
     const dacToJfkStart = schedules.findIndex(
       (flight) => flight.departure_airport === customFlightFilter[0]
@@ -478,7 +477,7 @@ export default function FlightCard({ flight }) {
                   flight?.schedules.length + " " + "Stops"}
               </p>
               <p className="text-sm font-semibold text-start">
-                {convertMinutesToHours(departureElapsedTime)}
+                {formatMinutesToHours(departureElapsedTime)}
               </p>
             </div>
           </div>
@@ -523,7 +522,7 @@ export default function FlightCard({ flight }) {
                   flight?.schedules.length + " " + "Stops"}
               </p>
               <p className="text-sm font-semibold text-start">
-                {convertMinutesToHours(arrivalElapsedTime)}
+                {formatMinutesToHours(arrivalElapsedTime)}
               </p>
             </div>
           </div>
@@ -659,7 +658,7 @@ export default function FlightCard({ flight }) {
                   </div>
                   <div className="flex gap-5">
                     <p className="text-sm font-semibold text-start">
-                      {convertMinutesToHours(leg?.duration)}
+                      {formatMinutesToHours(leg?.duration)}
                     </p>
                     <p className="text-sm font-semibold text-start">
                       {leg?.stop_count === 0 && " Direct"}

@@ -1,6 +1,6 @@
 import { useAirlines } from "@/hooks/useAirlines";
 import { useAirports } from "@/hooks/useAirports";
-import { convertMinutesToHours } from "@/lib/formatMinutes";
+import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 import { formatShortDate } from "@/lib/formatShortDate";
 import { getAirline } from "@/utils/getAirline";
 import { getAirlineLogo } from "@/utils/getAirlineLogo";
@@ -44,7 +44,7 @@ const FlightDetails = ({ flight }) => {
             {/* Layover Information */}
             {schedule?.layover_time > 0 && (
               <div className="p-3 space-x-3 text-xs border-y m-4">
-                <span>{convertMinutesToHours(schedule.layover_time)}</span>
+                <span>{formatMinutesToHours(schedule.layover_time)}</span>
                 <span>•</span>
                 <span>
                   Changes Planes in{" "}
@@ -102,7 +102,7 @@ const FlightDetails = ({ flight }) => {
                   {/* Flight Duration */}
                   <div className="flex space-x-4 text-xs">
                     <GiCommercialAirplane size={25} />
-                    <span>{convertMinutesToHours(schedule?.elapsed_time)}</span>
+                    <span>{formatMinutesToHours(schedule?.elapsed_time)}</span>
                   </div>
 
                   {/* Arrival */}
