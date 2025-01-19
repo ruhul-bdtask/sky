@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <Snowfall snowflakeCount={30} />
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <SidebarProvider>

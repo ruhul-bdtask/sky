@@ -563,6 +563,145 @@ export default function SearchPad() {
 
     router.push(`/search-result?${queryString}`);
   };
+
+  const handleSubmitRecentSearch = (item) => {
+    const searchData = {
+      destination: item?.destination,
+      arrival: item?.arrival,
+      tripType: item?.tripType,
+      class: item?.class,
+      passengers: item?.passengers,
+      journeyDate: item?.journeyDate,
+      returnDate: item?.returnDate,
+    };
+
+    setSearchData(searchData);
+
+    const originDestinationInfo = [
+      {
+        DepartureDateTime: item?.journeyDate,
+        OriginLocation: {
+          LocationCode: item?.destination,
+          LocationType: "A",
+        },
+        DestinationLocation: {
+          LocationCode: item?.arrival,
+          LocationType: "A",
+        },
+        RPH: "0",
+      },
+    ];
+
+    // if (selectedWay === "return" && roundDate?.to) {
+    //   originDestinationInfo.push({
+    //     DepartureDateTime: originalArrivalData,
+    //     OriginLocation: {
+    //       LocationCode: searchQueryArrival,
+    //       LocationType: "A",
+    //     },
+    //     DestinationLocation: {
+    //       LocationCode: searchQueryDestination,
+    //       LocationType: "A",
+    //     },
+    //     RPH: "1",
+    //   });
+    // }
+
+    setOriginDestinationInformation(originDestinationInfo);
+
+    // const updatedRecentSearches = [searchData, ...recentSearchData].slice(0, 5);
+    // setRecentSearchData(updatedRecentSearches);
+
+    // if (selectedWay === "multi_city") {
+    //   if (transformedData.length < 2) {
+    //     toast.error("You must select at least 2 cities.");
+    //     setError("City selection is too few.");
+    //     setLoading(false);
+    //     return;
+    //   }
+
+    //   const invalidTransformedData = transformedData.find(
+    //     (item) =>
+    //       !item.DepartureDateTime ||
+    //       !item.OriginLocation?.LocationCode ||
+    //       !item.DestinationLocation?.LocationCode
+    //   );
+
+    //   if (invalidTransformedData) {
+    //     toast.error("One or more city data entries are invalid.");
+    //     return;
+    //   }
+    // }
+
+    // if (!originalDate) {
+    //   toast.error("Please select a departure date.");
+
+    //   return;
+    // }
+    // if (selectedWay !== "multi_city" && !originAirport) {
+    //   toast.error("Please select a Departure airport.");
+
+    //   return;
+    // }
+    // if (selectedWay !== "multi_city" && !destinationAirport) {
+    //   toast.error("Please select a Arrival airport.");
+
+    //   return;
+    // }
+
+    // if (selectedWay !== "multi_city" && !searchQueryDestination) {
+    //   toast.error("Please select a Departure location.");
+
+    //   return;
+    // }
+
+    // if (selectedWay !== "multi_city" && !searchQueryArrival) {
+    //   toast.error("Please select a Destination location.");
+
+    //   return;
+    // }
+
+    // if (selectedWay === "return" && !roundDate.to) {
+    //   toast.error("Please select a return date.");
+
+    //   return;
+    // }
+
+    // if (selectedWay === "multi_city") {
+    //   if (transformedData.length < 2) {
+    //     toast.error("You must select at least 2 cities.");
+
+    //     return;
+    //   }
+
+    //   const invalidTransformedData = transformedData.find(
+    //     (item) =>
+    //       !item.DepartureDateTime ||
+    //       !item.OriginLocation?.LocationCode ||
+    //       !item.DestinationLocation?.LocationCode
+    //   );
+
+    //   if (invalidTransformedData) {
+    //     toast.error("One or more city data entries are invalid.");
+
+    //     return;
+    //   }
+    // }
+
+    setOriginQuery(item?.destination);
+    setDestinationQuery(item?.arrival);
+    setTravelPlanningDate(item?.journeyDate);
+    // setDestinationAirportName(destinationAirport);
+    // setOriginAirportName(originAirport);
+
+    const queryString = new URLSearchParams({
+      search: JSON.stringify(searchData),
+      originDestinationInfo: JSON.stringify(originDestinationInfo),
+    }).toString();
+
+    router.push(`/search-result?${queryString}`);
+  };
+
   const handleSwap = () => {
     const tempLocation = originAirport;
     const temp = searchQueryDestination;
@@ -606,7 +745,6 @@ export default function SearchPad() {
     setSearchQueryArrival("");
     setDestinationAirport("");
   };
-
 
   return (
     <div>
@@ -1086,7 +1224,7 @@ export default function SearchPad() {
                             searchQueryDestination == "" ||
                             searchQueryDestination == undefined
                               ? ""
-                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                              : "border border-white bg-white px-1 py-1 hover:border-black rounded-md transition-all duration-300"
                           }`}
                         >
                           {originAirport !== "" ? originAirport : ""}
@@ -1159,8 +1297,11 @@ export default function SearchPad() {
                               <ul className="space-y-4 max-h-[200px] overflow-y-auto">
                                 {recentSearchData?.map((recent, index) => (
                                   <li
+                                    onClick={() =>
+                                      handleSubmitRecentSearch(recent)
+                                    }
                                     key={index}
-                                    className="flex items-center space-x-4"
+                                    className="flex items-center space-x-4 cursor-pointer"
                                   >
                                     <div className="bg-gray-100 p-2 rounded-full">
                                       <svg
@@ -1221,7 +1362,7 @@ export default function SearchPad() {
                             searchQueryArrival == undefined ||
                             searchQueryArrival == ""
                               ? ""
-                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                              : "border border-white bg-white px-1 py-1 hover:border-black rounded-md transition-all duration-300"
                           }`}
                         >
                           {destinationAirport !== "" ? destinationAirport : ""}
@@ -1289,8 +1430,11 @@ export default function SearchPad() {
                               <ul className="space-y-4">
                                 {recentSearchData?.map((recent, index) => (
                                   <li
+                                    onClick={() =>
+                                      handleSubmitRecentSearch(recent)
+                                    }
                                     key={index}
-                                    className="flex items-center space-x-4"
+                                    className="flex items-center space-x-4 cursor-pointer"
                                   >
                                     <div className="bg-gray-100 p-2 rounded-full">
                                       <svg
