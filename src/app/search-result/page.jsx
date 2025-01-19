@@ -273,7 +273,7 @@ export default function Page({ searchParams }) {
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                 <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center animate-fade-in">
                   <h2 className="text-2xl font-bold text-red-500 mb-4">
-                    Time's Up!
+                    Time&apos;s Up!
                   </h2>
                   <p className="text-gray-700 mb-6">
                     Your session has expired. Please go back to the homepage.
