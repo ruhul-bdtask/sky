@@ -51,6 +51,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     setTravelPlanningDate,
     originAirportName,
     destinationAirportName,
+    setDestinationAirportName,
+    setOriginAirportName,
   } = useAirlineStore();
   const { destination, arrival, journeyDate, tripType, returnDate } =
     searchData;
@@ -462,6 +464,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
         return;
       }
     }
+    setDestinationAirportName(destinationAirport);
+    setOriginAirportName(originAirport);
 
     const queryString = new URLSearchParams({
       search: JSON.stringify(searchData),
@@ -484,6 +488,16 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     setSearchQueryArrival(temp);
   };
 
+  useEffect(() => {
+    if (originAirportName && destinationAirportName) {
+      setOriginAirport(originAirportName);
+
+      setDestinationAirport(destinationAirportName);
+    } else {
+      setOriginAirport("Dhaka (DAC)");
+      setDestinationAirport("Cox's Bazar (CXB)");
+    }
+  }, [originAirportName, destinationAirportName]);
   const handleClear = () => {
     setSearchQueryDestination("");
     setOriginAirport("");
@@ -528,36 +542,29 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                   <div className="flex flex-wrap gap-4 mb-4">
                     <div className="w-[300px] text-center flex justify-between items-center py-2 text-sm  text-gray-700 cursor-pointer gap-2">
                       <span
-                        className="w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300"
+                        className={`${
+                          selectedWay == "one_way" && "bg-gray-200"
+                        } w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300`}
                         onClick={() => setSelectedWay("one_way")}
                       >
                         One way
                       </span>
                       <span
-                        className="w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300"
+                        className={`${
+                          selectedWay == "return" && "bg-gray-200"
+                        } w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300`}
                         onClick={() => setSelectedWay("return")}
                       >
                         Round-trip
                       </span>
                       <span
-                        className="w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300"
+                        className={`${
+                          selectedWay == "multi_city" && "bg-gray-200"
+                        } w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300`}
                         onClick={() => setSelectedWay("multi_city")}
                       >
                         Multi city
                       </span>
-                      {/* <svg
-                              className="w-5 h-5 ml-2 -mr-1"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                              aria-hidden="true"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clipRule="evenodd"
-                              />
-                            </svg> */}
                     </div>
                   </div>
                   {selectedWay == "multi_city" ? (
@@ -765,9 +772,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                         >
                           + Add another flight
                         </button>
-                        <button type="button" className="text-gray-500">
+                        {/* <button type="button" className="text-gray-500">
                           clear all
-                        </button>
+                        </button> */}
 
                         <button
                           className="rounded-[10px] bg-[#FC660F] w-[54px] h-[50px] hover:bg-[#d67136]"
@@ -839,6 +846,11 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                             setIsOpenDestination(false);
                                           }}
                                         >
+                                          <img
+                                            src={destination.img}
+                                            alt=""
+                                            className="w-[60px] h-[60px]"
+                                          />
                                           <div className="flex-grow">
                                             <p className="font-semibold">
                                               {destination.name},{" "}
@@ -853,59 +865,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                     )}
                                   </ul>
                                 </div>
-                                {recentSearchData?.length > 0 ? (
-                                  <div className="p-8">
-                                    <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                      Recent Searches
-                                      <button
-                                        onClick={() => setRecentSearchData([])}
-                                        className="text-orange-500 hover:text-orange-600"
-                                      >
-                                        Clear
-                                      </button>
-                                    </h3>
-                                    <ul className="space-y-4 max-h-[200px] overflow-y-auto">
-                                      {recentSearchData?.map(
-                                        (recent, index) => (
-                                          <li
-                                            key={index}
-                                            className="flex items-center space-x-4"
-                                          >
-                                            <div className="bg-gray-100 p-2 rounded-full">
-                                              <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-6 w-6 text-gray-600"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M5 13l4 4L19 7"
-                                                />
-                                              </svg>
-                                            </div>
-                                            <div>
-                                              <p className="font-semibold">
-                                                {recent?.destination} -{" "}
-                                                {recent?.arrival}
-                                              </p>
-                                              <p className="text-sm text-gray-500">
-                                                {moment(
-                                                  recent?.journeyDate
-                                                ).format("MMMM Do, YYYY")}
-                                              </p>
-                                            </div>
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-                                ) : (
-                                  ""
-                                )}
                               </div>
                             ) : (
                               ""
@@ -973,12 +932,17 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                             setIsOpenArrival(false);
                                           }}
                                         >
+                                          <img
+                                            src={arrival.img}
+                                            alt=""
+                                            className="w-[60px] h-[60px]"
+                                          />
                                           <div className="flex-grow">
                                             <p className="font-semibold">
-                                              {arrival.name}, {arrival.value}
+                                              {arrival.label}
                                             </p>
                                             <p className="text-sm text-gray-500">
-                                              {arrival.label}
+                                              {arrival.name}, {arrival.value}
                                             </p>
                                           </div>
                                         </li>
@@ -986,59 +950,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                     )}
                                   </ul>
                                 </div>
-                                {recentSearchData?.length > 0 ? (
-                                  <div className="p-8">
-                                    <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                      Recent Searches
-                                      <button
-                                        onClick={() => setRecentSearchData([])}
-                                        className="text-orange-500 hover:text-orange-600"
-                                      >
-                                        Clear
-                                      </button>
-                                    </h3>
-                                    <ul className="space-y-4">
-                                      {recentSearchData?.map(
-                                        (recent, index) => (
-                                          <li
-                                            key={index}
-                                            className="flex items-center space-x-4"
-                                          >
-                                            <div className="bg-gray-100 p-2 rounded-full">
-                                              <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-6 w-6 text-gray-600"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M5 13l4 4L19 7"
-                                                />
-                                              </svg>
-                                            </div>
-                                            <div>
-                                              <p className="font-semibold">
-                                                {recent?.destination} -{" "}
-                                                {recent?.arrival}
-                                              </p>
-                                              <p className="text-sm text-gray-500">
-                                                {moment(
-                                                  recent?.journeyDate
-                                                ).format("MMMM Do, YYYY")}
-                                              </p>
-                                            </div>
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-                                ) : (
-                                  ""
-                                )}
                               </div>
                             ) : (
                               ""
@@ -1210,11 +1121,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                       : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                   }`}
                                 >
-                                  {originAirport !== ""
-                                    ? originAirport +
-                                      " " +
-                                      searchQueryDestination
-                                    : ""}
+                                  {originAirport !== "" ? originAirport : ""}
+
                                   <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
                                     <FaTimes onClick={handleClear} />
                                   </span>
@@ -1252,6 +1160,11 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                               setIsOpenDestination(false);
                                             }}
                                           >
+                                            <img
+                                              src={destination.img}
+                                              alt=""
+                                              className="w-[60px] h-[60px]"
+                                            />
                                             <div className="flex-grow">
                                               <p className="font-semibold">
                                                 {destination.name},{" "}
@@ -1266,61 +1179,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                       )}
                                     </ul>
                                   </div>
-                                  {recentSearchData?.length > 0 ? (
-                                    <div className="p-8 ">
-                                      <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                        Recent Searches
-                                        <button
-                                          onClick={() =>
-                                            setRecentSearchData([])
-                                          }
-                                          className="text-orange-500 hover:text-orange-600"
-                                        >
-                                          Clear
-                                        </button>
-                                      </h3>
-                                      <ul className="space-y-4">
-                                        {recentSearchData?.map(
-                                          (recent, index) => (
-                                            <li
-                                              key={index}
-                                              className="flex items-center space-x-4"
-                                            >
-                                              <div className="bg-gray-100 p-2 rounded-full">
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  className="h-6 w-6 text-gray-600"
-                                                  fill="none"
-                                                  viewBox="0 0 24 24"
-                                                  stroke="currentColor"
-                                                >
-                                                  <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M5 13l4 4L19 7"
-                                                  />
-                                                </svg>
-                                              </div>
-                                              <div>
-                                                <p className="font-semibold">
-                                                  {recent?.destination} -{" "}
-                                                  {recent?.arrival}
-                                                </p>
-                                                <p className="text-sm text-gray-500">
-                                                  {moment(
-                                                    recent?.journeyDate
-                                                  ).format("MMMM Do, YYYY")}
-                                                </p>
-                                              </div>
-                                            </li>
-                                          )
-                                        )}
-                                      </ul>
-                                    </div>
-                                  ) : (
-                                    ""
-                                  )}
+                                  {/*  */}
                                 </div>
                               ) : (
                                 ""
@@ -1349,9 +1208,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   }`}
                                 >
                                   {destinationAirport !== ""
-                                    ? destinationAirport +
-                                      " " +
-                                      searchQueryArrival
+                                    ? destinationAirport
                                     : ""}
                                   <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
                                     <FaTimes onClick={handleClearArrival} />
@@ -1389,74 +1246,23 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                               setIsOpenArrival(false);
                                             }}
                                           >
+                                            <img
+                                              src={arrival.img}
+                                              alt=""
+                                              className="w-[60px] h-[60px]"
+                                            />
                                             <div className="flex-grow">
                                               <p className="font-semibold">
-                                                {arrival.name}, {arrival.value}
+                                                {arrival.label}
                                               </p>
                                               <p className="text-sm text-gray-500">
-                                                {arrival.label}
+                                                {arrival.name}, {arrival.value}
                                               </p>
                                             </div>
                                           </li>
                                         )
                                       )}
                                     </ul>
-
-                                    {recentSearchData?.length > 0 ? (
-                                      <div className="mt-8">
-                                        <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                          Recent Searches
-                                          <button
-                                            onClick={() =>
-                                              setRecentSearchData([])
-                                            }
-                                            className="text-orange-500 hover:text-orange-600"
-                                          >
-                                            Clear
-                                          </button>
-                                        </h3>
-                                        <ul className="space-y-4">
-                                          {recentSearchData?.map(
-                                            (recent, index) => (
-                                              <li
-                                                key={index}
-                                                className="flex items-center space-x-4"
-                                              >
-                                                <div className="bg-gray-100 p-2 rounded-full">
-                                                  <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    className="h-6 w-6 text-gray-600"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                  >
-                                                    <path
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                      strokeWidth={2}
-                                                      d="M5 13l4 4L19 7"
-                                                    />
-                                                  </svg>
-                                                </div>
-                                                <div>
-                                                  <p className="font-semibold">
-                                                    {recent?.destination} -{" "}
-                                                    {recent?.arrival}
-                                                  </p>
-                                                  <p className="text-sm text-gray-500">
-                                                    {moment(
-                                                      recent?.journeyDate
-                                                    ).format("MMMM Do, YYYY")}
-                                                  </p>
-                                                </div>
-                                              </li>
-                                            )
-                                          )}
-                                        </ul>
-                                      </div>
-                                    ) : (
-                                      ""
-                                    )}
                                   </div>
                                 </div>
                               ) : (
