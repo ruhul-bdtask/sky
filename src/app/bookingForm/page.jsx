@@ -81,30 +81,32 @@ export default function BookingForm() {
   const { passengers } = searchData;
   const [passengerData, setPassengerData] = useState([]);
 
-  useEffect(() => {
-    // Flatten passenger types into a single array of passenger objects
-    const totalPassengers = passengers?.flatMap((p, index) =>
-      Array.from({ length: p.quantity }, (_, i) => ({
-        pxn_type: p.type,
-        [`pxn_title_${i + 1}`]: "Mr.", // Dynamically assigning pxn_title for each passenger
-        firstName: "",
-        lastName: "",
-        documentType: "",
-        country: "",
-        dob: "",
-        docNumber: "",
-        doc_expire_date: "",
-      }))
-    );
+  // useEffect(() => {
+  //   // Flatten passenger types into a single array of passenger objects
+  //   const totalPassengers = passengers?.flatMap((p, index) =>
+  //     Array.from({ length: p.quantity }, (_, i) => ({
+  //       pxn_type: p.type,
+  //       pxn_title_1: "Mr.", // Default title
+  //       // [`pxn_title_${i + 1}`]: "Mr.", // Dynamically assigning pxn_title for each passenger
+  //       firstName: "",
+  //       lastName: "",
+  //       documentType: "",
+  //       country: "",
+  //       dob: "",
+  //       docNumber: "",
+  //       doc_expire_date: "",
+  //     }))
+  //   );
 
-    setPassengerData(totalPassengers);
-  }, [passengers]);
+  //   setPassengerData(totalPassengers);
+  // }, [passengers]);
 
   // Generate pxn_title fields dynamically
   const passengerTitles = passengerData?.reduce((acc, _, index) => {
     acc[`pxn_title_${index + 1}`] = "Mr."; // Assign title, can adjust as needed
     return acc;
   }, {});
+
   const updatePassengerData = (index, field, value) => {
     setPassengerData((prevData) =>
       prevData.map((passenger, i) =>
@@ -145,8 +147,30 @@ export default function BookingForm() {
     return phoneRegex.test(phone);
   };
 
-  const directFlightsOnly = false; // Replace with actual value
+  const directFlightsOnly = false;
   const availableFlightsOnly = false; // Replace with actual value
+
+  // const PassengerInformation = {
+  //   email: contactInfo?.email,
+  //   phone_no: contactInfo?.phone,
+  //   pxn_type: passengerData?.map((p) => p.pxn_type),
+  //   first_name: passengerData?.map((p) => p.firstName),
+  //   last_name: passengerData?.map((p) => p.lastName),
+  //   dob: passengerData?.map((p) => p.dob || ""),
+  //   doc_type: passengerData?.map((p) => p.documentType || ""),
+  //   doc_number: passengerData?.map((p) => p.docNumber || ""),
+  //   doc_expire_date: passengerData?.map((p) => p.doc_expire_date),
+  //   doc_issue_country: passengerData?.map((p) => p.country || ""),
+  //   nationality: passengerData?.map((p) => p.country || ""),
+  //   ...passengerData?.reduce((acc, passenger, index) => {
+  //     const titleKey = `pxn_title_${index + 1}`;
+  //     if (passenger[titleKey]) {
+  //       acc[titleKey] = passenger[titleKey];
+  //     }
+  //     console.log(acc)
+  //     return acc;
+  //   }, {}),
+  // };
 
   const PassengerInformation = {
     email: contactInfo?.email,
@@ -162,12 +186,35 @@ export default function BookingForm() {
     nationality: passengerData?.map((p) => p.country || ""),
     ...passengerData?.reduce((acc, passenger, index) => {
       const titleKey = `pxn_title_${index + 1}`;
-      if (passenger[titleKey]) {
-        acc[titleKey] = passenger[titleKey];
-      }
+      acc[titleKey] = passenger[titleKey] || "Mr.";
       return acc;
     }, {}),
   };
+
+  useEffect(() => {
+    // Initialize passengers with default values
+    const totalPassengers = passengers?.flatMap((p) =>
+      Array.from({ length: p.quantity }, () => ({
+        pxn_type: p.type,
+        pxn_title: "Mr.", // Default title
+        firstName: "",
+        lastName: "",
+        documentType: "",
+        country: "",
+        dob: "",
+        docNumber: "",
+        doc_expire_date: "",
+      }))
+    );
+
+    // Set default title if not explicitly set
+    setPassengerData((prevData) =>
+      totalPassengers?.map((newPassenger, index) => ({
+        ...newPassenger,
+        pxn_title: prevData?.[index]?.pxn_title || "Mr.", // Persist the existing title or set default
+      }))
+    );
+  }, [passengers]);
 
   const payload = {
     Amount: selectedFlight?.fare_details?.total_fare,
@@ -236,6 +283,7 @@ export default function BookingForm() {
           refetchRegister();
         } else {
           refetchBookingData();
+          console.log(PassengerInformation);
         }
       }
     }
@@ -282,7 +330,9 @@ export default function BookingForm() {
       {isTimeModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center animate-fade-in">
-            <h2 className="text-2xl font-bold text-red-500 mb-4">Time&apos;s Up!</h2>
+            <h2 className="text-2xl font-bold text-red-500 mb-4">
+              Time&apos;s Up!
+            </h2>
             <p className="text-gray-700 mb-6">
               Your session has expired. Please go back to the homepage.
             </p>
@@ -352,61 +402,60 @@ export default function BookingForm() {
                 >
                   Contact Info
                 </label>
+
                 <div>
-                  <div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+                    <div>
+                      <input
+                        onChange={(e) =>
+                          setContactInfo({
+                            ...contactInfo,
+                            email: e.target.value,
+                          })
+                        }
+                        type="text"
+                        id={`email`}
+                        name={`email`}
+                        value={
+                          contactInfo?.email
+                            ? contactInfo?.email
+                            : contactInformation?.email
+                        }
+                        placeholder="Email address"
+                        className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-4">
                       <div>
                         <input
                           onChange={(e) =>
                             setContactInfo({
                               ...contactInfo,
-                              email: e.target.value,
+                              phone: e.target.value,
                             })
                           }
                           type="text"
-                          id={`email`}
-                          name={`email`}
+                          id={`phone`}
                           value={
-                            contactInfo?.email
-                              ? contactInfo?.email
-                              : contactInformation?.email
+                            contactInfo?.phone
+                              ? contactInfo?.phone
+                              : contactInformation?.phone
                           }
-                          placeholder="Email address"
+                          name={`phone`}
+                          placeholder="Phone Number"
                           className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
                         />
                       </div>
-                      <div className="flex flex-col gap-4">
-                        <div>
-                          <input
-                            onChange={(e) =>
-                              setContactInfo({
-                                ...contactInfo,
-                                phone: e.target.value,
-                              })
-                            }
-                            type="text"
-                            id={`phone`}
-                            value={
-                              contactInfo?.phone
-                                ? contactInfo?.phone
-                                : contactInformation?.phone
-                            }
-                            name={`phone`}
-                            placeholder="Phone Number"
-                            className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
-                          />
+                      {Object.keys(contactInformation).length == 0 && (
+                        <div className="flex justify-center  md:justify-end ">
+                          <button
+                            onClick={handleContactInfo}
+                            className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
+                          >
+                            Save & Next
+                          </button>
                         </div>
-                        {Object.keys(contactInformation).length == 0 && (
-                          <div className="flex justify-center  md:justify-end ">
-                            <button
-                              onClick={handleContactInfo}
-                              className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
-                            >
-                              Save & Next
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>

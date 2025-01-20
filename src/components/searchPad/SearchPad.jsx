@@ -107,6 +107,22 @@ export default function SearchPad() {
     RPH: 0,
   }));
 
+  function transformMultiCityToArrayStructure(
+    multiCityData,
+    passengers,
+    travelClass
+  ) {
+    return {
+      destination: multiCityData.map((leg) => leg.OriginLocation.LocationCode),
+      arrival: multiCityData.map((leg) => leg.DestinationLocation.LocationCode),
+      tripType: "multi_city",
+      class: travelClass,
+      passengers: passengers,
+      journeyDate: multiCityData.map((leg) => leg.DepartureDateTime),
+      returnDate: "", // Not applicable for multi-city trips
+    };
+  }
+
   const [roundDate, setRoundDate] = useState(() => {
     const twoDaysAhead = new Date();
     twoDaysAhead.setDate(twoDaysAhead.getDate() + 2);
@@ -471,26 +487,26 @@ export default function SearchPad() {
     const updatedRecentSearches = [searchData, ...recentSearchData].slice(0, 5);
     setRecentSearchData(updatedRecentSearches);
 
-    if (selectedWay === "multi_city") {
-      if (transformedData.length < 2) {
-        toast.error("You must select at least 2 cities.");
-        setError("City selection is too few.");
-        setLoading(false);
-        return;
-      }
+    // if (selectedWay === "multi_city") {
+    //   if (transformedData.length < 2) {
+    //     toast.error("You must select at least 2 cities.");
+    //     setError("City selection is too few.");
+    //     setLoading(false);
+    //     return;
+    //   }
 
-      const invalidTransformedData = transformedData.find(
-        (item) =>
-          !item.DepartureDateTime ||
-          !item.OriginLocation?.LocationCode ||
-          !item.DestinationLocation?.LocationCode
-      );
+    //   const invalidTransformedData = transformedData.find(
+    //     (item) =>
+    //       !item.DepartureDateTime ||
+    //       !item.OriginLocation?.LocationCode ||
+    //       !item.DestinationLocation?.LocationCode
+    //   );
 
-      if (invalidTransformedData) {
-        toast.error("One or more city data entries are invalid.");
-        return;
-      }
-    }
+    //   if (invalidTransformedData) {
+    //     toast.error("One or more city data entries are invalid.");
+    //     return;
+    //   }
+    // }
 
     if (!originalDate) {
       toast.error("Please select a departure date.");
@@ -545,6 +561,13 @@ export default function SearchPad() {
 
         return;
       }
+      // const multi_cityData = transformMultiCityToArrayStructure(
+      //   transformedData,
+      //   passengers,
+      //   selectedClass
+      // );
+
+      // setSearchData(multi_cityData);
     }
 
     setOriginQuery(searchQueryDestination);

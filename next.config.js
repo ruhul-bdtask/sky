@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
+  reactStrictMode: true,
   images: {
     domains: [
       "pics.avs.io",
