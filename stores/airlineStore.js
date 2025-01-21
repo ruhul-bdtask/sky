@@ -27,7 +27,7 @@ const useAirlineStore = create()(
           airlines: [],
           airports: [],
           legRange: [0, 100], // in minutes
-          stopOverRange: [0, 100], // in minutes
+          layoverRange: [0, 100], // in minutes
         },
         minPrice: 0,
         maxPrice: Infinity,
