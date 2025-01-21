@@ -1,3 +1,4 @@
+"use client";
 // app/components/Header.js
 import { useSidebar } from "@/context/sidebar-context";
 import { formatFlightFare } from "@/lib/formatFlightFare";
@@ -130,9 +131,33 @@ export default function Header() {
       setSelectedSavedTrip([]);
     }
     setToken(null);
-    router.push("/login");
     setUserData({});
   };
+
+  // useEffect(() => {
+  //   const checkAuth = () => {
+  //     if (!token) {
+  //       return;
+  //     } else {
+  //       try {
+  //         const decodedToken = jwtDecode(token);
+  //         const currentTime = Math.floor(Date.now() / 1000);
+
+  //         if (decodedToken.exp && decodedToken.exp < currentTime) {
+  //           Cookies.remove("auth-token");
+  //           setToken(null);
+  //           router.push("/login");
+  //         }
+  //       } catch (error) {
+  //         Cookies.remove("auth-token");
+  //         setToken(null);
+  //         router.push("/login");
+  //       }
+  //     }
+  //   };
+
+  //   checkAuth();
+  // }, [router]);
 
   // useEffect(() => {
   //   if (!selectedSavedTrip.name) {

@@ -50,11 +50,11 @@ export default function BookingSuccess({ data }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-500">Reservation Code</p>
-                <p className="font-medium">{data.reservation_code}</p>
+                <p className="font-medium">{data?.reservation_code}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Prepared For</p>
-                <p className="font-medium">{data.prepared_for}</p>
+                <p className="font-medium">{data?.prepared_for}</p>
               </div>
             </div>
           </CardContent>
