@@ -380,7 +380,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                       ? maxLegDuration
                       : maxLegDuration + 1
                   }
-                  step={1}
+                  step={5}
                   values={localFilterOptions.legRange}
                   onChange={(newValues) =>
                     handleSliderChange("legRange", newValues)
@@ -409,7 +409,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                       ? maxLayoverDuration
                       : maxLayoverDuration + 1
                   }
-                  step={1}
+                  step={5}
                   values={localFilterOptions.layoverRange}
                   onChange={(newValues) =>
                     handleSliderChange("layoverRange", newValues)
