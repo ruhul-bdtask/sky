@@ -1,4 +1,4 @@
-export const convertMinutesToHours = (minutes) => {
+export const formatMinutesToHours = (minutes) => {
   const days = Math.floor(minutes / 1440); // Full days (1440 minutes in a day)
   const remainingMinutesAfterDays = minutes % 1440; // Remaining minutes after extracting full days
   const hours = Math.floor(remainingMinutesAfterDays / 60); // Full hours

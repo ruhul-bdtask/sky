@@ -9,10 +9,10 @@ import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 import { millisecondsToDateTime } from "@/lib/millisecondsToDateTime";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
-import { ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import useAirlineStore from "../../../stores/airlineStore";
 import MultiRangeSlider from "../ui/multiRangeSlider";
+import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   // const { filterOptions, setFilterOptions } = useAirlineStore();
@@ -26,13 +26,17 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     airlines: [],
     airports: [],
     legRange: [0, 100],
-    stopOverRange: [0, 100],
+    layoverRange: [0, 100],
   });
 
   const [minTakeOff, setMinTakeOff] = useState(0);
   const [maxTakeOff, setMaxTakeOff] = useState(100);
   const [minLanding, setMinLanding] = useState(0);
   const [maxLanding, setMaxLanding] = useState(100);
+  const [minLegDuration, setMinLegDuration] = useState(0);
+  const [maxLegDuration, setMaxLegDuration] = useState(100);
+  const [minLayoverDuration, setMinLayoverDuration] = useState(0);
+  const [maxLayoverDuration, setMaxLayoverDuration] = useState(100);
 
   //load airports data from JSON
   const { airportsData, airportError, airportLoading } = useAirports();
@@ -40,7 +44,6 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const { airlinesData, airlineError, airlineLoading } = useAirlines();
 
   const { minutes, seconds } = timer;
-
   // stops change handler
   const handleStopChange = (value) => {
     const updatedStops = filterOptions.stops.includes(value)
@@ -122,6 +125,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       [key]: newValues,
     };
     setLocalFilterOptions(updatedLocalFilterOptions);
+
     //TODO: remove the below two lines if only filter flights handler released
     const updatedFilterOptions = { ...filterOptions, [key]: newValues };
     setFilterOptions(updatedFilterOptions);
@@ -140,21 +144,50 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       const landingTimestamps = allFlights.map((flight) =>
         dateTimeToMilliseconds(flight.arrival_date, flight.arrival_time)
       );
+      const legTimestamps = allFlights.map(
+        (flight) => flight?.itinerary_leg_descs?.[0]?.duration
+      );
+
+      // const layoverTimestamps = allFlights
+      //   .flatMap(
+      //     (flight) => flight?.schedules?.map((leg) => leg.layover_time) || []
+      //   )
+
+      const layoverTimestamps = allFlights.flatMap(
+        (flight) =>
+          flight?.schedules?.reduce(
+            (total, leg) => total + Number(leg.layover_time),
+            0
+          ) || [0]
+      );
+
       const initialMinTakeOff = Math.min(...takeOffTimestamps);
       const initialMaxTakeOff = Math.max(...takeOffTimestamps);
 
       const initialMinLanding = Math.min(...landingTimestamps);
       const initialMaxLanding = Math.max(...landingTimestamps);
 
+      const initialMinLegDuration = Math.min(...legTimestamps);
+      const initialMaxLegDuration = Math.max(...legTimestamps);
+
+      const initialMinLayoverDuration = Math.min(...layoverTimestamps);
+      const initialMaxLayoverDuration = Math.max(...layoverTimestamps);
+
       setLocalFilterOptions({
         ...filterOptions,
         takeOffRange: [initialMinTakeOff, initialMaxTakeOff],
         landingRange: [initialMinLanding, initialMaxLanding],
+        legRange: [initialMinLegDuration, initialMaxLegDuration],
+        layoverRange: [initialMinLayoverDuration, initialMaxLayoverDuration],
       });
       setMinTakeOff(initialMinTakeOff);
       setMaxTakeOff(initialMaxTakeOff);
       setMinLanding(initialMinLanding);
       setMaxLanding(initialMaxLanding);
+      setMinLegDuration(initialMinLegDuration);
+      setMaxLegDuration(initialMaxLegDuration);
+      setMinLayoverDuration(initialMinLayoverDuration);
+      setMaxLayoverDuration(initialMaxLayoverDuration);
     }
   }, []);
 
@@ -230,22 +263,18 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                 </p>
               </div>
               <div>
-                {minTakeOff && maxTakeOff ? (
-                  <MultiRangeSlider
-                    min={minTakeOff}
-                    max={maxTakeOff}
-                    step={1000 * 60 * 5} // 5-minute intervals
-                    values={localFilterOptions.takeOffRange}
-                    onChange={(newValues) =>
-                      handleSliderChange("takeOffRange", newValues)
-                    }
-                    onFinalChange={(newValues) =>
-                      handleFinalChange("takeOffRange", newValues)
-                    }
-                  />
-                ) : (
-                  <p>Loading slider...</p>
-                )}
+                <MultiRangeSlider
+                  min={minTakeOff}
+                  max={minTakeOff !== maxTakeOff ? maxTakeOff : maxTakeOff + 1}
+                  step={1000 * 60 * 5} // 5-minute intervals
+                  values={localFilterOptions.takeOffRange}
+                  onChange={(newValues) =>
+                    handleSliderChange("takeOffRange", newValues)
+                  }
+                  onFinalChange={(newValues) =>
+                    handleFinalChange("takeOffRange", newValues)
+                  }
+                />
               </div>
             </div>
             <div className="pt-4">
@@ -258,22 +287,18 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                 </p>
               </div>
               <div>
-                {minTakeOff && maxTakeOff ? (
-                  <MultiRangeSlider
-                    min={minLanding}
-                    max={maxLanding}
-                    step={1000 * 60 * 5} // 5-minute intervals
-                    values={localFilterOptions.landingRange}
-                    onChange={(newValues) =>
-                      handleSliderChange("landingRange", newValues)
-                    }
-                    onFinalChange={(newValues) =>
-                      handleFinalChange("landingRange", newValues)
-                    }
-                  />
-                ) : (
-                  <p>Loading slider...</p>
-                )}
+                <MultiRangeSlider
+                  min={minLanding}
+                  max={minLanding !== maxLanding ? maxLanding : maxLanding + 1}
+                  step={1000 * 60 * 5} // 5-minute intervals
+                  values={localFilterOptions.landingRange}
+                  onChange={(newValues) =>
+                    handleSliderChange("landingRange", newValues)
+                  }
+                  onFinalChange={(newValues) =>
+                    handleFinalChange("landingRange", newValues)
+                  }
+                />
               </div>
             </div>
           </div>
@@ -339,27 +364,67 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
         <section className="mb-6 border-t pt-3">
           <span className="text-[14px] font-semibold ">Duration </span>
           <div className="space-y-4">
-            <div>
-              <div className="py-4">
-                <p className="mb-2 text-[18px]">Flight Leg</p>
-                <p className="text-[12px]  mb-2">
-                  {/* 3h 50m - 94h 50m{" "} */}
-                  {filterOptions.legRange?.[0] +
-                    "-" +
-                    filterOptions.legRange?.[1]}
+            <div className="pt-4">
+              <div className="mb-4">
+                <p className="mb-1 text-sm">Flight leg</p>
+                <p className="text-sm ">
+                  {formatMinutesToHours(localFilterOptions.legRange?.[0])} -{" "}
+                  {formatMinutesToHours(localFilterOptions.legRange?.[1])}
                 </p>
               </div>
-              <Slider
-                defaultValue={100}
-                min={0}
-                max={24}
-                step={1}
-                value={filterOptions.legRange}
-                onValueChange={(value) => handleSliderChange("legRange", value)}
-                className="w-full"
-              />
+              <div>
+                <MultiRangeSlider
+                  min={minLegDuration}
+                  max={
+                    minLegDuration !== maxLegDuration
+                      ? maxLegDuration
+                      : maxLegDuration + 1
+                  }
+                  step={1}
+                  values={localFilterOptions.legRange}
+                  onChange={(newValues) =>
+                    handleSliderChange("legRange", newValues)
+                  }
+                  onFinalChange={(newValues) =>
+                    handleFinalChange("legRange", newValues)
+                  }
+                />
+              </div>
             </div>
-            <div>
+
+            <div className="pt-4">
+              <div className="mb-4">
+                <p className="mb-1 text-sm">Layover</p>
+                <p className="text-sm ">
+                  {formatMinutesToHours(localFilterOptions.layoverRange?.[0])} -{" "}
+                  {formatMinutesToHours(localFilterOptions.layoverRange?.[1])}
+                </p>
+              </div>
+              <div>
+                {/* {minLayoverDuration && maxLayoverDuration ? ( */}
+                <MultiRangeSlider
+                  min={minLayoverDuration}
+                  max={
+                    minLayoverDuration !== maxLayoverDuration
+                      ? maxLayoverDuration
+                      : maxLayoverDuration + 1
+                  }
+                  step={1}
+                  values={localFilterOptions.layoverRange}
+                  onChange={(newValues) =>
+                    handleSliderChange("layoverRange", newValues)
+                  }
+                  onFinalChange={(newValues) =>
+                    handleFinalChange("layoverRange", newValues)
+                  }
+                />
+                {/* ) : (
+                  <p>Loading slider...</p>
+                )} */}
+              </div>
+            </div>
+
+            {/* <div>
               <div className="py-4">
                 <p className=" mb-2 text-[18px]">Stopover</p>
                 <p className="text-[12px]  mb-2">1h 0m - 75h 50m </p>
@@ -375,7 +440,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                 }
                 className="w-full"
               />
-            </div>
+            </div> */}
           </div>
         </section>
       </div>
