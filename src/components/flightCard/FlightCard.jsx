@@ -164,7 +164,9 @@ export default function FlightCard({ flight }) {
             fl?.flight_data?.departure_date === flight?.departure_date &&
             fl?.flight_data?.arrival_date === flight?.arrival_date &&
             fl?.flight_data?.arrival_time === flight?.arrival_time &&
-            fl?.flight_data?.departure_time === flight?.departure_time
+            fl?.flight_data?.departure_time === flight?.departure_time &&
+            fl?.flight_data?.air_pricing_solution_key ===
+              flight?.air_pricing_solution_key
         )
       )
       .find((flight) => flight !== undefined);
@@ -181,7 +183,9 @@ export default function FlightCard({ flight }) {
           fl?.flight_data?.departure_date === flight?.departure_date &&
           fl?.flight_data?.arrival_date === flight?.arrival_date &&
           fl?.flight_data?.arrival_time === flight?.arrival_time &&
-          fl?.flight_data?.departure_time === flight?.departure_time
+          fl?.flight_data?.departure_time === flight?.departure_time &&
+          fl?.flight_data?.air_pricing_solution_key ===
+            flight?.air_pricing_solution_key
       );
 
       if (flightExists) {
@@ -200,7 +204,9 @@ export default function FlightCard({ flight }) {
                 fl?.flight_data?.departure_date === flight?.departure_date &&
                 fl?.flight_data?.arrival_date === flight?.arrival_date &&
                 fl?.flight_data?.arrival_time === flight?.arrival_time &&
-                fl?.flight_data?.departure_time === flight?.departure_time
+                fl?.flight_data?.departure_time === flight?.departure_time &&
+                fl?.flight_data?.air_pricing_solution_key ===
+                  flight?.air_pricing_solution_key
               )
           ),
         };
@@ -540,7 +546,9 @@ export default function FlightCard({ flight }) {
         fl?.flight_data?.departure_date === flight?.departure_date &&
         fl?.flight_data?.arrival_date === flight?.arrival_date &&
         fl?.flight_data?.arrival_time === flight?.arrival_time &&
-        fl?.flight_data?.departure_date === flight?.departure_date
+        fl?.flight_data?.departure_date === flight?.departure_date &&
+        fl?.flight_data?.air_pricing_solution_key ===
+          flight?.air_pricing_solution_key
     )
   );
 
