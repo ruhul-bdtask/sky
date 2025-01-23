@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import useAirlineStore from "../../../stores/airlineStore";
 import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 export default function Page({ searchParams }) {
+  const [loadingRevalidate, setLoadingRevalidate] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
     ref.current.continuousStart();
@@ -341,7 +342,11 @@ export default function Page({ searchParams }) {
                   )} */}
                   {filteredFlights.length > 0 ? (
                     filteredFlights.map((flight) => (
-                      <FlightCard key={flight.id} flight={flight} />
+                      <FlightCard
+                        setLoadingRevalidate={setLoadingRevalidate}
+                        key={flight.id}
+                        flight={flight}
+                      />
                     ))
                   ) : (
                     <div className="flex justify-center items-center h-[500px]">
@@ -364,6 +369,9 @@ export default function Page({ searchParams }) {
           </>
         )}
       </div>
+      {loadingRevalidate && (
+        <div className="fixed left-0 top-0 w-full h-screen  z-50"></div>
+      )}
     </>
   );
 }

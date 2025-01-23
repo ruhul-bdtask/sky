@@ -340,8 +340,8 @@ export default function Page({ searchParams }) {
     setTravelPlanningDate("");
 
     const searchData = {
-      destination: searchQueryDestination,
-      arrival: searchQueryArrival,
+      origin: searchQueryDestination,
+      destination: searchQueryArrival,
       tripType: selectedWay,
       class: selectedClass,
       passengers: passengers,
@@ -713,7 +713,7 @@ export default function Page({ searchParams }) {
                           <div className="p-6 ">
                             <ul className="space-y-4">
                               {filteredAirportsDestinationMulti[row.id - 1].map(
-                                (destination, index) => (
+                                (origin, index) => (
                                   <li
                                     key={index}
                                     className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
@@ -722,22 +722,22 @@ export default function Page({ searchParams }) {
                                         updateCityData(
                                           row.id,
                                           "searchQueryDestination",
-                                          destination.value
+                                          origin.value
                                         );
                                       setIsOpenDestination(false);
                                       updateCityData(row.id, "originAirport", {
-                                        label: destination.label,
-                                        value: destination.value,
-                                        code: destination.name,
+                                        label: origin.label,
+                                        value: origin.value,
+                                        code: origin.name,
                                       });
                                     }}
                                   >
                                     <div className="flex-grow">
                                       <p className="font-semibold">
-                                        {destination.name}, {destination.value}
+                                        {origin.name}, {origin.value}
                                       </p>
                                       <p className="text-sm text-gray-500">
-                                        {destination.label}
+                                        {origin.label}
                                       </p>
                                     </div>
                                   </li>
@@ -777,7 +777,7 @@ export default function Page({ searchParams }) {
                           <div className="p-6 ">
                             <ul className="space-y-4">
                               {filteredAirportsArrivalMulti[row.id - 1].map(
-                                (arrival, index) => (
+                                (destination, index) => (
                                   <li
                                     key={index}
                                     className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
@@ -786,26 +786,26 @@ export default function Page({ searchParams }) {
                                         updateCityData(
                                           row.id,
                                           "searchQueryArrival",
-                                          arrival.value
+                                          destination.value
                                         );
                                       setIsOpenArrival(false);
                                       updateCityData(
                                         row.id,
                                         "destinationAirport",
                                         {
-                                          code: arrival.name,
-                                          value: arrival.value,
-                                          label: arrival.label,
+                                          code: destination.name,
+                                          value: destination.value,
+                                          label: destination.label,
                                         }
                                       );
                                     }}
                                   >
                                     <div className="flex-grow">
                                       <p className="font-semibold">
-                                        {arrival.name}, {arrival.value}
+                                        {destination.name}, {destination.value}
                                       </p>
                                       <p className="text-sm text-gray-500">
-                                        {arrival.label}
+                                        {destination.label}
                                       </p>
                                     </div>
                                   </li>
@@ -921,24 +921,24 @@ export default function Page({ searchParams }) {
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsDestination.map(
-                                (destination, index) => (
+                                (origin, index) => (
                                   <li
                                     key={index}
                                     className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                     onClick={() => {
                                       setSearchQueryDestination(
-                                        destination.value
+                                        origin.value
                                       );
-                                      setOriginAirport(destination.name);
+                                      setOriginAirport(origin.name);
                                       setIsOpenDestination(false);
                                     }}
                                   >
                                     <div className="flex-grow">
                                       <p className="font-semibold">
-                                        {destination.name}, {destination.value}
+                                        {origin.name}, {origin.value}
                                       </p>
                                       <p className="text-sm text-gray-500">
-                                        {destination.label}
+                                        {origin.label}
                                       </p>
                                     </div>
                                   </li>
@@ -981,8 +981,8 @@ export default function Page({ searchParams }) {
                                     </div>
                                     <div>
                                       <p className="font-semibold">
-                                        {recent?.destination} -{" "}
-                                        {recent?.arrival}
+                                        {recent?.origin} -{" "}
+                                        {recent?.destination}
                                       </p>
                                       <p className="text-sm text-gray-500">
                                         {moment(recent?.journeyDate).format(
@@ -1047,22 +1047,22 @@ export default function Page({ searchParams }) {
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10">
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
-                              {filteredAirportsArrival.map((arrival, index) => (
+                              {filteredAirportsArrival.map((destination, index) => (
                                 <li
                                   key={index}
                                   className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   onClick={() => {
-                                    setSearchQueryArrival(arrival.value);
-                                    setDestinationAirport(arrival.name);
+                                    setSearchQueryArrival(destination.value);
+                                    setDestinationAirport(destination.name);
                                     setIsOpenArrival(false);
                                   }}
                                 >
                                   <div className="flex-grow">
                                     <p className="font-semibold">
-                                      {arrival.name}, {arrival.value}
+                                      {destination.name}, {destination.value}
                                     </p>
                                     <p className="text-sm text-gray-500">
-                                      {arrival.label}
+                                      {destination.label}
                                     </p>
                                   </div>
                                 </li>
@@ -1104,8 +1104,8 @@ export default function Page({ searchParams }) {
                                     </div>
                                     <div>
                                       <p className="font-semibold">
-                                        {recent?.destination} -{" "}
-                                        {recent?.arrival}
+                                        {recent?.origin} -{" "}
+                                        {recent?.destination}
                                       </p>
                                       <p className="text-sm text-gray-500">
                                         {moment(recent?.journeyDate).format(
@@ -1176,24 +1176,24 @@ export default function Page({ searchParams }) {
                             <div className="p-6 max-h-[300px] overflow-y-auto">
                               <ul className="space-y-4">
                                 {filteredAirportsDestination.map(
-                                  (destination, index) => (
+                                  (origin, index) => (
                                     <li
                                       key={index}
                                       className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
                                       onClick={() => {
                                         setSearchQueryDestination(
-                                          destination.value
+                                          origin.value
                                         );
                                         setIsOpenDestination(false);
                                       }}
                                     >
                                       <div className="flex-grow">
                                         <p className="font-semibold">
-                                          {destination.name},{" "}
-                                          {destination.value}
+                                          {origin.name},{" "}
+                                          {origin.value}
                                         </p>
                                         <p className="text-sm text-gray-500">
-                                          {destination.label}
+                                          {origin.label}
                                         </p>
                                       </div>
                                     </li>
@@ -1236,8 +1236,8 @@ export default function Page({ searchParams }) {
                                       </div>
                                       <div>
                                         <p className="font-semibold">
-                                          {recent?.destination} -{" "}
-                                          {recent?.arrival}
+                                          {recent?.origin} -{" "}
+                                          {recent?.destination}
                                         </p>
                                         <p className="text-sm text-gray-500">
                                           {moment(recent?.journeyDate).format(
@@ -1287,21 +1287,21 @@ export default function Page({ searchParams }) {
                             <div className="p-6 ">
                               <ul className="space-y-4">
                                 {filteredAirportsArrival.map(
-                                  (arrival, index) => (
+                                  (destination, index) => (
                                     <li
                                       key={index}
                                       className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
                                       onClick={() => {
-                                        setSearchQueryArrival(arrival.value);
+                                        setSearchQueryArrival(destination.value);
                                         setIsOpenArrival(false);
                                       }}
                                     >
                                       <div className="flex-grow">
                                         <p className="font-semibold">
-                                          {arrival.name}, {arrival.value}
+                                          {destination.name}, {destination.value}
                                         </p>
                                         <p className="text-sm text-gray-500">
-                                          {arrival.label}
+                                          {destination.label}
                                         </p>
                                       </div>
                                     </li>
@@ -1344,8 +1344,8 @@ export default function Page({ searchParams }) {
                                         </div>
                                         <div>
                                           <p className="font-semibold">
-                                            {recent?.destination} -{" "}
-                                            {recent?.arrival}
+                                            {recent?.origin} -{" "}
+                                            {recent?.destination}
                                           </p>
                                           <p className="text-sm text-gray-500">
                                             {moment(recent?.journeyDate).format(

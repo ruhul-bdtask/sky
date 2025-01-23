@@ -64,7 +64,7 @@ export default function Header() {
     destinationAirportName,
     setSavedSingleFlight,
   } = useAirlineStore();
-  const { destination, arrival, journeyDate, returnDate, tripType } =
+  const { destination, origin, journeyDate, returnDate, tripType } =
     searchData;
 
   const [formData, setFormData] = useState({
@@ -538,8 +538,8 @@ export default function Header() {
     const mappedClass = cabinClassMapping[cabinClass] || "Y";
 
     const searchData = {
-      destination: flight?.origin_code,
-      arrival: flight?.destination_code,
+      origin: flight?.origin_code,
+      destination: flight?.destination_code,
       tripType:
         flight?.itinerary_leg_descs?.length == 0
           ? "one_way"
