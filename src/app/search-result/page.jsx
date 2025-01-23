@@ -259,7 +259,7 @@ export default function Page({ searchParams }) {
           ? true
           : legDuration >= legDurationStart && legDuration <= legDurationEnd;
 
-      // const flight's layover durations
+      // if matches flight's layover duration
       const [layoverDurationStart, layoverDurationEnd] =
         filterOptions.layoverRange;
       const layoverDuration = flight?.schedules?.reduce(
@@ -274,6 +274,15 @@ export default function Page({ searchParams }) {
           : layoverDuration >= layoverDurationStart &&
             layoverDuration <= layoverDurationEnd;
 
+      // flight price range
+      const [priceStart, priceEnd] = filterOptions.priceRange;
+      const totalPrice = flight.fare_details?.total_fare;
+
+      const matchesPrice =
+        filterOptions.priceRange[0] === 0 && filterOptions.priceRange[1] === 100
+          ? true
+          : totalPrice >= priceStart && totalPrice <= priceEnd;
+
       return (
         matchesStopCount &&
         matchesAirline &&
@@ -281,7 +290,8 @@ export default function Page({ searchParams }) {
         matchesTakeOffRange &&
         matchesLandingRange &&
         matchesLagDuration &&
-        matchesLayoverDuration
+        matchesLayoverDuration &&
+        matchesPrice
       );
     });
   };
