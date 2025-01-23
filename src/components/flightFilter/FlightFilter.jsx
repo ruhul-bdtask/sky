@@ -15,9 +15,10 @@ import MultiRangeSlider from "../ui/multiRangeSlider";
 import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
-  // const { filterOptions, setFilterOptions } = useAirlineStore();
+  // const { filterOptions, setFilterOptions, filterData } = useAirlineStore();
   const filterOptions = useAirlineStore((state) => state.filterOptions);
   const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
+  const filterData = useAirlineStore((state) => state.filterData);
 
   const [localFilterOptions, setLocalFilterOptions] = useState({
     stops: [],
@@ -224,7 +225,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       </div>
       <div className="hidden md:block p-4 rounded-lg w-[260px]">
         <span className="text-[14px] font-semibold mb-4">
-          {sortedFlights?.length} of{" "}
+          {filterData?.length} of{" "}
         </span>
         <span className="text-[14px] text-[#FC660F]">
           {allFlights?.length} flights

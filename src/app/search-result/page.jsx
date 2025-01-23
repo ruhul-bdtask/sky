@@ -31,6 +31,8 @@ export default function Page({ searchParams }) {
     timeLeft,
     startCountdown,
     resetTime,
+    filterData,
+    setFilterData,
   } = useAirlineStore();
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -284,6 +286,10 @@ export default function Page({ searchParams }) {
   };
 
   const filteredFlights = filterFlightData(sortFlights, filterOptions);
+
+  useEffect(() => {
+    setFilterData(filteredFlights);
+  }, [filterOptions, filteredFlights.length]);
 
   return (
     <>
