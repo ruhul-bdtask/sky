@@ -15,9 +15,19 @@ import MultiRangeSlider from "../ui/multiRangeSlider";
 import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
-  // const { filterOptions, setFilterOptions } = useAirlineStore();
-  const filterOptions = useAirlineStore((state) => state.filterOptions);
-  const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
+  const {
+    filterOptions,
+    setFilterOptions,
+    filterData,
+    originQuery,
+    destinationQuery,
+    recentSearchData,
+  } = useAirlineStore();
+  // const filterOptions = useAirlineStore((state) => state.filterOptions);
+  // const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
+  // const filterData = useAirlineStore((state) => state.filterData);
+
+  const [isShowMoreAirlines, setIsShowMoreAirlines] = useState(false);
 
   const [localFilterOptions, setLocalFilterOptions] = useState({
     stops: [],
@@ -97,27 +107,31 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
   // unique airports name list
   const uniqueAirportsByName = (sortedFlights) => {
-    const uniqueAirlines = [];
+    const uniqueAirports = [];
     const airlineSet = new Set();
     sortedFlights?.forEach((flight) => {
       flight.schedules.forEach((schedule) => {
         // if (!airlineSet.has(schedule?.departure_airport)) {
         //   airlineSet.add(schedule?.departure_airport);
-        //   uniqueAirlines.push(schedule?.departure_airport);
+        //   uniqueAirports.push(schedule?.departure_airport);
         // } else if (!airlineSet.has(schedule?.arrival_airport)) {
         //   airlineSet.add(schedule?.arrival_airport);
-        //   uniqueAirlines.push(schedule?.arrival_airport);
+        //   uniqueAirports.push(schedule?.arrival_airport);
         // }
         if (!airlineSet.has(schedule?.arrival_airport)) {
           airlineSet.add(schedule?.arrival_airport);
-          uniqueAirlines.push(schedule?.arrival_airport);
+          uniqueAirports.push(schedule?.arrival_airport);
         }
       });
     });
-    return uniqueAirlines;
+    return uniqueAirports;
   };
 
   const uniqueAirports = uniqueAirportsByName(sortedFlights);
+
+  const toggleMoreLessAirlines = () => {
+    setIsShowMoreAirlines(!isShowMoreAirlines);
+  };
 
   const handleSliderChange = (key, newValues) => {
     const updatedLocalFilterOptions = {
@@ -224,7 +238,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       </div>
       <div className="hidden md:block p-4 rounded-lg w-[260px]">
         <span className="text-[14px] font-semibold mb-4">
-          {sortedFlights?.length} of{" "}
+          {filterData?.length} of{" "}
         </span>
         <span className="text-[14px] text-[#FC660F]">
           {allFlights?.length} flights
@@ -255,7 +269,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           <div className="space-y-4">
             <div className="pt-4">
               <div className="mb-4">
-                <p className="mb-1 text-sm">Take-off from DAC</p>
+                <p className="mb-1 text-sm">
+                  Take-off from {recentSearchData?.[0]?.destination}
+                </p>
                 <p className="text-sm ">
                   {millisecondsToDateTime(localFilterOptions.takeOffRange?.[0])}{" "}
                   -{" "}
@@ -279,7 +295,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             </div>
             <div className="pt-4">
               <div className="mb-4">
-                <p className="mb-1 text-sm">Landing at KUL</p>
+                <p className="mb-1 text-sm">
+                  Landing at {recentSearchData?.[0]?.arrival}
+                </p>
                 <p className="text-sm">
                   {millisecondsToDateTime(localFilterOptions.landingRange?.[0])}{" "}
                   -{" "}
@@ -312,7 +330,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
               <button className="text-blue-600 text-sm">Clear all</button>
             </div>
           </div>
-          <div className="space-y-2 mt-3">
+          <div
+            className={`space-y-2 mt-3 overflow-hidden ${
+              uniqueAirlines.length > 6 && !isShowMoreAirlines
+                ? "max-h-[168px]"
+                : "max-h-fit"
+            }`}
+          >
             {uniqueAirlines.map((flight, index) => (
               <label key={index} className="flex items-center">
                 <Checkbox
@@ -323,13 +347,26 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                   onCheckedChange={(checked) => handleAirlinesChange(flight)}
                 />
 
-                <span className="text-[14px] ml-2 ">{flight.airline_name}</span>
-                <span className="ml-auto text-[#64717B] text-[14px]">
-                  {flight.price}
+                <span className="text-[14px] ml-2 ">
+                  {flight.airline_name.split(" ").slice(0, 2).join(" ")}
+                </span>
+                <span className="ml-auto text-[#64717B] text-[12px]">
+                  {"৳"}
+                  {flight.fare_details.total_fare}
                 </span>
               </label>
             ))}
           </div>
+          {uniqueAirlines.length > 6 && (
+            <button
+              onClick={toggleMoreLessAirlines}
+              className="text-orange-600 mt-3 text-sm"
+            >
+              {isShowMoreAirlines
+                ? "Show less"
+                : `Show more ${uniqueAirlines.length - 6} airlines`}
+            </button>
+          )}
         </section>
         <section className="mb-6 border-t pt-3 ">
           <span className="text-[14px] font-semibold ">Airports </span>
@@ -380,7 +417,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                       ? maxLegDuration
                       : maxLegDuration + 1
                   }
-                  step={1}
+                  step={5}
                   values={localFilterOptions.legRange}
                   onChange={(newValues) =>
                     handleSliderChange("legRange", newValues)
@@ -409,7 +446,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                       ? maxLayoverDuration
                       : maxLayoverDuration + 1
                   }
-                  step={1}
+                  step={5}
                   values={localFilterOptions.layoverRange}
                   onChange={(newValues) =>
                     handleSliderChange("layoverRange", newValues)

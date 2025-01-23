@@ -31,6 +31,8 @@ export default function Page({ searchParams }) {
     timeLeft,
     startCountdown,
     resetTime,
+    filterData,
+    setFilterData,
   } = useAirlineStore();
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -256,18 +258,38 @@ export default function Page({ searchParams }) {
           ? true
           : legDuration >= legDurationStart && legDuration <= legDurationEnd;
 
+      // const flight's layover durations
+      const [layoverDurationStart, layoverDurationEnd] =
+        filterOptions.layoverRange;
+      const layoverDuration = flight?.schedules?.reduce(
+        (total, leg) => total + Number(leg.layover_time),
+        0
+      );
+
+      const matchesLayoverDuration =
+        filterOptions.layoverRange[0] === 0 &&
+        filterOptions.layoverRange[1] === 100
+          ? true
+          : layoverDuration >= layoverDurationStart &&
+            layoverDuration <= layoverDurationEnd;
+
       return (
         matchesStopCount &&
         matchesAirline &&
         matchesAirport &&
         matchesTakeOffRange &&
         matchesLandingRange &&
-        matchesLagDuration
+        matchesLagDuration &&
+        matchesLayoverDuration
       );
     });
   };
 
   const filteredFlights = filterFlightData(sortFlights, filterOptions);
+
+  useEffect(() => {
+    setFilterData(filteredFlights);
+  }, [filterOptions, filteredFlights.length]);
 
   return (
     <>
