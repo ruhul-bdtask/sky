@@ -27,7 +27,7 @@ import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
 
-export default function FlightCard({ flight }) {
+export default function FlightCard({ flight, setLoadingRevalidate }) {
   const router = useRouter();
   const {
     token,
@@ -49,6 +49,7 @@ export default function FlightCard({ flight }) {
     setIsChangeTrip,
     savedSingleFlight,
     setSavedSingleFlight,
+    setTravelPlanningDate,
   } = useAirlineStore();
   const { syncSavedFlights } = useSyncSavedFlights();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -84,13 +85,17 @@ export default function FlightCard({ flight }) {
   });
 
   const handleRevalidate = async () => {
+    setLoadingRevalidate(true);
+    setTravelPlanningDate("");
     const res = await refetchAllFlights();
     if (res?.status === "success") {
       if (res?.data?.data) {
         setSelectedFlight(res?.data?.data?.sortedItineraries);
         router.push("/bookingForm");
+        setLoadingRevalidate(false);
       } else {
         toast.error(res?.data?.message);
+        setLoadingRevalidate(false);
       }
     }
   };
@@ -647,10 +652,10 @@ export default function FlightCard({ flight }) {
                       </p>
 
                       <div>
-                        <p className="text-[#5F6D77] text-[14px]">
+                        <p className="text-[#5F6D77] text-[13px]">
                           {getAirline(leg?.marketing_code)}
                         </p>
-                        <p className="text-[#5F6D77] text-[14px]">
+                        <p className="text-[#5F6D77] text-[13px]">
                           {formatDateTime(leg?.departure_datetime).date}
                         </p>
                       </div>

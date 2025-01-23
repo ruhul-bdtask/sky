@@ -54,13 +54,12 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     setDestinationAirportName,
     setOriginAirportName,
   } = useAirlineStore();
-  const { destination, arrival, journeyDate, tripType, returnDate } =
-    searchData;
+  const { origin, destination, journeyDate, tripType, returnDate } = searchData;
 
   const [selectedWay, setSelectedWay] = useState("one_way");
   const [selectedClass, setSelectedClass] = useState("Y");
-  const [searchQueryArrival, setSearchQueryArrival] = useState();
   const [searchQueryDestination, setSearchQueryDestination] = useState();
+  const [searchQueryOrigin, setSearchQueryOrigin] = useState();
   const [originAirport, setOriginAirport] = useState("");
   const [destinationAirport, setDestinationAirport] = useState("");
 
@@ -74,24 +73,24 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const [cities, setCities] = useState([
     {
       id: 1,
+      searchQueryOrigin: "",
       searchQueryDestination: "",
-      searchQueryArrival: "",
       departureDate: null,
       isOpenOrigin: false,
       isOpenDestination: false,
     },
     {
       id: 2,
+      searchQueryOrigin: "",
       searchQueryDestination: "",
-      searchQueryArrival: "",
       departureDate: null,
       isOpenOrigin: false,
       isOpenDestination: false,
     },
     {
       id: 3,
+      searchQueryOrigin: "",
       searchQueryDestination: "",
-      searchQueryArrival: "",
       departureDate: null,
       isOpenOrigin: false,
       isOpenDestination: false,
@@ -101,11 +100,11 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const transformedData = cities.map((item, index) => ({
     DepartureDateTime: item.departureDate,
     OriginLocation: {
-      LocationCode: item.searchQueryDestination,
+      LocationCode: item.searchQueryOrigin,
       LocationType: "A",
     },
     DestinationLocation: {
-      LocationCode: item.searchQueryArrival,
+      LocationCode: item.searchQueryDestination,
       LocationType: "A",
     },
     RPH: 0,
@@ -131,26 +130,26 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   });
 
   useEffect(() => {
-    if (destination && arrival && journeyDate !== "") {
+    if (origin && destination && journeyDate !== "") {
       setOneWayDate(new Date(journeyDate));
     }
-    if (destination && arrival && journeyDate && returnDate !== "") {
+    if (origin && destination && journeyDate && returnDate !== "") {
       setRoundDate({
         from: new Date(journeyDate),
         to: new Date(returnDate),
       });
     }
-    setSearchQueryDestination(destination !== "" ? destination : "DAC");
-    setSearchQueryArrival(arrival !== "" ? arrival : "CXB");
-  }, [destination, arrival, journeyDate]);
+    setSearchQueryOrigin(origin !== "" ? origin : "DAC");
+    setSearchQueryDestination(destination !== "" ? destination : "CXB");
+  }, [origin, destination, journeyDate]);
 
   const handleAddCity = () => {
     setCities([
       ...cities,
       {
         id: cities.length + 1,
+        searchQueryOrigin: "",
         searchQueryDestination: "",
-        searchQueryArrival: "",
         departureDate: null,
       },
     ]);
@@ -181,11 +180,11 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       (airport) =>
         (airport.name
           .toLowerCase()
-          .includes(city.searchQueryArrival.toLowerCase()) ||
+          .includes(city.searchQueryDestination.toLowerCase()) ||
           airport.value
             .toLowerCase()
-            .includes(city.searchQueryArrival.toLowerCase())) &&
-        airport.value !== city.searchQueryDestination
+            .includes(city.searchQueryDestination.toLowerCase())) &&
+        airport.value !== city.searchQueryOrigin
     )
   );
 
@@ -194,11 +193,11 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       (airport) =>
         (airport.name
           .toLowerCase()
-          .includes(city.searchQueryDestination.toLowerCase()) ||
+          .includes(city.searchQueryOrigin.toLowerCase()) ||
           airport.value
             .toLowerCase()
-            .includes(city.searchQueryDestination.toLowerCase())) &&
-        airport.value !== city.searchQueryArrival
+            .includes(city.searchQueryOrigin.toLowerCase())) &&
+        airport.value !== city.searchQueryDestination
     )
   );
 
@@ -222,19 +221,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
   const filteredAirportsArrival = airportsData.filter(
     (airport) =>
-      (airport.name.toLowerCase().includes(searchQueryArrival?.toLowerCase()) ||
-        airport.value
-          .toLowerCase()
-          .includes(searchQueryArrival?.toLowerCase()) ||
-        airport.label
-          .toLowerCase()
-          .includes(searchQueryArrival?.toLowerCase())) &&
-      airport.name.toLowerCase() !== searchQueryDestination?.toLowerCase() &&
-      airport.value.toLowerCase() !== searchQueryDestination?.toLowerCase()
-  );
-
-  const filteredAirportsDestination = airportsData.filter(
-    (airport) =>
       (airport.name
         .toLowerCase()
         .includes(searchQueryDestination?.toLowerCase()) ||
@@ -244,8 +230,21 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
         airport.label
           .toLowerCase()
           .includes(searchQueryDestination?.toLowerCase())) &&
-      airport.name.toLowerCase() !== searchQueryArrival?.toLowerCase() &&
-      airport.value.toLowerCase() !== searchQueryArrival?.toLowerCase()
+      airport.name.toLowerCase() !== searchQueryOrigin?.toLowerCase() &&
+      airport.value.toLowerCase() !== searchQueryOrigin?.toLowerCase()
+  );
+
+  const filteredAirportsDestination = airportsData.filter(
+    (airport) =>
+      (airport.name.toLowerCase().includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.value
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.label
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase())) &&
+      airport.name.toLowerCase() !== searchQueryDestination?.toLowerCase() &&
+      airport.value.toLowerCase() !== searchQueryDestination?.toLowerCase()
   );
 
   const generatePassengersFromCategories = (categories) => {
@@ -353,8 +352,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     setTravelPlanningDate("");
 
     const searchData = {
+      origin: searchQueryOrigin,
       destination: searchQueryDestination,
-      arrival: searchQueryArrival,
       tripType: selectedWay,
       class: selectedClass,
       passengers: passengers,
@@ -368,11 +367,11 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       {
         DepartureDateTime: originalDate,
         OriginLocation: {
-          LocationCode: searchQueryDestination,
+          LocationCode: searchQueryOrigin,
           LocationType: "A",
         },
         DestinationLocation: {
-          LocationCode: searchQueryArrival,
+          LocationCode: searchQueryDestination,
           LocationType: "A",
         },
         RPH: "0",
@@ -383,11 +382,11 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       originDestinationInfo.push({
         DepartureDateTime: originalArrivalData,
         OriginLocation: {
-          LocationCode: searchQueryArrival,
+          LocationCode: searchQueryDestination,
           LocationType: "A",
         },
         DestinationLocation: {
-          LocationCode: searchQueryDestination,
+          LocationCode: searchQueryOrigin,
           LocationType: "A",
         },
         RPH: "1",
@@ -426,14 +425,14 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       return;
     }
 
-    if (!searchQueryDestination) {
+    if (!searchQueryOrigin) {
       toast.error("Please select a departure location.");
 
       return;
     }
 
-    if (!searchQueryArrival) {
-      toast.error("Please select a destination location.");
+    if (!searchQueryDestination) {
+      toast.error("Please select a origin location.");
 
       return;
     }
@@ -466,6 +465,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     }
     setDestinationAirportName(destinationAirport);
     setOriginAirportName(originAirport);
+    setOriginQuery(searchQueryOrigin);
+    setDestinationQuery(searchQueryDestination);
 
     const queryString = new URLSearchParams({
       search: JSON.stringify(searchData),
@@ -481,11 +482,11 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
   const handleSwap = () => {
     const tempLocation = originAirport;
-    const temp = searchQueryDestination;
-    setSearchQueryDestination(searchQueryArrival);
+    const temp = searchQueryOrigin;
+    setSearchQueryOrigin(searchQueryDestination);
     setOriginAirport(destinationAirport);
     setDestinationAirport(tempLocation);
-    setSearchQueryArrival(temp);
+    setSearchQueryDestination(temp);
   };
 
   useEffect(() => {
@@ -499,12 +500,12 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     }
   }, [originAirportName, destinationAirportName]);
   const handleClear = () => {
-    setSearchQueryDestination("");
+    setSearchQueryOrigin("");
     setOriginAirport("");
   };
 
   const handleClearArrival = () => {
-    setSearchQueryArrival("");
+    setSearchQueryDestination("");
     setDestinationAirport("");
   };
   useEffect(() => {
@@ -584,12 +585,12 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               }
                             >
                               <input
-                                value={row.searchQueryDestination}
+                                value={row.searchQueryOrigin}
                                 type="text"
                                 onChange={(e) =>
                                   updateCityData(
                                     row.id,
-                                    "searchQueryDestination",
+                                    "searchQueryOrigin",
                                     e.target.value
                                   )
                                 }
@@ -606,7 +607,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   <ul className="space-y-4">
                                     {filteredAirportsDestinationMulti[
                                       row.id - 1
-                                    ].map((destination, index) => (
+                                    ].map((origin, index) => (
                                       <li
                                         key={index}
                                         className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
@@ -614,28 +615,27 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                           toggleField(row.id, "isOpenOrigin"),
                                             updateCityData(
                                               row.id,
-                                              "searchQueryDestination",
-                                              destination.value
+                                              "searchQueryOrigin",
+                                              origin.value
                                             );
                                           setIsOpenDestination(false);
                                           updateCityData(
                                             row.id,
                                             "originAirport",
                                             {
-                                              label: destination.label,
-                                              value: destination.value,
-                                              code: destination.name,
+                                              label: origin.label,
+                                              value: origin.value,
+                                              code: origin.name,
                                             }
                                           );
                                         }}
                                       >
                                         <div className="flex-grow">
                                           <p className="font-semibold">
-                                            {destination.name},{" "}
-                                            {destination.value}
+                                            {origin.name}, {origin.value}
                                           </p>
                                           <p className="text-sm text-gray-500">
-                                            {destination.label}
+                                            {origin.label}
                                           </p>
                                         </div>
                                       </li>
@@ -655,12 +655,12 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               }
                             >
                               <input
-                                value={row.searchQueryArrival}
+                                value={row.searchQueryDestination}
                                 type="text"
                                 onChange={(e) =>
                                   updateCityData(
                                     row.id,
-                                    "searchQueryArrival",
+                                    "searchQueryDestination",
                                     e.target.value
                                   )
                                 }
@@ -677,7 +677,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   <ul className="space-y-4">
                                     {filteredAirportsArrivalMulti[
                                       row.id - 1
-                                    ].map((arrival, index) => (
+                                    ].map((destination, index) => (
                                       <li
                                         key={index}
                                         className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
@@ -688,27 +688,28 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                           ),
                                             updateCityData(
                                               row.id,
-                                              "searchQueryArrival",
-                                              arrival.value
+                                              "searchQueryDestination",
+                                              destination.value
                                             );
                                           setIsOpenArrival(false);
                                           updateCityData(
                                             row.id,
                                             "destinationAirport",
                                             {
-                                              code: arrival.name,
-                                              value: arrival.value,
-                                              label: arrival.label,
+                                              code: destination.name,
+                                              value: destination.value,
+                                              label: destination.label,
                                             }
                                           );
                                         }}
                                       >
                                         <div className="flex-grow">
                                           <p className="font-semibold">
-                                            {arrival.name}, {arrival.value}
+                                            {destination.name},{" "}
+                                            {destination.value}
                                           </p>
                                           <p className="text-sm text-gray-500">
-                                            {arrival.label}
+                                            {destination.label}
                                           </p>
                                         </div>
                                       </li>
@@ -802,8 +803,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                                   originAirport == "" ||
                                   originAirport == undefined ||
-                                  searchQueryDestination == "" ||
-                                  searchQueryDestination == undefined
+                                  searchQueryOrigin == "" ||
+                                  searchQueryOrigin == undefined
                                     ? ""
                                     : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                 }`}
@@ -814,10 +815,10 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 </span>
                               </p>
                               <input
-                                value={searchQueryDestination}
+                                value={searchQueryOrigin}
                                 type="text"
                                 onChange={(e) =>
-                                  setSearchQueryDestination(e.target.value)
+                                  setSearchQueryOrigin(e.target.value)
                                 }
                                 // placeholder="From ?"
                                 className="hover:bg-[#d9e2e8] uppercase w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
@@ -832,32 +833,29 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 <div className="p-6 max-h-[300px] overflow-y-auto">
                                   <ul className="space-y-4">
                                     {filteredAirportsDestination.map(
-                                      (destination, index) => (
+                                      (origin, index) => (
                                         <li
                                           key={index}
                                           className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                           onClick={() => {
-                                            setSearchQueryDestination(
-                                              destination.value
-                                            );
+                                            setSearchQueryOrigin(origin.value);
                                             setOriginAirport(
-                                              formatLabel(destination.label)
+                                              formatLabel(origin.label)
                                             );
                                             setIsOpenDestination(false);
                                           }}
                                         >
                                           <img
-                                            src={destination.img}
+                                            src={origin.img}
                                             alt=""
                                             className="w-[60px] h-[60px]"
                                           />
                                           <div className="flex-grow">
                                             <p className="font-semibold">
-                                              {destination.name},{" "}
-                                              {destination.value}
+                                              {origin.name}, {origin.value}
                                             </p>
                                             <p className="text-sm text-gray-500">
-                                              {destination.label}
+                                              {origin.label}
                                             </p>
                                           </div>
                                         </li>
@@ -886,8 +884,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                                   destinationAirport == "" ||
                                   destinationAirport == undefined ||
-                                  searchQueryArrival == undefined ||
-                                  searchQueryArrival == ""
+                                  searchQueryDestination == undefined ||
+                                  searchQueryDestination == ""
                                     ? ""
                                     : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                 }`}
@@ -901,10 +899,10 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 </span>
                               </p>
                               <input
-                                value={searchQueryArrival}
+                                value={searchQueryDestination}
                                 type="text"
                                 onChange={(e) =>
-                                  setSearchQueryArrival(e.target.value)
+                                  setSearchQueryDestination(e.target.value)
                                 }
                                 // placeholder="To ?"
                                 className="hover:bg-[#d9e2e8] uppercase w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
@@ -918,31 +916,32 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 <div className="p-6 max-h-[300px] overflow-y-auto">
                                   <ul className="space-y-4">
                                     {filteredAirportsArrival.map(
-                                      (arrival, index) => (
+                                      (destination, index) => (
                                         <li
                                           key={index}
                                           className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                           onClick={() => {
-                                            setSearchQueryArrival(
-                                              arrival.value
+                                            setSearchQueryDestination(
+                                              destination.value
                                             );
                                             setDestinationAirport(
-                                              formatLabel(arrival.label)
+                                              formatLabel(destination.label)
                                             );
                                             setIsOpenArrival(false);
                                           }}
                                         >
                                           <img
-                                            src={arrival.img}
+                                            src={destination.img}
                                             alt=""
                                             className="w-[60px] h-[60px]"
                                           />
                                           <div className="flex-grow">
                                             <p className="font-semibold">
-                                              {arrival.label}
+                                              {destination.label}
                                             </p>
                                             <p className="text-sm text-gray-500">
-                                              {arrival.name}, {arrival.value}
+                                              {destination.name},{" "}
+                                              {destination.value}
                                             </p>
                                           </div>
                                         </li>
@@ -1115,8 +1114,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                                     originAirport == "" ||
                                     originAirport == undefined ||
-                                    searchQueryDestination == "" ||
-                                    searchQueryDestination == undefined
+                                    searchQueryOrigin == "" ||
+                                    searchQueryOrigin == undefined
                                       ? ""
                                       : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                   }`}
@@ -1128,10 +1127,10 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   </span>
                                 </p>
                                 <input
-                                  value={searchQueryDestination}
+                                  value={searchQueryOrigin}
                                   type="text"
                                   onChange={(e) =>
-                                    setSearchQueryDestination(e.target.value)
+                                    setSearchQueryOrigin(e.target.value)
                                   }
                                   // placeholder="From ?"
                                   className="hover:bg-[#d9e2e8] uppercase w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
@@ -1146,32 +1145,31 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   <div className="p-6 max-h-[300px] overflow-y-auto">
                                     <ul className="space-y-4">
                                       {filteredAirportsDestination.map(
-                                        (destination, index) => (
+                                        (origin, index) => (
                                           <li
                                             key={index}
                                             className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                             onClick={() => {
-                                              setSearchQueryDestination(
-                                                destination.value
+                                              setSearchQueryOrigin(
+                                                origin.value
                                               );
                                               setOriginAirport(
-                                                formatLabel(destination.label)
+                                                formatLabel(origin.label)
                                               );
                                               setIsOpenDestination(false);
                                             }}
                                           >
                                             <img
-                                              src={destination.img}
+                                              src={origin.img}
                                               alt=""
                                               className="w-[60px] h-[60px]"
                                             />
                                             <div className="flex-grow">
                                               <p className="font-semibold">
-                                                {destination.name},{" "}
-                                                {destination.value}
+                                                {origin.name}, {origin.value}
                                               </p>
                                               <p className="text-sm text-gray-500">
-                                                {destination.label}
+                                                {origin.label}
                                               </p>
                                             </div>
                                           </li>
@@ -1201,8 +1199,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                                     destinationAirport == "" ||
                                     destinationAirport == undefined ||
-                                    searchQueryArrival == undefined ||
-                                    searchQueryArrival == ""
+                                    searchQueryDestination == undefined ||
+                                    searchQueryDestination == ""
                                       ? ""
                                       : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                                   }`}
@@ -1215,10 +1213,10 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   </span>
                                 </p>
                                 <input
-                                  value={searchQueryArrival}
+                                  value={searchQueryDestination}
                                   type="text"
                                   onChange={(e) =>
-                                    setSearchQueryArrival(e.target.value)
+                                    setSearchQueryDestination(e.target.value)
                                   }
                                   // placeholder="To ?"
                                   className="hover:bg-[#d9e2e8] uppercase w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
@@ -1232,31 +1230,32 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   <div className="p-6 ">
                                     <ul className="space-y-4">
                                       {filteredAirportsArrival.map(
-                                        (arrival, index) => (
+                                        (destination, index) => (
                                           <li
                                             key={index}
                                             className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                             onClick={() => {
-                                              setSearchQueryArrival(
-                                                arrival.value
+                                              setSearchQueryDestination(
+                                                destination.value
                                               );
                                               setDestinationAirport(
-                                                formatLabel(arrival.label)
+                                                formatLabel(destination.label)
                                               );
                                               setIsOpenArrival(false);
                                             }}
                                           >
                                             <img
-                                              src={arrival.img}
+                                              src={destination.img}
                                               alt=""
                                               className="w-[60px] h-[60px]"
                                             />
                                             <div className="flex-grow">
                                               <p className="font-semibold">
-                                                {arrival.label}
+                                                {destination.label}
                                               </p>
                                               <p className="text-sm text-gray-500">
-                                                {arrival.name}, {arrival.value}
+                                                {destination.name},{" "}
+                                                {destination.value}
                                               </p>
                                             </div>
                                           </li>

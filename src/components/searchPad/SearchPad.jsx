@@ -56,16 +56,16 @@ export default function SearchPad() {
     setDestinationAirportName,
   } = useAirlineStore();
 
-  const [searchQueryArrival, setSearchQueryArrival] = useState();
   const [searchQueryDestination, setSearchQueryDestination] = useState();
+  const [searchQueryOrigin, setSearchQueryOrigin] = useState();
   const [originAirport, setOriginAirport] = useState("");
   const [destinationAirport, setDestinationAirport] = useState("");
 
   const [cities, setCities] = useState([
     {
       id: 1,
+      searchQueryOrigin: "",
       searchQueryDestination: "",
-      searchQueryArrival: "",
       departureDate: null,
       isOpenOrigin: false,
       isOpenDestination: false,
@@ -74,8 +74,8 @@ export default function SearchPad() {
     },
     {
       id: 2,
+      searchQueryOrigin: "",
       searchQueryDestination: "",
-      searchQueryArrival: "",
       departureDate: null,
       isOpenOrigin: false,
       isOpenDestination: false,
@@ -84,8 +84,8 @@ export default function SearchPad() {
     },
     {
       id: 3,
+      searchQueryOrigin: "",
       searchQueryDestination: "",
-      searchQueryArrival: "",
       departureDate: null,
       isOpenOrigin: false,
       isOpenDestination: false,
@@ -97,11 +97,11 @@ export default function SearchPad() {
   const transformedData = cities.map((item, index) => ({
     DepartureDateTime: item.departureDate,
     OriginLocation: {
-      LocationCode: item.searchQueryDestination,
+      LocationCode: item.searchQueryOrigin,
       LocationType: "A",
     },
     DestinationLocation: {
-      LocationCode: item.searchQueryArrival,
+      LocationCode: item.searchQueryDestination,
       LocationType: "A",
     },
     RPH: 0,
@@ -153,8 +153,8 @@ export default function SearchPad() {
       ...cities,
       {
         id: cities.length + 1,
+        searchQueryOrigin: "",
         searchQueryDestination: "",
-        searchQueryArrival: "",
         departureDate: null,
         originAirport: "",
         destinationAirport: "",
@@ -194,11 +194,11 @@ export default function SearchPad() {
       (airport) =>
         (airport.name
           .toLowerCase()
-          .includes(city.searchQueryArrival.toLowerCase()) ||
+          .includes(city.searchQueryDestination.toLowerCase()) ||
           airport.value
             .toLowerCase()
-            .includes(city.searchQueryArrival.toLowerCase())) &&
-        airport.value !== city.searchQueryDestination
+            .includes(city.searchQueryDestination.toLowerCase())) &&
+        airport.value !== city.searchQueryOrigin
     )
   );
 
@@ -207,29 +207,27 @@ export default function SearchPad() {
       (airport) =>
         (airport.name
           .toLowerCase()
-          .includes(city.searchQueryDestination.toLowerCase()) ||
+          .includes(city.searchQueryOrigin.toLowerCase()) ||
           airport.value
             .toLowerCase()
-            .includes(city.searchQueryDestination.toLowerCase())) &&
-        airport.value !== city.searchQueryArrival
+            .includes(city.searchQueryOrigin.toLowerCase())) &&
+        airport.value !== city.searchQueryDestination
     )
   );
 
   useEffect(() => {
     if (Object.keys(userData).length > 0 && userData?.home_airport) {
-      setSearchQueryDestination(
-        userData?.home_airport?.match(/\((.*?)\)/)?.[1]
-      );
+      setSearchQueryOrigin(userData?.home_airport?.match(/\((.*?)\)/)?.[1]);
       setOriginAirport(formatLabel(userData?.home_airport));
-      setSearchQueryArrival(
+      setSearchQueryDestination(
         userData?.secondary_airports?.[0]?.match(/\((.*?)\)/)?.[1]
       );
       setDestinationAirport(formatLabel(userData?.secondary_airports?.[0]));
     } else {
       setOriginAirport("Dhaka (DAC)");
       setDestinationAirport("Cox's Bazar (CXB)");
-      setSearchQueryDestination("DAC");
-      setSearchQueryArrival("CXB");
+      setSearchQueryOrigin("DAC");
+      setSearchQueryDestination("CXB");
     }
   }, [userData]);
 
@@ -253,19 +251,6 @@ export default function SearchPad() {
 
   const filteredAirportsArrival = airportsData.filter(
     (airport) =>
-      (airport.name.toLowerCase().includes(searchQueryArrival?.toLowerCase()) ||
-        airport.value
-          .toLowerCase()
-          .includes(searchQueryArrival?.toLowerCase()) ||
-        airport.label
-          .toLowerCase()
-          .includes(searchQueryArrival?.toLowerCase())) &&
-      airport.name.toLowerCase() !== searchQueryDestination?.toLowerCase() &&
-      airport.value.toLowerCase() !== searchQueryDestination?.toLowerCase()
-  );
-
-  const filteredAirportsDestination = airportsData.filter(
-    (airport) =>
       (airport.name
         .toLowerCase()
         .includes(searchQueryDestination?.toLowerCase()) ||
@@ -275,8 +260,21 @@ export default function SearchPad() {
         airport.label
           .toLowerCase()
           .includes(searchQueryDestination?.toLowerCase())) &&
-      airport.name.toLowerCase() !== searchQueryArrival?.toLowerCase() &&
-      airport.value.toLowerCase() !== searchQueryArrival?.toLowerCase()
+      airport.name.toLowerCase() !== searchQueryOrigin?.toLowerCase() &&
+      airport.value.toLowerCase() !== searchQueryOrigin?.toLowerCase()
+  );
+
+  const filteredAirportsDestination = airportsData.filter(
+    (airport) =>
+      (airport.name.toLowerCase().includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.value
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.label
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase())) &&
+      airport.name.toLowerCase() !== searchQueryDestination?.toLowerCase() &&
+      airport.value.toLowerCase() !== searchQueryDestination?.toLowerCase()
   );
 
   const generatePassengersFromCategories = (categories) => {
@@ -438,11 +436,11 @@ export default function SearchPad() {
     setContactInformation({});
     setOriginQuery("");
     setDestinationQuery("");
-    setTravelPlanningDate("");
+    // setTravelPlanningDate("");
 
     const searchData = {
+      origin: searchQueryOrigin,
       destination: searchQueryDestination,
-      arrival: searchQueryArrival,
       tripType: selectedWay,
       class: selectedClass,
       passengers: passengers,
@@ -456,11 +454,11 @@ export default function SearchPad() {
       {
         DepartureDateTime: originalDate,
         OriginLocation: {
-          LocationCode: searchQueryDestination,
+          LocationCode: searchQueryOrigin,
           LocationType: "A",
         },
         DestinationLocation: {
-          LocationCode: searchQueryArrival,
+          LocationCode: searchQueryDestination,
           LocationType: "A",
         },
         RPH: "0",
@@ -471,11 +469,11 @@ export default function SearchPad() {
       originDestinationInfo.push({
         DepartureDateTime: originalArrivalData,
         OriginLocation: {
-          LocationCode: searchQueryArrival,
+          LocationCode: searchQueryDestination,
           LocationType: "A",
         },
         DestinationLocation: {
-          LocationCode: searchQueryDestination,
+          LocationCode: searchQueryOrigin,
           LocationType: "A",
         },
         RPH: "1",
@@ -524,13 +522,13 @@ export default function SearchPad() {
       return;
     }
 
-    if (selectedWay !== "multi_city" && !searchQueryDestination) {
-      toast.error("Please select a Departure location.");
+    if (selectedWay !== "multi_city" && !searchQueryOrigin) {
+      toast.error("Please select a Origin location.");
 
       return;
     }
 
-    if (selectedWay !== "multi_city" && !searchQueryArrival) {
+    if (selectedWay !== "multi_city" && !searchQueryDestination) {
       toast.error("Please select a Destination location.");
 
       return;
@@ -570,8 +568,8 @@ export default function SearchPad() {
       // setSearchData(multi_cityData);
     }
 
-    setOriginQuery(searchQueryDestination);
-    setDestinationQuery(searchQueryArrival);
+    setOriginQuery(searchQueryOrigin);
+    setDestinationQuery(searchQueryDestination);
     setTravelPlanningDate(originalDate);
     setDestinationAirportName(destinationAirport);
     setOriginAirportName(originAirport);
@@ -589,8 +587,8 @@ export default function SearchPad() {
 
   const handleSubmitRecentSearch = (item) => {
     const searchData = {
+      origin: item?.origin,
       destination: item?.destination,
-      arrival: item?.arrival,
       tripType: item?.tripType,
       class: item?.class,
       passengers: item?.passengers,
@@ -619,11 +617,11 @@ export default function SearchPad() {
     //   originDestinationInfo.push({
     //     DepartureDateTime: originalArrivalData,
     //     OriginLocation: {
-    //       LocationCode: searchQueryArrival,
+    //       LocationCode: searchQueryDestination,
     //       LocationType: "A",
     //     },
     //     DestinationLocation: {
-    //       LocationCode: searchQueryDestination,
+    //       LocationCode: searchQueryOrigin,
     //       LocationType: "A",
     //     },
     //     RPH: "1",
@@ -672,13 +670,13 @@ export default function SearchPad() {
     //   return;
     // }
 
-    // if (selectedWay !== "multi_city" && !searchQueryDestination) {
+    // if (selectedWay !== "multi_city" && !searchQueryOrigin) {
     //   toast.error("Please select a Departure location.");
 
     //   return;
     // }
 
-    // if (selectedWay !== "multi_city" && !searchQueryArrival) {
+    // if (selectedWay !== "multi_city" && !searchQueryDestination) {
     //   toast.error("Please select a Destination location.");
 
     //   return;
@@ -727,14 +725,14 @@ export default function SearchPad() {
 
   const handleSwap = () => {
     const tempLocation = originAirport;
-    const temp = searchQueryDestination;
-    setSearchQueryDestination(searchQueryArrival);
+    const temp = searchQueryOrigin;
+    setSearchQueryOrigin(searchQueryDestination);
     setOriginAirport(destinationAirport);
     setDestinationAirport(tempLocation);
-    setSearchQueryArrival(temp);
+    setSearchQueryDestination(temp);
   };
   const handleClear = () => {
-    setSearchQueryDestination("");
+    setSearchQueryOrigin("");
     setOriginAirport("");
   };
   const handleClearMulti = (cityId) => {
@@ -743,7 +741,7 @@ export default function SearchPad() {
         city.id === cityId
           ? {
               ...city,
-              searchQueryDestination: "",
+              searchQueryOrigin: "",
               originAirport: "",
             }
           : city
@@ -756,7 +754,7 @@ export default function SearchPad() {
         city.id === cityId
           ? {
               ...city,
-              searchQueryArrival: "",
+              searchQueryDestination: "",
               destinationAirport: "",
             }
           : city
@@ -765,7 +763,7 @@ export default function SearchPad() {
   };
 
   const handleClearArrival = () => {
-    setSearchQueryArrival("");
+    setSearchQueryDestination("");
     setDestinationAirport("");
   };
 
@@ -984,8 +982,8 @@ export default function SearchPad() {
                           className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                             row?.originAirport == "" ||
                             row?.originAirport == undefined ||
-                            row.searchQueryDestination == "" ||
-                            row.searchQueryDestination == undefined
+                            row.searchQueryOrigin == "" ||
+                            row.searchQueryOrigin == undefined
                               ? ""
                               : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                           }`}
@@ -996,12 +994,12 @@ export default function SearchPad() {
                           </span>
                         </p>
                         <input
-                          value={row.searchQueryDestination}
+                          value={row.searchQueryOrigin}
                           type="text"
                           onChange={(e) =>
                             updateCityData(
                               row.id,
-                              "searchQueryDestination",
+                              "searchQueryOrigin",
                               e.target.value
                             )
                           }
@@ -1013,12 +1011,12 @@ export default function SearchPad() {
                           <Airplane />
                         </div>
                         {/* <input
-                          value={row.searchQueryDestination}
+                          value={row.searchQueryOrigin}
                           type="text"
                           onChange={(e) =>
                             updateCityData(
                               row.id,
-                              "searchQueryDestination",
+                              "searchQueryOrigin",
                               e.target.value
                             )
                           }
@@ -1042,7 +1040,7 @@ export default function SearchPad() {
                                       toggleFieldClick(row.id, "isOpenOrigin"),
                                         updateCityData(
                                           row.id,
-                                          "searchQueryDestination",
+                                          "searchQueryOrigin",
                                           destination.value
                                         );
 
@@ -1085,8 +1083,8 @@ export default function SearchPad() {
                           className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                             row?.destinationAirport == "" ||
                             row?.destinationAirport == undefined ||
-                            row.searchQueryArrival == "" ||
-                            row.searchQueryArrival == undefined
+                            row.searchQueryDestination == "" ||
+                            row.searchQueryDestination == undefined
                               ? ""
                               : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                           }`}
@@ -1101,12 +1099,12 @@ export default function SearchPad() {
                           </span>
                         </p>
                         <input
-                          value={row.searchQueryArrival}
+                          value={row.searchQueryDestination}
                           type="text"
                           onChange={(e) =>
                             updateCityData(
                               row.id,
-                              "searchQueryArrival",
+                              "searchQueryDestination",
                               e.target.value
                             )
                           }
@@ -1134,7 +1132,7 @@ export default function SearchPad() {
                                       ),
                                         updateCityData(
                                           row.id,
-                                          "searchQueryArrival",
+                                          "searchQueryDestination",
                                           arrival.value
                                         );
 
@@ -1244,8 +1242,8 @@ export default function SearchPad() {
                           className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                             originAirport == "" ||
                             originAirport == undefined ||
-                            searchQueryDestination == "" ||
-                            searchQueryDestination == undefined
+                            searchQueryOrigin == "" ||
+                            searchQueryOrigin == undefined
                               ? ""
                               : "border border-white bg-white px-1 py-1 hover:border-black rounded-md transition-all duration-300"
                           }`}
@@ -1256,11 +1254,9 @@ export default function SearchPad() {
                           </span>
                         </p>
                         <input
-                          value={searchQueryDestination}
+                          value={searchQueryOrigin}
                           type="text"
-                          onChange={(e) =>
-                            setSearchQueryDestination(e.target.value)
-                          }
+                          onChange={(e) => setSearchQueryOrigin(e.target.value)}
                           placeholder="From ?"
                           className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                         />
@@ -1279,9 +1275,7 @@ export default function SearchPad() {
                                     key={index}
                                     className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                     onClick={() => {
-                                      setSearchQueryDestination(
-                                        destination.value
-                                      );
+                                      setSearchQueryOrigin(destination.value);
                                       setOriginAirport(
                                         formatLabel(destination.label)
                                       );
@@ -1308,11 +1302,11 @@ export default function SearchPad() {
                           </div>
                           {recentSearchData?.length > 0 ? (
                             <div className="p-8">
-                              <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                              <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
                                 Recent Searches
                                 <button
                                   onClick={() => setRecentSearchData([])}
-                                  className="text-orange-500 hover:text-orange-600"
+                                  className="text-[#4A8DBB] hover:text-[#3b7aa3]"
                                 >
                                   Clear
                                 </button>
@@ -1326,26 +1320,13 @@ export default function SearchPad() {
                                     key={index}
                                     className="flex items-center space-x-4 cursor-pointer"
                                   >
-                                    <div className="bg-gray-100 p-2 rounded-full">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-gray-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
+                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                      <Airplane />
                                     </div>
                                     <div>
                                       <p className="font-semibold">
-                                        {recent?.destination} -{" "}
-                                        {recent?.arrival}
+                                        {recent?.origin} -{" "}
+                                        {recent?.destination}
                                       </p>
                                       <p className="text-sm text-gray-500">
                                         {moment(recent?.journeyDate).format(
@@ -1382,8 +1363,8 @@ export default function SearchPad() {
                           className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                             destinationAirport == "" ||
                             destinationAirport == undefined ||
-                            searchQueryArrival == undefined ||
-                            searchQueryArrival == ""
+                            searchQueryDestination == undefined ||
+                            searchQueryDestination == ""
                               ? ""
                               : "border border-white bg-white px-1 py-1 hover:border-black rounded-md transition-all duration-300"
                           }`}
@@ -1394,10 +1375,10 @@ export default function SearchPad() {
                           </span>
                         </p>
                         <input
-                          value={searchQueryArrival}
+                          value={searchQueryDestination}
                           type="text"
                           onChange={(e) =>
-                            setSearchQueryArrival(e.target.value)
+                            setSearchQueryDestination(e.target.value)
                           }
                           placeholder="To ?"
                           className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
@@ -1415,7 +1396,7 @@ export default function SearchPad() {
                                   key={index}
                                   className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   onClick={() => {
-                                    setSearchQueryArrival(arrival.value);
+                                    setSearchQueryDestination(arrival.value);
                                     setDestinationAirport(
                                       formatLabel(arrival.label)
                                     );
@@ -1477,8 +1458,8 @@ export default function SearchPad() {
                                     </div>
                                     <div>
                                       <p className="font-semibold">
-                                        {recent?.destination} -{" "}
-                                        {recent?.arrival}
+                                        {recent?.origin} -{" "}
+                                        {recent?.destination}
                                       </p>
                                       <p className="text-sm text-gray-500">
                                         {moment(recent?.journeyDate).format(
@@ -1532,8 +1513,8 @@ export default function SearchPad() {
                             className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                               originAirport == "" ||
                               originAirport == undefined ||
-                              searchQueryDestination == "" ||
-                              searchQueryDestination == undefined
+                              searchQueryOrigin == "" ||
+                              searchQueryOrigin == undefined
                                 ? ""
                                 : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                             }`}
@@ -1545,10 +1526,10 @@ export default function SearchPad() {
                             </span>
                           </p>
                           <input
-                            value={searchQueryDestination}
+                            value={searchQueryOrigin}
                             type="text"
                             onChange={(e) =>
-                              setSearchQueryDestination(e.target.value)
+                              setSearchQueryOrigin(e.target.value)
                             }
                             placeholder="From ?"
                             className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
@@ -1568,9 +1549,7 @@ export default function SearchPad() {
                                       key={index}
                                       className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                       onClick={() => {
-                                        setSearchQueryDestination(
-                                          destination.value
-                                        );
+                                        setSearchQueryOrigin(destination.value);
                                         setOriginAirport(
                                           formatLabel(destination.label)
                                         );
@@ -1670,8 +1649,8 @@ export default function SearchPad() {
                             className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                               destinationAirport == "" ||
                               destinationAirport == undefined ||
-                              searchQueryArrival == undefined ||
-                              searchQueryArrival == ""
+                              searchQueryDestination == undefined ||
+                              searchQueryDestination == ""
                                 ? ""
                                 : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
                             }`}
@@ -1684,10 +1663,10 @@ export default function SearchPad() {
                             </span>
                           </p>
                           <input
-                            value={searchQueryArrival}
+                            value={searchQueryDestination}
                             type="text"
                             onChange={(e) =>
-                              setSearchQueryArrival(e.target.value)
+                              setSearchQueryDestination(e.target.value)
                             }
                             placeholder="To ?"
                             className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
@@ -1706,7 +1685,9 @@ export default function SearchPad() {
                                       key={index}
                                       className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                       onClick={() => {
-                                        setSearchQueryArrival(arrival.value);
+                                        setSearchQueryDestination(
+                                          arrival.value
+                                        );
                                         setDestinationAirport(
                                           formatLabel(arrival.label)
                                         );

@@ -4,6 +4,7 @@ import Datetime from "react-datetime";
 import moment from "moment";
 import useAirlineStore from "../../../stores/airlineStore";
 import { toast } from "react-toastify";
+const countryOptions = require("../../../public/utils/countries.json");
 
 export default function BookingFormComp({
   index,
@@ -48,11 +49,11 @@ export default function BookingFormComp({
     { value: "Miss", label: "Miss", shortCode: "Miss" },
   ];
 
-  const countryOptions = [
-    { value: "USA", label: "USA", shortCode: "US" },
-    { value: "India", label: "India", shortCode: "IN" },
-    { value: "China", label: "China", shortCode: "CN" },
-  ];
+  // const countryOptions = [
+  //   { value: "USA", label: "USA", shortCode: "US" },
+  //   { value: "India", label: "India", shortCode: "IN" },
+  //   { value: "China", label: "China", shortCode: "CN" },
+  // ];
 
   const [isDetailed, setIsDetailed] = useState(false);
   const [tabIndex, setTabIndex] = useState();
@@ -239,7 +240,7 @@ export default function BookingFormComp({
                       (option) => option.value === passenger.country
                     )}
                     onChange={(selected) =>
-                      updatePassengerData(index, "country", selected.shortCode)
+                      updatePassengerData(index, "country", selected.value)
                     }
                   />
                 </div>
