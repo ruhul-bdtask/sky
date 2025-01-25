@@ -1,18 +1,23 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
 import { useAirlines } from "@/hooks/useAirlines";
 import { useAirports } from "@/hooks/useAirports";
 
 import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
+import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 import { millisecondsToDateTime } from "@/lib/millisecondsToDateTime";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
 import { useEffect, useState } from "react";
 import useAirlineStore from "../../../stores/airlineStore";
 import MultiRangeSlider from "../ui/multiRangeSlider";
-import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/accordion";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const {
@@ -20,8 +25,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions,
     filterData,
     originQuery,
-    destinationQuery,
-    recentSearchData,
+    searchData,
   } = useAirlineStore();
   // const filterOptions = useAirlineStore((state) => state.filterOptions);
   // const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
@@ -37,6 +41,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     airports: [],
     legRange: [0, 100],
     layoverRange: [0, 100],
+    priceRange: [0, 100],
   });
 
   const [minTakeOff, setMinTakeOff] = useState(0);
@@ -47,6 +52,8 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const [maxLegDuration, setMaxLegDuration] = useState(100);
   const [minLayoverDuration, setMinLayoverDuration] = useState(0);
   const [maxLayoverDuration, setMaxLayoverDuration] = useState(100);
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(100);
 
   //load airports data from JSON
   const { airportsData, airportError, airportLoading } = useAirports();
@@ -54,6 +61,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const { airlinesData, airlineError, airlineLoading } = useAirlines();
 
   const { minutes, seconds } = timer;
+
   // stops change handler
   const handleStopChange = (value) => {
     const updatedStops = filterOptions.stops.includes(value)
@@ -63,7 +71,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions({ ...filterOptions, stops: updatedStops });
   };
 
-  // airlines change handler
+  // airlines add/remove toggler
   const handleAirlinesChange = (flight) => {
     const updatedAirlines = filterOptions.airlines.some(
       (airline) => airline === flight?.airline_name
@@ -89,11 +97,11 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   };
 
   // unique airlines name list
-  const uniqueAirlinesByName = (sortedFlights) => {
+  const uniqueAirlinesByName = (allFlights) => {
     const uniqueFlights = [];
     const airlineSet = new Set();
 
-    sortedFlights.forEach((flight) => {
+    allFlights.forEach((flight) => {
       if (!airlineSet.has(flight.airline_name)) {
         airlineSet.add(flight.airline_name); // Add the airline name to the Set
         uniqueFlights.push(flight); // Add the unique flight to the array
@@ -103,13 +111,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     return uniqueFlights;
   };
 
-  const uniqueAirlines = uniqueAirlinesByName(sortedFlights);
+  const uniqueAirlines = uniqueAirlinesByName(allFlights);
 
   // unique airports name list
-  const uniqueAirportsByName = (sortedFlights) => {
+  const uniqueAirportsByName = (allFlights) => {
     const uniqueAirports = [];
     const airlineSet = new Set();
-    sortedFlights?.forEach((flight) => {
+    allFlights?.forEach((flight) => {
       flight.schedules.forEach((schedule) => {
         // if (!airlineSet.has(schedule?.departure_airport)) {
         //   airlineSet.add(schedule?.departure_airport);
@@ -127,7 +135,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     return uniqueAirports;
   };
 
-  const uniqueAirports = uniqueAirportsByName(sortedFlights);
+  const uniqueAirports = uniqueAirportsByName(allFlights);
 
   const toggleMoreLessAirlines = () => {
     setIsShowMoreAirlines(!isShowMoreAirlines);
@@ -162,17 +170,16 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
         (flight) => flight?.itinerary_leg_descs?.[0]?.duration
       );
 
-      // const layoverTimestamps = allFlights
-      //   .flatMap(
-      //     (flight) => flight?.schedules?.map((leg) => leg.layover_time) || []
-      //   )
-
       const layoverTimestamps = allFlights.flatMap(
         (flight) =>
           flight?.schedules?.reduce(
             (total, leg) => total + Number(leg.layover_time),
             0
           ) || [0]
+      );
+
+      const price = allFlights.map(
+        (flight) => flight?.fare_details?.total_fare
       );
 
       const initialMinTakeOff = Math.min(...takeOffTimestamps);
@@ -187,12 +194,16 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       const initialMinLayoverDuration = Math.min(...layoverTimestamps);
       const initialMaxLayoverDuration = Math.max(...layoverTimestamps);
 
+      const initialMinPrice = Math.min(...price);
+      const initialMaxPrice = Math.max(...price);
+
       setLocalFilterOptions({
-        ...filterOptions,
+        ...localFilterOptions,
         takeOffRange: [initialMinTakeOff, initialMaxTakeOff],
         landingRange: [initialMinLanding, initialMaxLanding],
         legRange: [initialMinLegDuration, initialMaxLegDuration],
         layoverRange: [initialMinLayoverDuration, initialMaxLayoverDuration],
+        priceRange: [initialMinPrice, initialMaxPrice],
       });
       setMinTakeOff(initialMinTakeOff);
       setMaxTakeOff(initialMaxTakeOff);
@@ -202,6 +213,8 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       setMaxLegDuration(initialMaxLegDuration);
       setMinLayoverDuration(initialMinLayoverDuration);
       setMaxLayoverDuration(initialMaxLayoverDuration);
+      setMinPrice(initialMinPrice);
+      setMaxPrice(initialMaxPrice);
     }
   }, []);
 
@@ -270,9 +283,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             <div className="pt-4">
               <div className="mb-4">
                 <p className="mb-1 text-sm">
-                  Take-off from {recentSearchData?.[0]?.destination}
+                  Take-off from {searchData?.destination}
                 </p>
-                <p className="text-sm ">
+                <p className="text-xs ">
                   {millisecondsToDateTime(localFilterOptions.takeOffRange?.[0])}{" "}
                   -{" "}
                   {millisecondsToDateTime(localFilterOptions.takeOffRange?.[1])}
@@ -295,10 +308,8 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             </div>
             <div className="pt-4">
               <div className="mb-4">
-                <p className="mb-1 text-sm">
-                  Landing at {recentSearchData?.[0]?.arrival}
-                </p>
-                <p className="text-sm">
+                <p className="mb-1 text-sm">Landing at {searchData?.arrival}</p>
+                <p className="text-xs">
                   {millisecondsToDateTime(localFilterOptions.landingRange?.[0])}{" "}
                   -{" "}
                   {millisecondsToDateTime(localFilterOptions.landingRange?.[1])}
@@ -326,8 +337,18 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           <div className="flex justify-between">
             <span className="text-[14px] font-semibold">Airlines </span>
             <div>
-              <button className="text-blue-600 text-sm mr-4">Select All</button>
-              <button className="text-blue-600 text-sm">Clear all</button>
+              <button
+                className="text-orange-600 text-sm mr-4"
+                // onClick={handleSelectAllAirlines}
+              >
+                Select All
+              </button>
+              <button
+                className="text-orange-600 text-sm"
+                // onClick={handleClearAllAirlines}
+              >
+                Clear all
+              </button>
             </div>
           </div>
           <div
@@ -404,7 +425,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             <div className="pt-4">
               <div className="mb-4">
                 <p className="mb-1 text-sm">Flight leg</p>
-                <p className="text-sm ">
+                <p className="text-xs ">
                   {formatMinutesToHours(localFilterOptions.legRange?.[0])} -{" "}
                   {formatMinutesToHours(localFilterOptions.legRange?.[1])}
                 </p>
@@ -432,7 +453,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             <div className="pt-4">
               <div className="mb-4">
                 <p className="mb-1 text-sm">Layover</p>
-                <p className="text-sm ">
+                <p className="text-xs ">
                   {formatMinutesToHours(localFilterOptions.layoverRange?.[0])} -{" "}
                   {formatMinutesToHours(localFilterOptions.layoverRange?.[1])}
                 </p>
@@ -478,6 +499,33 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                 className="w-full"
               />
             </div> */}
+
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="hover:no-underline">
+                  <span className="font-semibold">Price</span>
+                </AccordionTrigger>
+                <AccordionContent style={{ overflow: "visible" }}>
+                  <p className="text-xs mb-4">
+                    {"৳"}
+                    {localFilterOptions.priceRange?.[0]} - {"৳"}
+                    {localFilterOptions.priceRange?.[1]}
+                  </p>
+                  <MultiRangeSlider
+                    min={minPrice}
+                    max={minPrice !== maxPrice ? maxPrice : maxPrice + 1}
+                    step={10} // taka
+                    values={localFilterOptions.priceRange}
+                    onChange={(newValues) =>
+                      handleSliderChange("priceRange", newValues)
+                    }
+                    onFinalChange={(newValues) =>
+                      handleFinalChange("priceRange", newValues)
+                    }
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </section>
       </div>
