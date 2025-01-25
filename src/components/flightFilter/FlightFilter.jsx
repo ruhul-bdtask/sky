@@ -18,6 +18,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import { uniqueAirlinesByName } from "@/utils/uniqueAirlinesByName";
+import { uniqueAirportsByName } from "@/utils/uniqueAirportsByName";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const {
@@ -30,6 +32,11 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   // const filterOptions = useAirlineStore((state) => state.filterOptions);
   // const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
   // const filterData = useAirlineStore((state) => state.filterData);
+
+  //load airports data from JSON
+  const { airportsData, airportError, airportLoading } = useAirports();
+  // load airlines data from JSON
+  const { airlinesData, airlineError, airlineLoading } = useAirlines();
 
   const [isShowMoreAirlines, setIsShowMoreAirlines] = useState(false);
 
@@ -54,11 +61,6 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const [maxLayoverDuration, setMaxLayoverDuration] = useState(100);
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(100);
-
-  //load airports data from JSON
-  const { airportsData, airportError, airportLoading } = useAirports();
-  // load airlines data from JSON
-  const { airlinesData, airlineError, airlineLoading } = useAirlines();
 
   const { minutes, seconds } = timer;
 
@@ -97,50 +99,17 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   };
 
   // unique airlines name list
-  const uniqueAirlinesByName = (allFlights) => {
-    const uniqueFlights = [];
-    const airlineSet = new Set();
-
-    allFlights.forEach((flight) => {
-      if (!airlineSet.has(flight.airline_name)) {
-        airlineSet.add(flight.airline_name); // Add the airline name to the Set
-        uniqueFlights.push(flight); // Add the unique flight to the array
-      }
-    });
-
-    return uniqueFlights;
-  };
-
   const uniqueAirlines = uniqueAirlinesByName(allFlights);
 
   // unique airports name list
-  const uniqueAirportsByName = (allFlights) => {
-    const uniqueAirports = [];
-    const airlineSet = new Set();
-    allFlights?.forEach((flight) => {
-      flight.schedules.forEach((schedule) => {
-        // if (!airlineSet.has(schedule?.departure_airport)) {
-        //   airlineSet.add(schedule?.departure_airport);
-        //   uniqueAirports.push(schedule?.departure_airport);
-        // } else if (!airlineSet.has(schedule?.arrival_airport)) {
-        //   airlineSet.add(schedule?.arrival_airport);
-        //   uniqueAirports.push(schedule?.arrival_airport);
-        // }
-        if (!airlineSet.has(schedule?.arrival_airport)) {
-          airlineSet.add(schedule?.arrival_airport);
-          uniqueAirports.push(schedule?.arrival_airport);
-        }
-      });
-    });
-    return uniqueAirports;
-  };
-
   const uniqueAirports = uniqueAirportsByName(allFlights);
 
+  // show and hide more airline lists
   const toggleMoreLessAirlines = () => {
     setIsShowMoreAirlines(!isShowMoreAirlines);
   };
 
+  // slider changer handler
   const handleSliderChange = (key, newValues) => {
     const updatedLocalFilterOptions = {
       ...localFilterOptions,
@@ -153,11 +122,30 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions(updatedFilterOptions);
   };
 
-  const handleFinalChange = (key, newValues) => {
+  // trigger the slider when slide handler released
+  const handleSliderFinalChange = (key, newValues) => {
     const updatedFilterOptions = { ...filterOptions, [key]: newValues };
     setFilterOptions(updatedFilterOptions);
   };
 
+  // select all airlines handler
+  const handleSelectAllAirlines = () => {
+    // unique airlines name list
+    const updatedAirlines = uniqueAirlines.map(
+      (airline) => airline.airline_name
+    );
+    setFilterOptions({
+      ...filterOptions,
+      airlines: updatedAirlines,
+    });
+  };
+
+  // dis select all airlines
+  const handleClearAllAirlines = () => {
+    setFilterOptions({ ...filterOptions, airlines: [] });
+  };
+
+  // effect for set initial values for all the filter options
   useEffect(() => {
     if (allFlights && allFlights.length > 0) {
       const takeOffTimestamps = allFlights.map((flight) =>
@@ -301,7 +289,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     handleSliderChange("takeOffRange", newValues)
                   }
                   onFinalChange={(newValues) =>
-                    handleFinalChange("takeOffRange", newValues)
+                    handleSliderFinalChange("takeOffRange", newValues)
                   }
                 />
               </div>
@@ -325,7 +313,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     handleSliderChange("landingRange", newValues)
                   }
                   onFinalChange={(newValues) =>
-                    handleFinalChange("landingRange", newValues)
+                    handleSliderFinalChange("landingRange", newValues)
                   }
                 />
               </div>
@@ -339,13 +327,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             <div>
               <button
                 className="text-orange-600 text-sm mr-4"
-                // onClick={handleSelectAllAirlines}
+                onClick={handleSelectAllAirlines}
               >
                 Select All
               </button>
               <button
                 className="text-orange-600 text-sm"
-                // onClick={handleClearAllAirlines}
+                onClick={handleClearAllAirlines}
               >
                 Clear all
               </button>
@@ -444,7 +432,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     handleSliderChange("legRange", newValues)
                   }
                   onFinalChange={(newValues) =>
-                    handleFinalChange("legRange", newValues)
+                    handleSliderFinalChange("legRange", newValues)
                   }
                 />
               </div>
@@ -473,7 +461,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     handleSliderChange("layoverRange", newValues)
                   }
                   onFinalChange={(newValues) =>
-                    handleFinalChange("layoverRange", newValues)
+                    handleSliderFinalChange("layoverRange", newValues)
                   }
                 />
                 {/* ) : (
@@ -520,7 +508,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                       handleSliderChange("priceRange", newValues)
                     }
                     onFinalChange={(newValues) =>
-                      handleFinalChange("priceRange", newValues)
+                      handleSliderFinalChange("priceRange", newValues)
                     }
                   />
                 </AccordionContent>
