@@ -61,6 +61,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const { airlinesData, airlineError, airlineLoading } = useAirlines();
 
   const { minutes, seconds } = timer;
+
   // stops change handler
   const handleStopChange = (value) => {
     const updatedStops = filterOptions.stops.includes(value)
@@ -70,7 +71,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions({ ...filterOptions, stops: updatedStops });
   };
 
-  // airlines change handler
+  // airlines add/remove toggler
   const handleAirlinesChange = (flight) => {
     const updatedAirlines = filterOptions.airlines.some(
       (airline) => airline === flight?.airline_name
@@ -96,11 +97,11 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   };
 
   // unique airlines name list
-  const uniqueAirlinesByName = (sortedFlights) => {
+  const uniqueAirlinesByName = (allFlights) => {
     const uniqueFlights = [];
     const airlineSet = new Set();
 
-    sortedFlights.forEach((flight) => {
+    allFlights.forEach((flight) => {
       if (!airlineSet.has(flight.airline_name)) {
         airlineSet.add(flight.airline_name); // Add the airline name to the Set
         uniqueFlights.push(flight); // Add the unique flight to the array
@@ -110,13 +111,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     return uniqueFlights;
   };
 
-  const uniqueAirlines = uniqueAirlinesByName(sortedFlights);
+  const uniqueAirlines = uniqueAirlinesByName(allFlights);
 
   // unique airports name list
-  const uniqueAirportsByName = (sortedFlights) => {
+  const uniqueAirportsByName = (allFlights) => {
     const uniqueAirports = [];
     const airlineSet = new Set();
-    sortedFlights?.forEach((flight) => {
+    allFlights?.forEach((flight) => {
       flight.schedules.forEach((schedule) => {
         // if (!airlineSet.has(schedule?.departure_airport)) {
         //   airlineSet.add(schedule?.departure_airport);
@@ -134,7 +135,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     return uniqueAirports;
   };
 
-  const uniqueAirports = uniqueAirportsByName(sortedFlights);
+  const uniqueAirports = uniqueAirportsByName(allFlights);
 
   const toggleMoreLessAirlines = () => {
     setIsShowMoreAirlines(!isShowMoreAirlines);
@@ -169,11 +170,6 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
         (flight) => flight?.itinerary_leg_descs?.[0]?.duration
       );
 
-      // const layoverTimestamps = allFlights
-      //   .flatMap(
-      //     (flight) => flight?.schedules?.map((leg) => leg.layover_time) || []
-      //   )
-
       const layoverTimestamps = allFlights.flatMap(
         (flight) =>
           flight?.schedules?.reduce(
@@ -202,7 +198,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       const initialMaxPrice = Math.max(...price);
 
       setLocalFilterOptions({
-        ...filterOptions,
+        ...localFilterOptions,
         takeOffRange: [initialMinTakeOff, initialMaxTakeOff],
         landingRange: [initialMinLanding, initialMaxLanding],
         legRange: [initialMinLegDuration, initialMaxLegDuration],
@@ -341,10 +337,18 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           <div className="flex justify-between">
             <span className="text-[14px] font-semibold">Airlines </span>
             <div>
-              <button className="text-orange-600 text-sm mr-4">
+              <button
+                className="text-orange-600 text-sm mr-4"
+                // onClick={handleSelectAllAirlines}
+              >
                 Select All
               </button>
-              <button className="text-orange-600 text-sm">Clear all</button>
+              <button
+                className="text-orange-600 text-sm"
+                // onClick={handleClearAllAirlines}
+              >
+                Clear all
+              </button>
             </div>
           </div>
           <div
