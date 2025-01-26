@@ -28,6 +28,7 @@ import TripDatePicker from "../datePicker/TripDatePicker";
 import ModalLayout from "../modals/ModalLayout";
 import PopupBtn from "./PopupBtn";
 import SearchDestination from "./SearchDestination";
+import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -64,8 +65,7 @@ export default function Header() {
     destinationAirportName,
     setSavedSingleFlight,
   } = useAirlineStore();
-  const { destination, origin, journeyDate, returnDate, tripType } =
-    searchData;
+  const { destination, origin, journeyDate, returnDate, tripType } = searchData;
 
   const [formData, setFormData] = useState({
     destination: "",
@@ -484,21 +484,21 @@ export default function Header() {
     0
   );
 
-  const formatDate = (journeyDate) => {
-    const date = new Date(journeyDate);
+  // const formatDate = (journeyDate) => {
+  //   const date = new Date(journeyDate);
 
-    // Format: 2024-12-25T00:00:00
-    const isoFormat = date?.toISOString().split("T")[0] + "T00:00:00";
+  //   // Format: 2024-12-25T00:00:00
+  //   const isoFormat = date?.toISOString().split("T")[0] + "T00:00:00";
 
-    // Format: Wed12/25
-    const day = date?.toLocaleDateString("en-US", { weekday: "short" });
-    const month = String(date?.getMonth() + 1).padStart(2, "0");
-    const dayOfMonth = String(date?.getDate()).padStart(2, "0");
-    const shortFormat = `${day} ${month}/${dayOfMonth}`;
+  //   // Format: Wed12/25
+  //   const day = date?.toLocaleDateString("en-US", { weekday: "short" });
+  //   const month = String(date?.getMonth() + 1).padStart(2, "0");
+  //   const dayOfMonth = String(date?.getDate()).padStart(2, "0");
+  //   const shortFormat = `${day} ${month}/${dayOfMonth}`;
 
-    // Return the desired format
-    return ` ${shortFormat}`; // Combine or use as needed
-  };
+  //   // Return the desired format
+  //   return ` ${shortFormat}`; // Combine or use as needed
+  // };
 
   function formatDateSaved(dateString) {
     if (!dateString) return "";
@@ -630,9 +630,9 @@ export default function Header() {
                 <Menu className="h-6 w-6" />
               )}
             </button>
-            <Link href={"/"} onClick={() => setSearchData({})}>
+            <a href={"/"} onClick={() => setSearchData({})}>
               <Image className="mx-4 md:mx-0" alt="logo" src={logo}></Image>
-            </Link>
+            </a>
           </div>
           <div>
             {pathname == "/search-result" && searchData?.tripType && (
@@ -658,11 +658,13 @@ export default function Header() {
                 </div>
 
                 <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-3">
-                  {formatDate(journeyDate)} <LuChevronsLeftRight size={20} />
+                  {formatLongDataToShort(journeyDate)}{" "}
+                  <LuChevronsLeftRight size={20} />
                   {tripType == "return" && (
                     <>
                       <div class="border-l-2 border-gray-100 h-5"></div>
-                      {formatDate(returnDate)} <LuChevronsLeftRight size={20} />
+                      {formatLongDataToShort(returnDate)}{" "}
+                      <LuChevronsLeftRight size={20} />
                     </>
                   )}
                 </div>
@@ -1215,9 +1217,13 @@ export default function Header() {
                               Add user
                             </span>
                           </button> */}
-                          <p className="py-1 text-sm text-black cursor-pointer">
+                          <Link
+                            onClick={() => setIsOpenProfile(false)}
+                            href={"/trips"}
+                            className="py-1 text-sm text-black cursor-pointer"
+                          >
                             Trips
-                          </p>
+                          </Link>
                           <p className="py-1 text-sm text-black cursor-pointer">
                             Help/FAQ
                           </p>

@@ -7,7 +7,9 @@ export async function middleware(request) {
 
   if (
     !token &&
-    (pathname.startsWith("/dashboard") || pathname === "/success")
+    (pathname.startsWith("/dashboard") ||
+      pathname === "/success" ||
+      pathname === "/trips")
   ) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -23,7 +25,11 @@ export async function middleware(request) {
     } catch (error) {
       console.error("Token verification failed:", error);
 
-      if (pathname.startsWith("/dashboard") || pathname === "/success") {
+      if (
+        pathname.startsWith("/dashboard") ||
+        pathname === "/success" ||
+        pathname === "/trips"
+      ) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
     }
@@ -33,5 +39,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/sign-up", "/success"],
+  matcher: ["/dashboard/:path*", "/login", "/sign-up", "/success", "/trips"],
 };

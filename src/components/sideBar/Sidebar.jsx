@@ -31,7 +31,7 @@ export default function Sidebar() {
       icon: <Love />,
       label: "Trips",
       shortCode: "trips",
-      link: "/trips",
+      link: "#",
     },
     {
       icon: <Feedback />,
