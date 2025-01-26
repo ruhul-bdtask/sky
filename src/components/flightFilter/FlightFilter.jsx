@@ -9,8 +9,8 @@ import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 import { millisecondsToDateTime } from "@/lib/millisecondsToDateTime";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
+import { getUniqueAircraftModel } from "@/utils/getUniqueAircraftModel";
 import { getUniqueAirlines } from "@/utils/getUniqueAirlines";
-import { getUniqueAirlinesModel } from "@/utils/getUniqueAirlinesModel";
 import { getUniqueAirports } from "@/utils/getUniqueAirports";
 import { getUniqueLayoverAirports } from "@/utils/getUniqueLayoverAirports";
 import { useEffect, useState } from "react";
@@ -49,7 +49,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     airlines: [],
     airports: [],
     layoverAirports: [],
-    airlinesModel: [],
+    aircraftModel: [],
     legRange: [0, 100],
     layoverRange: [0, 100],
     priceRange: [0, 100],
@@ -115,13 +115,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
   // airlines model change handler
   const handleAirlinesModelChange = (model) => {
-    const updatedAirlinesModel = filterOptions.airlinesModel.some(
+    const updatedAirlinesModel = filterOptions.aircraftModel.some(
       (al) => al === model
     )
-      ? filterOptions.airlinesModel.filter((mod) => mod !== model)
-      : [...filterOptions.airlinesModel, model];
+      ? filterOptions.aircraftModel.filter((mod) => mod !== model)
+      : [...filterOptions.aircraftModel, model];
 
-    setFilterOptions({ ...filterOptions, airlinesModel: updatedAirlinesModel });
+    setFilterOptions({ ...filterOptions, aircraftModel: updatedAirlinesModel });
   };
 
   // unique airlines name list
@@ -134,7 +134,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const uniqueLayoverAirports = getUniqueLayoverAirports(allFlights);
 
   // unique airlines model list
-  const uniqueAirlinesModel = getUniqueAirlinesModel(allFlights);
+  const uniqueAirlinesModel = getUniqueAircraftModel(allFlights);
   // show and hide more airline lists
   const toggleMoreLessAirlines = () => {
     setIsShowMoreAirlines(!isShowMoreAirlines);
@@ -606,7 +606,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                           <label className="flex items-center">
                             <Checkbox
                               id="direct"
-                              checked={filterOptions.airlinesModel?.some(
+                              checked={filterOptions.aircraftModel?.some(
                                 (ap) => ap === model
                               )}
                               onCheckedChange={(checked) =>

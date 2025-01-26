@@ -27,7 +27,7 @@ const useAirlineStore = create()(
           airlines: [],
           airports: [],
           layoverAirports: [],
-          airlinesModel: [],
+          aircraftModel: [],
           legRange: [0, 100], // in minutes
           layoverRange: [0, 100], // in minutes
           priceRange: [0, 100], // in taka

@@ -1,4 +1,4 @@
-export const getUniqueAirlinesModel = (allFlights) => {
+export const getUniqueAircraftModel = (allFlights) => {
   const uniqueModels = [];
   const modelsSet = new Set();
 

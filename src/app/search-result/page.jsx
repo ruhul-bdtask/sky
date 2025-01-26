@@ -2,15 +2,15 @@
 import FlightCard from "@/components/flightCard/FlightCard";
 import FlightFilter from "@/components/flightFilter/FlightFilter";
 import TopFilter from "@/components/topFilter/TopFilter";
+import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 import ResultPageSkeleton from "@/skeletons/ResultPageSkeleton";
-import LoadingBar from "react-top-loading-bar";
-import { notFound, useRouter } from "next/navigation";
 import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { notFound, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import LoadingBar from "react-top-loading-bar";
 import useAirlineStore from "../../../stores/airlineStore";
-import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 export default function Page({ searchParams }) {
   const [loadingRevalidate, setLoadingRevalidate] = useState(false);
   const ref = useRef(null);
@@ -199,8 +199,8 @@ export default function Page({ searchParams }) {
       : null;
 
     // Check if the airlines model filter is applied
-    const airlinesModelToFilter = filterOptions.airlinesModel?.length
-      ? filterOptions.airlinesModel
+    const airlinesModelToFilter = filterOptions.aircraftModel?.length
+      ? filterOptions.aircraftModel
       : null;
 
     // Filter the flights based on the conditions
