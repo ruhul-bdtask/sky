@@ -1,14 +1,14 @@
-export const uniqueLayoverAirportsByName = (allFlights) => {
+export const getUniqueLayoverAirports = (allFlights) => {
   const uniqueLayoverAirports = [];
-  const airlineSet = new Set();
+  const layoverAirportsSet = new Set();
 
   allFlights?.forEach((flight) => {
     if (flight.schedules.length > 0) {
       flight?.schedules
         ?.slice(1, flight?.schedules?.length)
         .forEach((schedule) => {
-          if (!airlineSet.has(schedule?.departure_airport)) {
-            airlineSet.add(schedule?.departure_airport);
+          if (!layoverAirportsSet.has(schedule?.departure_airport)) {
+            layoverAirportsSet.add(schedule?.departure_airport);
             uniqueLayoverAirports.push(schedule?.departure_airport);
           }
         });

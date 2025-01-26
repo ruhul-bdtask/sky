@@ -9,18 +9,19 @@ import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 import { millisecondsToDateTime } from "@/lib/millisecondsToDateTime";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
+import { getUniqueAirlines } from "@/utils/getUniqueAirlines";
+import { getUniqueAirlinesModel } from "@/utils/getUniqueAirlinesModel";
+import { getUniqueAirports } from "@/utils/getUniqueAirports";
+import { getUniqueLayoverAirports } from "@/utils/getUniqueLayoverAirports";
 import { useEffect, useState } from "react";
 import useAirlineStore from "../../../stores/airlineStore";
-import MultiRangeSlider from "../ui/multiRangeSlider";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { uniqueAirlinesByName } from "@/utils/uniqueAirlinesByName";
-import { uniqueAirportsByName } from "@/utils/uniqueAirportsByName";
-import { uniqueLayoverAirportsByName } from "@/utils/uniqueLayoverAirportsByName";
+import MultiRangeSlider from "../ui/multiRangeSlider";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const {
@@ -48,6 +49,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     airlines: [],
     airports: [],
     layoverAirports: [],
+    airlinesModel: [],
     legRange: [0, 100],
     layoverRange: [0, 100],
     priceRange: [0, 100],
@@ -111,14 +113,28 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions({ ...filterOptions, layoverAirports: updatedAirports });
   };
 
+  // airlines model change handler
+  const handleAirlinesModelChange = (model) => {
+    const updatedAirlinesModel = filterOptions.airlinesModel.some(
+      (al) => al === model
+    )
+      ? filterOptions.airlinesModel.filter((mod) => mod !== model)
+      : [...filterOptions.airlinesModel, model];
+
+    setFilterOptions({ ...filterOptions, airlinesModel: updatedAirlinesModel });
+  };
+
   // unique airlines name list
-  const uniqueAirlines = uniqueAirlinesByName(allFlights);
+  const uniqueAirlines = getUniqueAirlines(allFlights);
 
   // unique airports name list
-  const uniqueAirports = uniqueAirportsByName(allFlights);
+  const uniqueAirports = getUniqueAirports(allFlights);
 
   // unique layover airports name list
-  const uniqueLayoverAirports = uniqueLayoverAirportsByName(allFlights);
+  const uniqueLayoverAirports = getUniqueLayoverAirports(allFlights);
+
+  // unique airlines model list
+  const uniqueAirlinesModel = getUniqueAirlinesModel(allFlights);
   // show and hide more airline lists
   const toggleMoreLessAirlines = () => {
     setIsShowMoreAirlines(!isShowMoreAirlines);
@@ -133,8 +149,8 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setLocalFilterOptions(updatedLocalFilterOptions);
 
     //TODO: remove the below two lines if only filter flights handler released
-    const updatedFilterOptions = { ...filterOptions, [key]: newValues };
-    setFilterOptions(updatedFilterOptions);
+    // const updatedFilterOptions = { ...filterOptions, [key]: newValues };
+    // setFilterOptions(updatedFilterOptions);
   };
 
   // trigger the slider when slide handler released
@@ -537,8 +553,8 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                 </AccordionTrigger>
                 <AccordionContent style={{ overflow: "visible" }}>
                   {" "}
-                  <section className="mb-6 border-t pt-3 ">
-                    <div className="mt-3 space-y-2">
+                  <section className=" ">
+                    <div className=" space-y-2">
                       {uniqueLayoverAirports.map((airport) => (
                         <div key={airport} className="space-y-0">
                           <span className="text-sm font-medium block mb-1">
@@ -568,6 +584,38 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                             {/* <span className="ml-auto text-[#64717B] text-[14px]">
                           Tk 23,404
                         </span> */}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="hover:no-underline">
+                  <span className="font-semibold">Aircraft</span>
+                </AccordionTrigger>
+                <AccordionContent style={{ overflow: "visible" }}>
+                  <span className="text-sm font-medium block mb-1">Model</span>
+                  <section className="">
+                    <div className=" space-y-2">
+                      {uniqueAirlinesModel.map((model) => (
+                        <div key={model} className="space-y-0">
+                          <label className="flex items-center">
+                            <Checkbox
+                              id="direct"
+                              checked={filterOptions.airlinesModel?.some(
+                                (ap) => ap === model
+                              )}
+                              onCheckedChange={(checked) =>
+                                handleAirlinesModelChange(model)
+                              }
+                            />
+                            <span className="text-sm ml-2 text-gray-700">
+                              {model}
+                            </span>
                           </label>
                         </div>
                       ))}
