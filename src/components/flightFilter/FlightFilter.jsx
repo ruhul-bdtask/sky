@@ -18,6 +18,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import { uniqueAirlinesByName } from "@/utils/uniqueAirlinesByName";
+import { uniqueAirportsByName } from "@/utils/uniqueAirportsByName";
+import { uniqueLayoverAirportsByName } from "@/utils/uniqueLayoverAirportsByName";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const {
@@ -31,6 +34,11 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   // const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
   // const filterData = useAirlineStore((state) => state.filterData);
 
+  //load airports data from JSON
+  const { airportsData, airportError, airportLoading } = useAirports();
+  // load airlines data from JSON
+  const { airlinesData, airlineError, airlineLoading } = useAirlines();
+
   const [isShowMoreAirlines, setIsShowMoreAirlines] = useState(false);
 
   const [localFilterOptions, setLocalFilterOptions] = useState({
@@ -39,6 +47,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     landingRange: [0, 100],
     airlines: [],
     airports: [],
+    layoverAirports: [],
     legRange: [0, 100],
     layoverRange: [0, 100],
     priceRange: [0, 100],
@@ -54,11 +63,6 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const [maxLayoverDuration, setMaxLayoverDuration] = useState(100);
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(100);
-
-  //load airports data from JSON
-  const { airportsData, airportError, airportLoading } = useAirports();
-  // load airlines data from JSON
-  const { airlinesData, airlineError, airlineLoading } = useAirlines();
 
   const { minutes, seconds } = timer;
 
@@ -96,51 +100,31 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions({ ...filterOptions, airports: updatedAirports });
   };
 
-  // unique airlines name list
-  const uniqueAirlinesByName = (allFlights) => {
-    const uniqueFlights = [];
-    const airlineSet = new Set();
+  // layover airports change handler
+  const handleLayoverAirportsChange = (airport) => {
+    const updatedAirports = filterOptions.layoverAirports.some(
+      (ap) => ap === airport
+    )
+      ? filterOptions.layoverAirports.filter((air) => air !== airport)
+      : [...filterOptions.layoverAirports, airport];
 
-    allFlights.forEach((flight) => {
-      if (!airlineSet.has(flight.airline_name)) {
-        airlineSet.add(flight.airline_name); // Add the airline name to the Set
-        uniqueFlights.push(flight); // Add the unique flight to the array
-      }
-    });
-
-    return uniqueFlights;
+    setFilterOptions({ ...filterOptions, layoverAirports: updatedAirports });
   };
 
+  // unique airlines name list
   const uniqueAirlines = uniqueAirlinesByName(allFlights);
 
   // unique airports name list
-  const uniqueAirportsByName = (allFlights) => {
-    const uniqueAirports = [];
-    const airlineSet = new Set();
-    allFlights?.forEach((flight) => {
-      flight.schedules.forEach((schedule) => {
-        // if (!airlineSet.has(schedule?.departure_airport)) {
-        //   airlineSet.add(schedule?.departure_airport);
-        //   uniqueAirports.push(schedule?.departure_airport);
-        // } else if (!airlineSet.has(schedule?.arrival_airport)) {
-        //   airlineSet.add(schedule?.arrival_airport);
-        //   uniqueAirports.push(schedule?.arrival_airport);
-        // }
-        if (!airlineSet.has(schedule?.arrival_airport)) {
-          airlineSet.add(schedule?.arrival_airport);
-          uniqueAirports.push(schedule?.arrival_airport);
-        }
-      });
-    });
-    return uniqueAirports;
-  };
-
   const uniqueAirports = uniqueAirportsByName(allFlights);
 
+  // unique layover airports name list
+  const uniqueLayoverAirports = uniqueLayoverAirportsByName(allFlights);
+  // show and hide more airline lists
   const toggleMoreLessAirlines = () => {
     setIsShowMoreAirlines(!isShowMoreAirlines);
   };
 
+  // slider changer handler
   const handleSliderChange = (key, newValues) => {
     const updatedLocalFilterOptions = {
       ...localFilterOptions,
@@ -153,11 +137,30 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions(updatedFilterOptions);
   };
 
-  const handleFinalChange = (key, newValues) => {
+  // trigger the slider when slide handler released
+  const handleSliderFinalChange = (key, newValues) => {
     const updatedFilterOptions = { ...filterOptions, [key]: newValues };
     setFilterOptions(updatedFilterOptions);
   };
 
+  // select all airlines handler
+  const handleSelectAllAirlines = () => {
+    // unique airlines name list
+    const updatedAirlines = uniqueAirlines.map(
+      (airline) => airline.airline_name
+    );
+    setFilterOptions({
+      ...filterOptions,
+      airlines: updatedAirlines,
+    });
+  };
+
+  // dis select all airlines
+  const handleClearAllAirlines = () => {
+    setFilterOptions({ ...filterOptions, airlines: [] });
+  };
+
+  // effect for set initial values for all the filter options
   useEffect(() => {
     if (allFlights && allFlights.length > 0) {
       const takeOffTimestamps = allFlights.map((flight) =>
@@ -301,7 +304,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     handleSliderChange("takeOffRange", newValues)
                   }
                   onFinalChange={(newValues) =>
-                    handleFinalChange("takeOffRange", newValues)
+                    handleSliderFinalChange("takeOffRange", newValues)
                   }
                 />
               </div>
@@ -325,7 +328,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     handleSliderChange("landingRange", newValues)
                   }
                   onFinalChange={(newValues) =>
-                    handleFinalChange("landingRange", newValues)
+                    handleSliderFinalChange("landingRange", newValues)
                   }
                 />
               </div>
@@ -339,13 +342,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             <div>
               <button
                 className="text-orange-600 text-sm mr-4"
-                // onClick={handleSelectAllAirlines}
+                onClick={handleSelectAllAirlines}
               >
                 Select All
               </button>
               <button
                 className="text-orange-600 text-sm"
-                // onClick={handleClearAllAirlines}
+                onClick={handleClearAllAirlines}
               >
                 Clear all
               </button>
@@ -394,7 +397,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           <div className="mt-3 space-y-2">
             {uniqueAirports.map((airport) => (
               <div key={airport} className="space-y-0">
-                <span className="text-sm font-medium ">
+                <span className="text-sm font-medium block mb-1">
                   {getChangingCity(airportsData, airport).split(",")[0]}
                 </span>
                 <label className="flex items-center">
@@ -405,7 +408,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     )}
                     onCheckedChange={(checked) => handleAirportsChange(airport)}
                   />
-                  <span className="text-sm ml-2 ">
+                  <span className="text-sm ml-2 text-gray-700">
                     {`${airport}: ${getAirport(airportsData, airport)
                       .split(" ")
                       .slice(0, 2)
@@ -444,7 +447,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     handleSliderChange("legRange", newValues)
                   }
                   onFinalChange={(newValues) =>
-                    handleFinalChange("legRange", newValues)
+                    handleSliderFinalChange("legRange", newValues)
                   }
                 />
               </div>
@@ -473,7 +476,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     handleSliderChange("layoverRange", newValues)
                   }
                   onFinalChange={(newValues) =>
-                    handleFinalChange("layoverRange", newValues)
+                    handleSliderFinalChange("layoverRange", newValues)
                   }
                 />
                 {/* ) : (
@@ -520,9 +523,56 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                       handleSliderChange("priceRange", newValues)
                     }
                     onFinalChange={(newValues) =>
-                      handleFinalChange("priceRange", newValues)
+                      handleSliderFinalChange("priceRange", newValues)
                     }
                   />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="hover:no-underline">
+                  <span className="font-semibold">Layover Airports</span>
+                </AccordionTrigger>
+                <AccordionContent style={{ overflow: "visible" }}>
+                  {" "}
+                  <section className="mb-6 border-t pt-3 ">
+                    <div className="mt-3 space-y-2">
+                      {uniqueLayoverAirports.map((airport) => (
+                        <div key={airport} className="space-y-0">
+                          <span className="text-sm font-medium block mb-1">
+                            {getChangingCity(airportsData, airport)
+                              .split(",")
+                              .slice(1, 2)
+                              .join(" ")
+                              .split("(")
+                              .slice(0, 1)}
+                          </span>
+                          <label className="flex items-center">
+                            <Checkbox
+                              id="direct"
+                              checked={filterOptions.layoverAirports?.some(
+                                (ap) => ap === airport
+                              )}
+                              onCheckedChange={(checked) =>
+                                handleLayoverAirportsChange(airport)
+                              }
+                            />
+                            <span className="text-sm ml-2 text-gray-700">
+                              {`${getAirport(airportsData, airport)
+                                .split(" ")
+                                .slice(0, 2)
+                                .join(" ")} (${airport})`}
+                            </span>
+                            {/* <span className="ml-auto text-[#64717B] text-[14px]">
+                          Tk 23,404
+                        </span> */}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
