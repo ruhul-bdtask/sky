@@ -36,8 +36,8 @@ export default function Faq() {
         >
           {faqData?.data.map((destination, index) => (
             <AccordionItem value={destination.question} key={index}>
-              <AccordionTrigger className="text-left py-1">
-                <div className="text-[16ox] font-semibold py-3">
+              <AccordionTrigger className="text-left py-1 hover:no-underline">
+                <div className="text-[16ox] font-normal py-3">
                   {destination.question}
                 </div>
               </AccordionTrigger>

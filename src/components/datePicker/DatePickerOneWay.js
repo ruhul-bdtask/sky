@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/popover";
 import Calender from "@/public/icons/Calender";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
 
 export default function DatePickerOneWay({
   className,
@@ -48,7 +49,7 @@ export default function DatePickerOneWay({
                 <Calender />
               </div>
               {oneWayDate ? (
-                format(oneWayDate, "LLL dd, y")
+                formatLongDataToShort(oneWayDate)
               ) : (
                 <span>Pick a date</span>
               )}
@@ -71,16 +72,19 @@ export default function DatePickerOneWay({
           <Calendar
             mode="single"
             selected={oneWayDate}
-            onSelect={setOneWayDate}
+            onSelect={(date) => {
+              setOneWayDate(date);
+              setIsPopoverOpen(!isPopoverOpen);
+            }}
             initialFocus
             numberOfMonths={2}
             className="p-3"
             classNames={{
               months:
-                "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 ",
               month: "space-y-4",
-              caption: "flex justify-center pt-1 relative items-center",
-              caption_label: "text-sm font-medium",
+              caption: "flex justify-center pt-1 relative items-center ",
+              caption_label: "text-[16px] font-bold ",
               nav: "space-x-1 flex items-center",
               nav_button: cn(
                 "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border",
@@ -89,16 +93,16 @@ export default function DatePickerOneWay({
               nav_button_previous: "absolute left-1",
               nav_button_next: "absolute right-1",
               table: "w-[300px] border-collapse space-y-1",
-              head_row: "flex",
+              head_row: "flex ml-4 mt-4",
               head_cell:
-                "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem]",
-              row: "flex w-full mt-2",
+                "text-muted-foreground rounded-md w-10 font-bold text-[16px]",
+              row: "flex w-full px-4 py-3",
               cell: cn(
-                "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-green-200 [&:has([aria-selected].day-outside)]:bg-green-200/50",
+                "relative p-0 text-center text-[16px] focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-green-200 [&:has([aria-selected].day-outside)]:bg-green-200/50",
                 "[&:has([aria-selected])]:rounded-md"
               ),
               day: cn(
-                "h-8 w-10 p-0 font-normal aria-selected:opacity-100",
+                "h-8 w-10 p-0 font-bold aria-selected:opacity-100",
                 "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
               ),
               day_selected: "bg-primary text-primary-foreground",

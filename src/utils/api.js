@@ -1,5 +1,7 @@
 // src/utils/api.js
 
+import { toast } from "react-toastify";
+
 export const fetchData = async (
   endpoint,
   method = "GET",
@@ -21,12 +23,37 @@ export const fetchData = async (
     options.body = JSON.stringify(payload);
   }
 
+  // const response = await fetch(url, options);
+  // if (!response.ok) {
+  //   const errorData = await response.json();
+  //   throw new Error(
+  //     errorData.message ||
+  //       errorData.errors?.[0] ||
+  //       "An error occurred during the fetch operation"
+  //   );
+  // }
   const response = await fetch(url, options);
   if (!response.ok) {
     const errorData = await response.json();
+    const errorMessage = errorData.error?.message;
+
+    const errorM = errorData?.error;
+
+    const errorG = errorData?.message;
+    // Show the error in a toast
+
+    if (errorMessage) {
+      toast.error(errorMessage);
+    } else if (errorM) {
+      toast.error(errorM);
+    } else {
+      toast.error(errorG);
+    }
+
     throw new Error(
-      errorData.message ||
-        errorData.errors?.[0] ||
+      errorMessage ||
+        errorM ||
+        errorG ||
         "An error occurred during the fetch operation"
     );
   }
