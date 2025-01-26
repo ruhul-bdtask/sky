@@ -2,15 +2,15 @@
 import FlightCard from "@/components/flightCard/FlightCard";
 import FlightFilter from "@/components/flightFilter/FlightFilter";
 import TopFilter from "@/components/topFilter/TopFilter";
+import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 import ResultPageSkeleton from "@/skeletons/ResultPageSkeleton";
-import LoadingBar from "react-top-loading-bar";
-import { notFound, useRouter } from "next/navigation";
 import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { notFound, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import LoadingBar from "react-top-loading-bar";
 import useAirlineStore from "../../../stores/airlineStore";
-import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 export default function Page({ searchParams }) {
   const [loadingRevalidate, setLoadingRevalidate] = useState(false);
   const ref = useRef(null);
@@ -198,6 +198,11 @@ export default function Page({ searchParams }) {
       ? filterOptions.layoverAirports
       : null;
 
+    // Check if the airlines model filter is applied
+    const airlinesModelToFilter = filterOptions.aircraftModel?.length
+      ? filterOptions.aircraftModel
+      : null;
+
     // Filter the flights based on the conditions
     return sortFlights.filter((flight) => {
       // const matchesStopCount = !stopCountsToFilter || stopCountsToFilter.includes(flight.total_stop);
@@ -223,6 +228,12 @@ export default function Page({ searchParams }) {
         !layoverAirportsToFilter ||
         flight.schedules.some((schedule) =>
           layoverAirportsToFilter.includes(schedule.departure_airport)
+        );
+
+      const matchesAirlinesModel =
+        !airlinesModelToFilter ||
+        flight.schedules.some((schedule) =>
+          airlinesModelToFilter.includes(schedule.equipment)
         );
 
       // if matches take off times
@@ -303,7 +314,8 @@ export default function Page({ searchParams }) {
         matchesLagDuration &&
         matchesLayoverDuration &&
         matchesPrice &&
-        matchesLayoverAirports
+        matchesLayoverAirports &&
+        matchesAirlinesModel
       );
     });
   };
