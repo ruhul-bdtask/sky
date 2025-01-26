@@ -193,6 +193,11 @@ export default function Page({ searchParams }) {
       ? filterOptions.airports
       : null;
 
+    // Check if the layover airport filter is applied
+    const layoverAirportsToFilter = filterOptions.layoverAirports?.length
+      ? filterOptions.layoverAirports
+      : null;
+
     // Filter the flights based on the conditions
     return sortFlights.filter((flight) => {
       // const matchesStopCount = !stopCountsToFilter || stopCountsToFilter.includes(flight.total_stop);
@@ -212,6 +217,12 @@ export default function Page({ searchParams }) {
         !airportsToFilter ||
         flight.schedules.some((schedule) =>
           airportsToFilter.includes(schedule.arrival_airport)
+        );
+
+      const matchesLayoverAirports =
+        !layoverAirportsToFilter ||
+        flight.schedules.some((schedule) =>
+          layoverAirportsToFilter.includes(schedule.departure_airport)
         );
 
       // if matches take off times
@@ -291,7 +302,8 @@ export default function Page({ searchParams }) {
         matchesLandingRange &&
         matchesLagDuration &&
         matchesLayoverDuration &&
-        matchesPrice
+        matchesPrice &&
+        matchesLayoverAirports
       );
     });
   };

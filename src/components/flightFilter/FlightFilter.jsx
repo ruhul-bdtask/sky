@@ -20,6 +20,7 @@ import {
 } from "../ui/accordion";
 import { uniqueAirlinesByName } from "@/utils/uniqueAirlinesByName";
 import { uniqueAirportsByName } from "@/utils/uniqueAirportsByName";
+import { uniqueLayoverAirportsByName } from "@/utils/uniqueLayoverAirportsByName";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const {
@@ -46,6 +47,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     landingRange: [0, 100],
     airlines: [],
     airports: [],
+    layoverAirports: [],
     legRange: [0, 100],
     layoverRange: [0, 100],
     priceRange: [0, 100],
@@ -98,12 +100,25 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions({ ...filterOptions, airports: updatedAirports });
   };
 
+  // layover airports change handler
+  const handleLayoverAirportsChange = (airport) => {
+    const updatedAirports = filterOptions.layoverAirports.some(
+      (ap) => ap === airport
+    )
+      ? filterOptions.layoverAirports.filter((air) => air !== airport)
+      : [...filterOptions.layoverAirports, airport];
+
+    setFilterOptions({ ...filterOptions, layoverAirports: updatedAirports });
+  };
+
   // unique airlines name list
   const uniqueAirlines = uniqueAirlinesByName(allFlights);
 
   // unique airports name list
   const uniqueAirports = uniqueAirportsByName(allFlights);
 
+  // unique layover airports name list
+  const uniqueLayoverAirports = uniqueLayoverAirportsByName(allFlights);
   // show and hide more airline lists
   const toggleMoreLessAirlines = () => {
     setIsShowMoreAirlines(!isShowMoreAirlines);
@@ -382,7 +397,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           <div className="mt-3 space-y-2">
             {uniqueAirports.map((airport) => (
               <div key={airport} className="space-y-0">
-                <span className="text-sm font-medium ">
+                <span className="text-sm font-medium block mb-1">
                   {getChangingCity(airportsData, airport).split(",")[0]}
                 </span>
                 <label className="flex items-center">
@@ -393,7 +408,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     )}
                     onCheckedChange={(checked) => handleAirportsChange(airport)}
                   />
-                  <span className="text-sm ml-2 ">
+                  <span className="text-sm ml-2 text-gray-700">
                     {`${airport}: ${getAirport(airportsData, airport)
                       .split(" ")
                       .slice(0, 2)
@@ -511,6 +526,53 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                       handleSliderFinalChange("priceRange", newValues)
                     }
                   />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="hover:no-underline">
+                  <span className="font-semibold">Layover Airports</span>
+                </AccordionTrigger>
+                <AccordionContent style={{ overflow: "visible" }}>
+                  {" "}
+                  <section className="mb-6 border-t pt-3 ">
+                    <div className="mt-3 space-y-2">
+                      {uniqueLayoverAirports.map((airport) => (
+                        <div key={airport} className="space-y-0">
+                          <span className="text-sm font-medium block mb-1">
+                            {getChangingCity(airportsData, airport)
+                              .split(",")
+                              .slice(1, 2)
+                              .join(" ")
+                              .split("(")
+                              .slice(0, 1)}
+                          </span>
+                          <label className="flex items-center">
+                            <Checkbox
+                              id="direct"
+                              checked={filterOptions.layoverAirports?.some(
+                                (ap) => ap === airport
+                              )}
+                              onCheckedChange={(checked) =>
+                                handleLayoverAirportsChange(airport)
+                              }
+                            />
+                            <span className="text-sm ml-2 text-gray-700">
+                              {`${getAirport(airportsData, airport)
+                                .split(" ")
+                                .slice(0, 2)
+                                .join(" ")} (${airport})`}
+                            </span>
+                            {/* <span className="ml-auto text-[#64717B] text-[14px]">
+                          Tk 23,404
+                        </span> */}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
