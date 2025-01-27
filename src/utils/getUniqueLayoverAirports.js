@@ -1,18 +1,18 @@
 export const getUniqueLayoverAirports = (allFlights) => {
-  const uniqueLayoverAirports = [];
+  if (!Array.isArray(allFlights)) return [];
+
   const layoverAirportsSet = new Set();
 
-  allFlights?.forEach((flight) => {
-    if (flight.schedules.length > 0) {
-      flight?.schedules
-        ?.slice(1, flight?.schedules?.length)
-        .forEach((schedule) => {
-          if (!layoverAirportsSet.has(schedule?.departure_airport)) {
-            layoverAirportsSet.add(schedule?.departure_airport);
-            uniqueLayoverAirports.push(schedule?.departure_airport);
-          }
-        });
+  for (const flight of allFlights) {
+    const schedules = flight?.schedules?.slice(1); // Skip the first schedule
+    if (!schedules) continue;
+
+    for (const schedule of schedules) {
+      if (schedule?.departure_airport) {
+        layoverAirportsSet.add(schedule.departure_airport);
+      }
     }
-  });
-  return uniqueLayoverAirports;
+  }
+
+  return [...layoverAirportsSet]; // Spread syntax to convert Set to Array
 };

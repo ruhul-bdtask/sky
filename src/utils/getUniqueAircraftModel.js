@@ -1,15 +1,16 @@
 export const getUniqueAircraftModel = (allFlights) => {
-  const uniqueModels = [];
+  if (!Array.isArray(allFlights)) return [];
+
   const modelsSet = new Set();
 
-  allFlights?.forEach((flight) => {
-    flight.schedules.forEach((schedule) => {
-      if (!modelsSet.has(schedule?.equipment)) {
-        modelsSet.add(schedule?.equipment);
-        uniqueModels.push(schedule?.equipment);
+  allFlights.forEach((flight) => {
+    flight.schedules?.forEach((schedule) => {
+      const equipment = schedule?.equipment;
+      if (equipment) {
+        modelsSet.add(equipment);
       }
     });
   });
 
-  return uniqueModels;
+  return [...modelsSet];
 };

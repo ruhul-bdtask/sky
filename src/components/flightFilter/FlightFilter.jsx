@@ -10,8 +10,9 @@ import { millisecondsToDateTime } from "@/lib/millisecondsToDateTime";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
 import { getUniqueAircraftModel } from "@/utils/getUniqueAircraftModel";
-import { getUniqueAirlines } from "@/utils/getUniqueAirlines";
 import { getUniqueAirports } from "@/utils/getUniqueAirports";
+import { getUniqueCabinClass } from "@/utils/getUniqueCabinClass";
+import { getUniqueFlightsByAirlineName } from "@/utils/getUniqueFlightsByAirlineName";
 import { getUniqueLayoverAirports } from "@/utils/getUniqueLayoverAirports";
 import { useEffect, useState } from "react";
 import useAirlineStore from "../../../stores/airlineStore";
@@ -22,7 +23,6 @@ import {
   AccordionTrigger,
 } from "../ui/accordion";
 import MultiRangeSlider from "../ui/multiRangeSlider";
-import { getUniqueCabinClass } from "@/utils/getUniqueCabinClass";
 
 export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const {
@@ -136,7 +136,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   };
 
   // unique airlines name list
-  const uniqueAirlines = getUniqueAirlines(allFlights);
+  const uniqueAirlines = getUniqueFlightsByAirlineName(allFlights);
 
   // unique airports name list
   const uniqueAirports = getUniqueAirports(allFlights);
@@ -391,8 +391,8 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           </div>
           <div
             className={`space-y-3 overflow-hidden ${
-              uniqueAirlines.length > 6 && !isShowMoreAirlines
-                ? "max-h-[168px]"
+              !isShowMoreAirlines && uniqueAirlines.length > 6
+                ? "max-h-[185px]"
                 : "max-h-fit"
             }`}
           >
@@ -419,7 +419,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           {uniqueAirlines.length > 6 && (
             <button
               onClick={toggleMoreLessAirlines}
-              className="text-orange-600 mt-3 text-sm"
+              className="text-orange-600 text-sm mt-2"
             >
               {isShowMoreAirlines
                 ? "Show less"

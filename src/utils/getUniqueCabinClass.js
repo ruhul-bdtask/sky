@@ -1,13 +1,14 @@
 export const getUniqueCabinClass = (allFlights) => {
-  const uniqueCabinClass = [];
-  const cabinClassSet = new Set();
+  if (!Array.isArray(allFlights)) return [];
 
-  allFlights?.forEach((flight) => {
-    if (!cabinClassSet.has(flight?.passenger_infos?.[0]?.cabin_class)) {
-      cabinClassSet.add(flight?.passenger_infos?.[0]?.cabin_class);
-      uniqueCabinClass.push(flight?.passenger_infos?.[0]?.cabin_class);
+  const uniqueCabinClasses = new Set();
+
+  allFlights.forEach((flight) => {
+    const cabinClass = flight?.passenger_infos?.[0]?.cabin_class;
+    if (cabinClass) {
+      uniqueCabinClasses.add(cabinClass);
     }
   });
 
-  return uniqueCabinClass;
+  return Array.from(uniqueCabinClasses); // Convert Set to Array and return
 };

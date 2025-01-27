@@ -1,4 +1,6 @@
-export const getUniqueAirlines = (allFlights) => {
+export const getUniqueFlightsByAirlineName = (allFlights) => {
+  if (!Array.isArray(allFlights)) return [];
+
   const uniqueFlights = [];
   const airlinesSet = new Set();
 

@@ -31,7 +31,7 @@ const useAirlineStore = create()(
           cabinClass: [],
           legRange: [0, 100], // in minutes
           layoverRange: [0, 100], // in minutes
-          priceRange: [0, 100], // in taka
+          priceRange: [0, 100], // in BDT
         },
         filterData: [],
         setFilterData: (newData) => set({ filterData: newData }),
