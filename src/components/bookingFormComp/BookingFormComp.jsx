@@ -4,6 +4,7 @@ import Datetime from "react-datetime";
 import moment from "moment";
 import useAirlineStore from "../../../stores/airlineStore";
 import { toast } from "react-toastify";
+import DatePicker from "react-date-picker";
 const countryOptions = require("../../../public/utils/countries.json");
 
 export default function BookingFormComp({
@@ -210,7 +211,7 @@ export default function BookingFormComp({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="w-full">
                   <label htmlFor="">Document Expiry</label>
-                  <Datetime
+                  {/* <Datetime
                     inputProps={{
                       className:
                         "border-2 border-gray-300 p-2.5 w-full rounded-[4px] focus:outline-none outline-none focus:outline-none focus:ring-0",
@@ -227,7 +228,26 @@ export default function BookingFormComp({
                     onChange={(date) =>
                       updatePassengerData(index, "doc_expire_date", date)
                     }
-                  />
+                  /> */}
+                  <div
+                    className="w-full border-2 border-gray-300 rounded-[4px] focus:outline-none" // Ensure border styles here
+                  >
+                    <DatePicker
+                      onChange={(date) => {
+                        updatePassengerData(index, "doc_expire_date", date); // Update passenger data
+                      }}
+                      value={
+                        passenger.doc_expire_date
+                          ? moment(passenger.doc_expire_date)
+                          : ""
+                      }
+                      minDate={new Date()} // Prevent selecting past dates
+                      format="dd-MM-yyyy"
+                      className="w-full p-3  focus:outline-none" // Ensure border styles here
+                      calendarClassName="rounded-md shadow-lg border-gray-200"
+                      clearIcon={null} // Removes the clear icon for a cleaner design
+                    />
+                  </div>
                 </div>
                 <div className="w-full">
                   <label htmlFor="">Nationality</label>
@@ -248,7 +268,7 @@ export default function BookingFormComp({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="w-full">
                   <label htmlFor="">Date of birth</label>
-                  <Datetime
+                  {/* <Datetime
                     inputProps={{
                       className:
                         "border-2 border-gray-300 p-2.5 w-full rounded-[4px] focus:outline-none outline-none focus:outline-none focus:ring-0",
@@ -259,7 +279,22 @@ export default function BookingFormComp({
                     // isValidDate={valid}
                     value={passenger.dob ? moment(passenger.dob) : ""}
                     onChange={(date) => updatePassengerData(index, "dob", date)}
-                  />
+                  /> */}
+                  <div
+                    className="w-full border-2 border-gray-300 rounded-[4px] focus:outline-none" // Ensure border styles here
+                  >
+                    <DatePicker
+                      onChange={(date) => {
+                        updatePassengerData(index, "dob", date); // Update passenger data
+                      }}
+                      value={passenger.dob ? moment(passenger.dob) : ""}
+                      maxDate={new Date()} // Prevent selecting past dates
+                      format="dd-MM-yyyy"
+                      className="w-full p-3  focus:outline-none" // Ensure border styles here
+                      calendarClassName="rounded-md shadow-lg border-gray-200"
+                      clearIcon={null} // Removes the clear icon for a cleaner design
+                    />
+                  </div>
                 </div>
               </div>
             </div>

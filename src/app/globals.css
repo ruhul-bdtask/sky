@@ -6,7 +6,7 @@
 
 @font-face {
   font-family: "TT Hoves Pro Trial Regular";
-  src: url("/fonts/TT\ Hoves\ Pro\ Trial\ Regular.ttf");
+  src: url("/fonts/TT\ Hoves\ Pro\ Trial\ Variable.ttf");
 }
 :root {
   /* --primary: #51c27c; */
@@ -41,6 +41,9 @@ body {
   /* @apply dark:bg-[#202327]; */
   font-family: "TT Hoves Pro Trial Regular", sans-serif;
 }
+
+
+
 
 /* Custom scrollbar styling */
 ::-webkit-scrollbar {
@@ -89,4 +92,14 @@ body {
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+.react-date-picker {
+  border: none !important; /* Remove the outer border */
+  box-shadow: none !important; /* Remove box shadow */
+}
+
+.react-date-picker__wrapper {
+  border: none !important; /* Remove the input wrapper's border */
+  box-shadow: none !important; /* Remove any shadow */
 }

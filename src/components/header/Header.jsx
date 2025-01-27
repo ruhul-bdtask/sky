@@ -29,6 +29,7 @@ import ModalLayout from "../modals/ModalLayout";
 import PopupBtn from "./PopupBtn";
 import SearchDestination from "./SearchDestination";
 import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
+import { Bounce } from "react-toastify";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -64,6 +65,7 @@ export default function Header() {
     originAirportName,
     destinationAirportName,
     setSavedSingleFlight,
+    setTravelPlanningDate,
   } = useAirlineStore();
   const { destination, origin, journeyDate, returnDate, tripType } = searchData;
 
@@ -242,7 +244,6 @@ export default function Header() {
   };
 
   const onTripChange = (e) => {
-    console.log(e.target.value);
     const { name, value } = e.target;
     const nextFormData = { ...formData };
     nextFormData[name] = value;
@@ -630,7 +631,13 @@ export default function Header() {
                 <Menu className="h-6 w-6" />
               )}
             </button>
-            <a href={"/"} onClick={() => setSearchData({})}>
+            <a
+              href={"/"}
+              onClick={() => {
+                setSearchData({});
+                setTravelPlanningDate("");
+              }}
+            >
               <Image className="mx-4 md:mx-0" alt="logo" src={logo}></Image>
             </a>
           </div>
@@ -1162,7 +1169,20 @@ export default function Header() {
               )}
             </div>
 
-            <ToastContainer closeOnClick={true} />
+            <ToastContainer
+              closeOnClick={true}
+              position="top-center"
+              autoClose={5000}
+              hideProgressBar={true}
+              newestOnTop
+              // closeOnClick={false}
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="dark"
+              transition={Bounce}
+            />
             {token ? (
               <>
                 <div

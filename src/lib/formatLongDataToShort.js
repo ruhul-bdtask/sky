@@ -1,11 +1,10 @@
 export const formatLongDataToShort = (journeyDate) => {
   const date = new Date(journeyDate);
-
   if (!date) {
     return "Pick a date";
   }
   // Format: 2024-12-25T00:00:00
-  const isoFormat = date?.toISOString().split("T")[0] + "T00:00:00";
+  // const isoFormat = date?.toISOString().split("T")[0] + "T00:00:00";
 
   // Format: Wed12/25
   const day = date?.toLocaleDateString("en-US", { weekday: "short" });
