@@ -223,11 +223,11 @@ export default function Page({ searchParams }) {
       const matchesAirline =
         !airlinesToFilter || airlinesToFilter.includes(flight.airline_name);
 
-      const matchesAirport =
-        !airportsToFilter ||
-        flight.schedules.some((schedule) =>
-          airportsToFilter.includes(schedule.arrival_airport)
-        );
+      // const matchesAirport =
+      //   !airportsToFilter ||
+      //   flight.schedules.some((schedule) =>
+      //     airportsToFilter.includes(schedule.arrival_airport)
+      //   );
 
       const matchesLayoverAirports =
         !layoverAirportsToFilter ||
@@ -317,7 +317,7 @@ export default function Page({ searchParams }) {
       return (
         matchesStopCount &&
         matchesAirline &&
-        matchesAirport &&
+        // matchesAirport &&
         matchesTakeOffRange &&
         matchesLandingRange &&
         matchesLagDuration &&

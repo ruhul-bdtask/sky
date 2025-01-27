@@ -427,7 +427,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             </button>
           )}
         </section>
-        <section className="mb-6 border-t pt-4 ">
+        {/* <section className="mb-6 border-t pt-4 ">
           <p className="text-[14px] font-semibold mb-4">Airports </p>
           <div className="mt-3 space-y-3">
             {uniqueAirports.map((airport) => (
@@ -453,7 +453,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
         <section className="mb-6 border-t pt-4">
           <p className="text-[14px] font-semibold mb-4">Duration </p>
           <div className="space-y-6">
