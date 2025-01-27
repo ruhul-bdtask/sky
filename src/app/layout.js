@@ -4,6 +4,8 @@ import { SidebarProvider } from "../context/sidebar-context";
 import "react-datetime/css/react-datetime.css";
 import "react-loading-skeleton/dist/skeleton.css";
 import Providers from "./Providers";
+import "react-date-picker/dist/DatePicker.css";
+import "react-calendar/dist/Calendar.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Snowfall } from "@/components/snowfall/Snowfall";
 export const metadata = {

@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { addDays } from "date-fns";
+import { addDays, set } from "date-fns";
 import { ArrowLeftRightIcon } from "lucide-react";
 import Image from "next/image";
 import Airplane from "@/public/icons/Airplane";
@@ -26,6 +26,7 @@ import { FaTimes } from "react-icons/fa";
 import airImg from "@/public/images/weather.png";
 import formatLabel from "@/lib/formatLabel";
 import { Checkbox } from "../ui/checkbox";
+import UserAvatar from "@/public/icons/UserAvatar";
 
 const debounce = (func, delay) => {
   let timeout;
@@ -48,6 +49,7 @@ export default function SearchPad() {
   const router = useRouter();
 
   const {
+    token,
     setSearchData,
     setOriginDestinationInformation,
     setSelectedFlight,
@@ -292,18 +294,42 @@ export default function SearchPad() {
 
   const [filteredAirportsArrival, setFilteredAirportsArrival] = useState([]);
 
+  // const airDestinationData = airportsData.filter(
+  //   (airport) =>
+  //     airport.value.toLowerCase().includes(destinationQuery) || // Check short code
+  //     airport.label.toLowerCase().includes(destinationQuery) || // Check label
+  //     airport.name.toLowerCase().includes(destinationQuery) // Check name
+  // );
+
+  const airDestinationData = airportsData
+    .filter(
+      (airport) =>
+        airport.value
+          .toLowerCase()
+          .includes(searchQueryDestination?.toLowerCase()) ||
+        airport.label
+          .toLowerCase()
+          .includes(searchQueryDestination?.toLowerCase()) ||
+        airport.name
+          .toLowerCase()
+          .includes(searchQueryDestination?.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Check if the value matches the searchQueryDestination
+      const aMatchesValue =
+        a.value.toLowerCase() === searchQueryDestination?.toLowerCase();
+      const bMatchesValue =
+        b.value.toLowerCase() === searchQueryDestination?.toLowerCase();
+
+      // Objects with matching value should come first
+      if (aMatchesValue && !bMatchesValue) return -1;
+      if (!aMatchesValue && bMatchesValue) return 1;
+      return 0; // Keep the same order for other cases
+    });
   useEffect(() => {
     const debouncedFilter = debounce(() => {
-      if (searchQueryDestination?.length >= 1) {
-        const destinationQuery = searchQueryDestination.toLowerCase();
-        setFilteredAirportsArrival(
-          airportsData.filter(
-            (airport) =>
-              airport.value.toLowerCase().includes(destinationQuery) || // Check short code
-              airport.label.toLowerCase().includes(destinationQuery) || // Check label
-              airport.name.toLowerCase().includes(destinationQuery) // Check name
-          )
-        );
+      if (searchQueryDestination?.length >= 2) {
+        setFilteredAirportsArrival(airDestinationData);
       } else {
         setFilteredAirportsArrival([]);
       }
@@ -313,19 +339,23 @@ export default function SearchPad() {
 
     return () => clearTimeout(debouncedFilter);
   }, [searchQueryDestination, airportsData]);
-
-  // const filteredAirportsDestination = airportsData.filter(
+  // const filteredAirportsDestination = airportsData
+  // .filter(
   //   (airport) =>
-  //     (airport.name.toLowerCase().includes(searchQueryOrigin?.toLowerCase()) ||
-  //       airport.value
-  //         .toLowerCase()
-  //         .includes(searchQueryOrigin?.toLowerCase()) ||
-  //       airport.label
-  //         .toLowerCase()
-  //         .includes(searchQueryOrigin?.toLowerCase())) &&
-  //     airport.name.toLowerCase() !== searchQueryDestination?.toLowerCase() &&
-  //     airport.value.toLowerCase() !== searchQueryDestination?.toLowerCase()
-  // );
+  //     airport.value.toLowerCase().includes(searchQueryOrigin?.toLowerCase()) ||
+  //     airport.label.toLowerCase().includes(searchQueryOrigin?.toLowerCase()) ||
+  //     airport.name.toLowerCase().includes(searchQueryOrigin?.toLowerCase())
+  // )
+  // .sort((a, b) => {
+  //   // Check if the value matches the searchQueryOrigin
+  //   const aMatchesValue = a.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
+  //   const bMatchesValue = b.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
+
+  //   // Objects with matching value should come first
+  //   if (aMatchesValue && !bMatchesValue) return -1;
+  //   if (!aMatchesValue && bMatchesValue) return 1;
+  //   return 0; // Keep the same order for other cases
+  // });
 
   // {
   //   "img": "/weather.png",
@@ -333,27 +363,64 @@ export default function SearchPad() {
   //   "label": "Dhaka, Bangladesh (DAC)",
   //   "value": "DAC"
   // }
+
+  // Origin airport
+
+  // {
+  //   "img": "/weather.png",
+  //   "name": "Hazrat Shahjalal Intl Airport",
+  //   "label": "Dhaka, Bangladesh (DAC)",
+  //   "value": "DAC"
+  // },
+
   const [filteredAirportsDestination, setFilteredAirportsDestination] =
     useState([]);
 
+  const airOriginData = airportsData
+    .filter(
+      (airport) =>
+        airport.value
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.label
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.name.toLowerCase().includes(searchQueryOrigin?.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Check if the value matches the searchQueryOrigin
+      const aMatchesValue =
+        a.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
+      const bMatchesValue =
+        b.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
+
+      // Objects with matching value should come first
+      if (aMatchesValue && !bMatchesValue) return -1;
+      if (!aMatchesValue && bMatchesValue) return 1;
+      return 0; // Keep the same order for other cases
+    });
+
+  // useEffect(() => {
+  //   const debouncedFilter = debounce(() => {
+  //     if (searchQueryOrigin?.length >= 2) {
+  //       setFilteredAirportsDestination(airOriginData);
+  //     } else {
+  //       setFilteredAirportsDestination([]);
+  //     }
+  //   }, 300);
+  //   debouncedFilter();
+
+  //   return () => clearTimeout(debouncedFilter);
+  // }, [searchQueryOrigin, airportsData]);
+
   useEffect(() => {
     const debouncedFilter = debounce(() => {
-      if (searchQueryOrigin?.length >= 1) {
-        setFilteredAirportsDestination(
-          airportsData.filter((airport) => {
-            const query = searchQueryOrigin.toLowerCase();
-            return (
-              airport.value.toLowerCase().includes(query) ||
-              airport.label.toLowerCase().includes(query) ||
-              airport.name.toLowerCase().includes(query)
-            );
-          })
-        );
+      if (searchQueryOrigin?.length >= 2) {
+        setFilteredAirportsDestination(airOriginData);
       } else {
         setFilteredAirportsDestination([]);
       }
     }, 300);
-
     debouncedFilter();
 
     return () => clearTimeout(debouncedFilter);
@@ -511,6 +578,30 @@ export default function SearchPad() {
     setOriginalArrivalDate(formattedDateTimeOrigin);
   }, [oneWayDate, roundDate, selectedWay]);
 
+  const handleSubmitRecentSearch = (item) => {
+    // const searchData = {
+    //   origin: item?.origin,
+    //   destination: item?.destination,
+    //   tripType: item?.tripType,
+    //   class: item?.class,
+    //   passengers: item?.passengers,
+    //   journeyDate: item?.journeyDate,
+    //   returnDate: item?.returnDate,
+    // };
+    setOriginalDate(item?.journeyDate);
+    setOriginalArrivalDate(item?.returnDate || "");
+    setSearchQueryOrigin(item?.origin);
+    setOriginAirport(item?.originAirport);
+    setDestinationAirport(item?.destinationAirport);
+    setSearchQueryDestination(item?.destination);
+    setSelectedWay(item?.tripType);
+    setSelectedClass(item?.class);
+    setPassengerInformation(item?.passengers);
+    setIsOpenDestination(false);
+    setIsOpenArrival(false);
+  };
+
+ 
   const handleSubmitSearch = (e) => {
     e.preventDefault();
     setSelectedFlight({});
@@ -519,18 +610,6 @@ export default function SearchPad() {
     setOriginQuery("");
     setDestinationQuery("");
     setTravelPlanningDate("");
-
-    const searchData = {
-      origin: searchQueryOrigin,
-      destination: searchQueryDestination,
-      tripType: selectedWay,
-      class: selectedClass,
-      passengers: passengers,
-      journeyDate: originalDate,
-      returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
-    };
-
-    setSearchData(searchData);
 
     const originDestinationInfo = [
       {
@@ -563,9 +642,6 @@ export default function SearchPad() {
     }
 
     setOriginDestinationInformation(originDestinationInfo);
-
-    const updatedRecentSearches = [searchData, ...recentSearchData].slice(0, 5);
-    setRecentSearchData(updatedRecentSearches);
 
     // if (selectedWay === "multi_city") {
     //   if (transformedData.length < 2) {
@@ -650,6 +726,36 @@ export default function SearchPad() {
       // setSearchData(multi_cityData);
     }
 
+    const searchData = {
+      origin: searchQueryOrigin,
+      destination: searchQueryDestination,
+      tripType: selectedWay,
+      class: selectedClass,
+      passengers: passengers,
+      journeyDate: originalDate,
+      returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+    };
+    setSearchData(searchData);
+    if (selectedWay !== "multi_city") {
+      const recentSearch = {
+        origin: searchQueryOrigin,
+        destination: searchQueryDestination,
+        tripType: selectedWay,
+        class: selectedClass,
+        passengers: passengers,
+        journeyDate: originalDate,
+        returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+        originAirport: originAirport,
+        destinationAirport: destinationAirport,
+      };
+
+      const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
+        0,
+        5
+      );
+      setRecentSearchData(updatedRecentSearches);
+    }
+
     setOriginQuery(searchQueryOrigin);
     setDestinationQuery(searchQueryDestination);
     // setTravelPlanningDate(originalDate);
@@ -662,144 +768,6 @@ export default function SearchPad() {
         selectedWay == "multi_city"
           ? JSON.stringify(transformedData)
           : JSON.stringify(originDestinationInfo),
-    }).toString();
-
-    router.push(`/search-result?${queryString}`);
-  };
-
-  const handleSubmitRecentSearch = (item) => {
-    const searchData = {
-      origin: item?.origin,
-      destination: item?.destination,
-      tripType: item?.tripType,
-      class: item?.class,
-      passengers: item?.passengers,
-      journeyDate: item?.journeyDate,
-      returnDate: item?.returnDate,
-    };
-
-    setSearchData(searchData);
-
-    const originDestinationInfo = [
-      {
-        DepartureDateTime: item?.journeyDate,
-        OriginLocation: {
-          LocationCode: item?.destination,
-          LocationType: "A",
-        },
-        DestinationLocation: {
-          LocationCode: item?.arrival,
-          LocationType: "A",
-        },
-        RPH: "0",
-      },
-    ];
-
-    // if (selectedWay === "return" && roundDate?.to) {
-    //   originDestinationInfo.push({
-    //     DepartureDateTime: originalArrivalData,
-    //     OriginLocation: {
-    //       LocationCode: searchQueryDestination,
-    //       LocationType: "A",
-    //     },
-    //     DestinationLocation: {
-    //       LocationCode: searchQueryOrigin,
-    //       LocationType: "A",
-    //     },
-    //     RPH: "1",
-    //   });
-    // }
-
-    setOriginDestinationInformation(originDestinationInfo);
-
-    // const updatedRecentSearches = [searchData, ...recentSearchData].slice(0, 5);
-    // setRecentSearchData(updatedRecentSearches);
-
-    // if (selectedWay === "multi_city") {
-    //   if (transformedData.length < 2) {
-    //     toast.error("You must select at least 2 cities.");
-    //     setError("City selection is too few.");
-    //     setLoading(false);
-    //     return;
-    //   }
-
-    //   const invalidTransformedData = transformedData.find(
-    //     (item) =>
-    //       !item.DepartureDateTime ||
-    //       !item.OriginLocation?.LocationCode ||
-    //       !item.DestinationLocation?.LocationCode
-    //   );
-
-    //   if (invalidTransformedData) {
-    //     toast.error("One or more city data entries are invalid.");
-    //     return;
-    //   }
-    // }
-
-    // if (!originalDate) {
-    //   toast.error("Please select a departure date.");
-
-    //   return;
-    // }
-    // if (selectedWay !== "multi_city" && !originAirport) {
-    //   toast.error("Please select a Departure airport.");
-
-    //   return;
-    // }
-    // if (selectedWay !== "multi_city" && !destinationAirport) {
-    //   toast.error("Please select a Arrival airport.");
-
-    //   return;
-    // }
-
-    // if (selectedWay !== "multi_city" && !searchQueryOrigin) {
-    //   toast.error("Please select a Departure location.");
-
-    //   return;
-    // }
-
-    // if (selectedWay !== "multi_city" && !searchQueryDestination) {
-    //   toast.error("Please select a Destination location.");
-
-    //   return;
-    // }
-
-    // if (selectedWay === "return" && !roundDate.to) {
-    //   toast.error("Please select a return date.");
-
-    //   return;
-    // }
-
-    // if (selectedWay === "multi_city") {
-    //   if (transformedData.length < 2) {
-    //     toast.error("You must select at least 2 cities.");
-
-    //     return;
-    //   }
-
-    //   const invalidTransformedData = transformedData.find(
-    //     (item) =>
-    //       !item.DepartureDateTime ||
-    //       !item.OriginLocation?.LocationCode ||
-    //       !item.DestinationLocation?.LocationCode
-    //   );
-
-    //   if (invalidTransformedData) {
-    //     toast.error("One or more city data entries are invalid.");
-
-    //     return;
-    //   }
-    // }
-
-    setOriginQuery(item?.destination);
-    setDestinationQuery(item?.arrival);
-    // setTravelPlanningDate(item?.journeyDate);
-    // setDestinationAirportName(destinationAirport);
-    // setOriginAirportName(originAirport);
-
-    const queryString = new URLSearchParams({
-      search: JSON.stringify(searchData),
-      originDestinationInfo: JSON.stringify(originDestinationInfo),
     }).toString();
 
     router.push(`/search-result?${queryString}`);
@@ -1420,7 +1388,7 @@ export default function SearchPad() {
                                 Recent Searches
                                 <button
                                   onClick={() => setRecentSearchData([])}
-                                  className="text-[#4A8DBB] hover:text-[#3b7aa3]"
+                                  className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
                                 >
                                   Clear
                                 </button>
@@ -1432,7 +1400,7 @@ export default function SearchPad() {
                                       handleSubmitRecentSearch(recent)
                                     }
                                     key={index}
-                                    className="flex items-center space-x-4 cursor-pointer"
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   >
                                     <div className="bg-[#FFF3EB] p-4 rounded-lg">
                                       <Airplane />
@@ -1445,6 +1413,11 @@ export default function SearchPad() {
                                         {moment(recent?.journeyDate).format(
                                           "MMMM Do, YYYY"
                                         )}
+
+                                        {recent?.tripType == "return" &&
+                                          ` - ${moment(
+                                            recent?.returnDate
+                                          ).format("MMMM Do, YYYY")}`}
                                       </p>
                                     </div>
                                   </li>
@@ -1453,6 +1426,33 @@ export default function SearchPad() {
                             </div>
                           ) : (
                             ""
+                          )}
+                          {!token && (
+                            <div className="px-8 pb-8 ">
+                              <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                <Link
+                                  href={"/login"}
+                                  // onClick={() =>
+                                  //   handleSubmitRecentSearch(recent)
+                                  // }
+
+                                  className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                >
+                                  <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                    <UserAvatar />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-[#FC660F]">
+                                      {/* {recent?.origin} - {recent?.destination} */}
+                                      Sign In / Sign Up
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      Access your searches on any device
+                                    </p>
+                                  </div>
+                                </Link>
+                              </div>
+                            </div>
                           )}
                         </div>
                       ) : (
@@ -1555,30 +1555,17 @@ export default function SearchPad() {
                                   Clear
                                 </button>
                               </h3>
-                              <ul className="space-y-4">
+                              <ul className="space-y-4 max-h-[200px] overflow-y-auto">
                                 {recentSearchData?.map((recent, index) => (
                                   <li
                                     onClick={() =>
                                       handleSubmitRecentSearch(recent)
                                     }
                                     key={index}
-                                    className="flex items-center space-x-4 cursor-pointer"
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   >
-                                    <div className="bg-gray-100 p-2 rounded-full">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-gray-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
+                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                      <Airplane />
                                     </div>
                                     <div>
                                       <p className="font-semibold">
@@ -1588,6 +1575,10 @@ export default function SearchPad() {
                                         {moment(recent?.journeyDate).format(
                                           "MMMM Do, YYYY"
                                         )}
+                                        {recent?.tripType == "return" &&
+                                          ` - ${moment(
+                                            recent?.returnDate
+                                          ).format("MMMM Do, YYYY")}`}
                                       </p>
                                     </div>
                                   </li>
@@ -1596,6 +1587,33 @@ export default function SearchPad() {
                             </div>
                           ) : (
                             ""
+                          )}
+                          {!token && (
+                            <div className="px-8 pb-8 ">
+                              <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                <Link
+                                  href={"/login"}
+                                  // onClick={() =>
+                                  //   handleSubmitRecentSearch(recent)
+                                  // }
+
+                                  className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                >
+                                  <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                    <UserAvatar />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-[#FC660F]">
+                                      {/* {recent?.origin} - {recent?.destination} */}
+                                      Sign In / Sign Up
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      Access your searches on any device
+                                    </p>
+                                  </div>
+                                </Link>
+                              </div>
+                            </div>
                           )}
                         </div>
                       ) : (
@@ -1607,6 +1625,7 @@ export default function SearchPad() {
                   <div className="col-span-2 flex gap-2 justify-between">
                     <DatePickerOneWay
                       className={"w-full"}
+                      originalDate={originalDate}
                       setOneWayDate={setOneWayDate}
                       oneWayDate={oneWayDate}
                     />
@@ -1714,37 +1733,31 @@ export default function SearchPad() {
                                     Clear
                                   </button>
                                 </h3>
-                                <ul className="space-y-4">
+                                <ul className="space-y-4 max-h-[200px] overflow-y-auto">
                                   {recentSearchData?.map((recent, index) => (
                                     <li
+                                      onClick={() =>
+                                        handleSubmitRecentSearch(recent)
+                                      }
                                       key={index}
-                                      className="flex items-center space-x-4"
+                                      className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                     >
-                                      <div className="bg-gray-100 p-2 rounded-full">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-6 w-6 text-gray-600"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          stroke="currentColor"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M5 13l4 4L19 7"
-                                          />
-                                        </svg>
+                                      <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                        <Airplane />
                                       </div>
                                       <div>
                                         <p className="font-semibold">
-                                          {recent?.destination} -{" "}
-                                          {recent?.arrival}
+                                          {recent?.origin} -{" "}
+                                          {recent?.destination}
                                         </p>
                                         <p className="text-sm text-gray-500">
                                           {moment(recent?.journeyDate).format(
                                             "MMMM Do, YYYY"
                                           )}
+                                          {recent?.tripType == "return" &&
+                                            ` - ${moment(
+                                              recent?.returnDate
+                                            ).format("MMMM Do, YYYY")}`}
                                         </p>
                                       </div>
                                     </li>
@@ -1753,6 +1766,33 @@ export default function SearchPad() {
                               </div>
                             ) : (
                               ""
+                            )}
+                            {!token && (
+                              <div className="px-8 pb-8 ">
+                                <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                  <Link
+                                    href={"/login"}
+                                    // onClick={() =>
+                                    //   handleSubmitRecentSearch(recent)
+                                    // }
+
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                  >
+                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                      <UserAvatar />
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold text-[#FC660F]">
+                                        {/* {recent?.origin} - {recent?.destination} */}
+                                        Sign In / Sign Up
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        Access your searches on any device
+                                      </p>
+                                    </div>
+                                  </Link>
+                                </div>
+                              </div>
                             )}
                           </div>
                         ) : (
@@ -1852,37 +1892,31 @@ export default function SearchPad() {
                                       Clear
                                     </button>
                                   </h3>
-                                  <ul className="space-y-4">
+                                  <ul className="space-y-4 max-h-[200px] overflow-y-auto">
                                     {recentSearchData?.map((recent, index) => (
                                       <li
+                                        onClick={() =>
+                                          handleSubmitRecentSearch(recent)
+                                        }
                                         key={index}
-                                        className="flex items-center space-x-4"
+                                        className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                       >
-                                        <div className="bg-gray-100 p-2 rounded-full">
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-6 w-6 text-gray-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              strokeWidth={2}
-                                              d="M5 13l4 4L19 7"
-                                            />
-                                          </svg>
+                                        <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                          <Airplane />
                                         </div>
                                         <div>
                                           <p className="font-semibold">
-                                            {recent?.destination} -{" "}
-                                            {recent?.arrival}
+                                            {recent?.origin} -{" "}
+                                            {recent?.destination}
                                           </p>
                                           <p className="text-sm text-gray-500">
                                             {moment(recent?.journeyDate).format(
                                               "MMMM Do, YYYY"
                                             )}
+                                            {recent?.tripType == "return" &&
+                                              ` - ${moment(
+                                                recent?.returnDate
+                                              ).format("MMMM Do, YYYY")}`}
                                           </p>
                                         </div>
                                       </li>
@@ -1891,6 +1925,33 @@ export default function SearchPad() {
                                 </div>
                               ) : (
                                 ""
+                              )}
+                              {!token && (
+                                <div className="px-8 pb-8 ">
+                                  <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                    <Link
+                                      href={"/login"}
+                                      // onClick={() =>
+                                      //   handleSubmitRecentSearch(recent)
+                                      // }
+
+                                      className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                    >
+                                      <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                        <UserAvatar />
+                                      </div>
+                                      <div>
+                                        <p className="font-semibold text-[#FC660F]">
+                                          {/* {recent?.origin} - {recent?.destination} */}
+                                          Sign In / Sign Up
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          Access your searches on any device
+                                        </p>
+                                      </div>
+                                    </Link>
+                                  </div>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1903,6 +1964,8 @@ export default function SearchPad() {
                     <div className="col-span-2 flex gap-2 justify-between">
                       <div>
                         <DatePicker
+                          originalDate={originalDate}
+                          originalArrivalData={originalArrivalData}
                           setRoundDate={setRoundDate}
                           roundDate={roundDate}
                         />

@@ -1,70 +1,81 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { addDays, subDays } from "date-fns"
+import * as React from "react";
+import { addDays, subDays } from "date-fns";
 
-import { cn } from "@/lib/utils"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import Calender from "@/public/icons/Calender"
-import { LuChevronLeft, LuChevronRight } from "react-icons/lu"
-import { formatLongDataToShort } from "@/lib/formatLongDataToShort"
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import Calender from "@/public/icons/Calender";
+import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
 
-export default function DatePicker({ className, setRoundDate, roundDate }) {
-  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false)
-  const [activeButton, setActiveButton] = React.useState(null) // 'from' or 'to'
+export default function DatePicker({
+  className,
+  setRoundDate,
+  roundDate,
+  originalArrivalData,
+  originalDate,
+}) {
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const [activeButton, setActiveButton] = React.useState(null); // 'from' or 'to'
 
   const handlePrevFromDate = (e) => {
-    e.stopPropagation()
+    e.stopPropagation();
     if (roundDate?.from) {
       setRoundDate((prevState) => ({
         ...prevState,
         from: subDays(prevState.from, 1),
-      }))
+      }));
     }
-  }
+  };
 
   const handleNextFromDate = (e) => {
-    e.stopPropagation()
+    e.stopPropagation();
     if (roundDate?.from) {
       setRoundDate((prevState) => ({
         ...prevState,
         from: addDays(prevState.from, 1),
-      }))
+      }));
     }
-  }
+  };
 
   const handlePrevToDate = (e) => {
-    e.stopPropagation()
+    e.stopPropagation();
     if (roundDate?.to) {
       setRoundDate((prevState) => ({
         ...prevState,
         to: subDays(prevState.to, 1),
-      }))
+      }));
     }
-  }
+  };
 
   const handleNextToDate = (e) => {
-    e.stopPropagation()
+    e.stopPropagation();
     if (roundDate?.to) {
       setRoundDate((prevState) => ({
         ...prevState,
         to: addDays(prevState.to, 1),
-      }))
+      }));
     }
-  }
+  };
 
   const handleFromClick = (e) => {
     e.stopPropagation();
-    setActiveButton('from');
+    setActiveButton("from");
     setIsPopoverOpen(true);
   };
 
   const handleToClick = (e) => {
     e.stopPropagation();
-    setActiveButton('to');
+    setActiveButton("to");
     setIsPopoverOpen(true);
   };
+  console.log("originalDate from date picker",originalDate,originalArrivalData)
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -77,7 +88,7 @@ export default function DatePicker({ className, setRoundDate, roundDate }) {
               type="button"
               className={cn(
                 "w-full md:w-[280px] justify-start text-left font-normal",
-                !roundDate?.from && "text-muted-foreground",
+                !originalDate && "text-muted-foreground"
               )}
               onClick={handleFromClick}
             >
@@ -85,10 +96,18 @@ export default function DatePicker({ className, setRoundDate, roundDate }) {
                 <div className="absolute left-3 text-gray-400">
                   <Calender />
                 </div>
-                {roundDate?.from ? formatLongDataToShort(roundDate.from) : ""}
+                {originalDate ? formatLongDataToShort(originalDate) : ""}
                 <div className="flex">
-                  <LuChevronLeft size={20} className="cursor-pointer" onClick={handlePrevFromDate} />
-                  <LuChevronRight size={20} className="cursor-pointer" onClick={handleNextFromDate} />
+                  <LuChevronLeft
+                    size={20}
+                    className="cursor-pointer"
+                    onClick={handlePrevFromDate}
+                  />
+                  <LuChevronRight
+                    size={20}
+                    className="cursor-pointer"
+                    onClick={handleNextFromDate}
+                  />
                 </div>
               </div>
             </button>
@@ -99,7 +118,7 @@ export default function DatePicker({ className, setRoundDate, roundDate }) {
               type="button"
               className={cn(
                 "w-full md:w-[280px] justify-start text-left font-normal",
-                !roundDate?.to && "text-muted-foreground",
+                !originalArrivalData && "text-muted-foreground"
               )}
               onClick={handleToClick}
             >
@@ -107,10 +126,18 @@ export default function DatePicker({ className, setRoundDate, roundDate }) {
                 <div className="absolute left-3 text-gray-400">
                   <Calender />
                 </div>
-                {roundDate?.to ? formatLongDataToShort(roundDate.to) : ""}
+                {originalArrivalData ? formatLongDataToShort(originalArrivalData) : ""}
                 <div className="flex">
-                  <LuChevronLeft size={20} className="cursor-pointer" onClick={handlePrevToDate} />
-                  <LuChevronRight size={20} className="cursor-pointer" onClick={handleNextToDate} />
+                  <LuChevronLeft
+                    size={20}
+                    className="cursor-pointer"
+                    onClick={handlePrevToDate}
+                  />
+                  <LuChevronRight
+                    size={20}
+                    className="cursor-pointer"
+                    onClick={handleNextToDate}
+                  />
                 </div>
               </div>
             </button>
@@ -120,20 +147,22 @@ export default function DatePicker({ className, setRoundDate, roundDate }) {
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={activeButton === "from" ? roundDate?.from : roundDate?.to}
+            defaultMonth={
+              activeButton === "from" ? roundDate?.from : roundDate?.to
+            }
             selected={roundDate}
             onSelect={(date) => {
-              if (activeButton === 'from') {
+              if (activeButton === "from") {
                 setRoundDate((prev) => ({
                   ...prev,
                   from: date?.from || date,
-                  to: null
+                  to: null,
                 }));
-                setActiveButton('to');
+                setActiveButton("to");
               } else {
                 setRoundDate((prev) => ({
                   ...prev,
-                  to: date?.to || date
+                  to: date?.to || date,
                 }));
                 if (date?.to) {
                   setIsPopoverOpen(false);
@@ -145,5 +174,5 @@ export default function DatePicker({ className, setRoundDate, roundDate }) {
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }

@@ -16,6 +16,7 @@ export default function DatePickerOneWay({
   className,
   setOneWayDate,
   oneWayDate,
+  originalDate,
 }) {
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const handlePrevDate = (e) => {
@@ -31,7 +32,6 @@ export default function DatePickerOneWay({
       setOneWayDate(addDays(oneWayDate, 1));
     }
   };
-
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
@@ -40,7 +40,7 @@ export default function DatePickerOneWay({
             id="date"
             className={cn(
               `justify-start text-left font-normal`,
-              !oneWayDate && "text-muted-foreground"
+              !originalDate && "text-muted-foreground"
             )}
             onClick={() => setIsPopoverOpen(!isPopoverOpen)}
           >
@@ -48,8 +48,8 @@ export default function DatePickerOneWay({
               <div className="absolute left-3 text-gray-400">
                 <Calender />
               </div>
-              {oneWayDate ? (
-                formatLongDataToShort(oneWayDate)
+              {originalDate ? (
+                formatLongDataToShort(originalDate)
               ) : (
                 <span>Pick a date</span>
               )}
@@ -81,7 +81,7 @@ export default function DatePickerOneWay({
             className="p-3"
             classNames={{
               months:
-                "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 ",
+                "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 mt-20",
               month: "space-y-4",
               caption: "flex justify-center pt-1 relative items-center ",
               caption_label: "text-[16px] font-bold ",
