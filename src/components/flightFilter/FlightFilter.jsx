@@ -10,8 +10,9 @@ import { millisecondsToDateTime } from "@/lib/millisecondsToDateTime";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
 import { getUniqueAircraftModel } from "@/utils/getUniqueAircraftModel";
-import { getUniqueAirlines } from "@/utils/getUniqueAirlines";
 import { getUniqueAirports } from "@/utils/getUniqueAirports";
+import { getUniqueCabinClass } from "@/utils/getUniqueCabinClass";
+import { getUniqueFlightsByAirlineName } from "@/utils/getUniqueFlightsByAirlineName";
 import { getUniqueLayoverAirports } from "@/utils/getUniqueLayoverAirports";
 import { useEffect, useState } from "react";
 import useAirlineStore from "../../../stores/airlineStore";
@@ -114,18 +115,28 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   };
 
   // airlines model change handler
-  const handleAirlinesModelChange = (model) => {
-    const updatedAirlinesModel = filterOptions.aircraftModel.some(
+  const handleAircraftModelChange = (model) => {
+    const updatedAircraftModel = filterOptions.aircraftModel.some(
       (al) => al === model
     )
       ? filterOptions.aircraftModel.filter((mod) => mod !== model)
       : [...filterOptions.aircraftModel, model];
 
-    setFilterOptions({ ...filterOptions, aircraftModel: updatedAirlinesModel });
+    setFilterOptions({ ...filterOptions, aircraftModel: updatedAircraftModel });
+  };
+
+  // airlines model change handler
+  const handleCabinClassChange = (cabinClass) => {
+    const updatedCabinClass = filterOptions.cabinClass.some(
+      (cc) => cc === cabinClass
+    )
+      ? filterOptions.cabinClass.filter((cc) => cc !== cabinClass)
+      : [...filterOptions.cabinClass, cabinClass];
+    setFilterOptions({ ...filterOptions, cabinClass: updatedCabinClass });
   };
 
   // unique airlines name list
-  const uniqueAirlines = getUniqueAirlines(allFlights);
+  const uniqueAirlines = getUniqueFlightsByAirlineName(allFlights);
 
   // unique airports name list
   const uniqueAirports = getUniqueAirports(allFlights);
@@ -135,6 +146,10 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
   // unique airlines model list
   const uniqueAirlinesModel = getUniqueAircraftModel(allFlights);
+
+  // unique airlines model list
+  const uniqueCabinClass = getUniqueCabinClass(allFlights);
+
   // show and hide more airline lists
   const toggleMoreLessAirlines = () => {
     setIsShowMoreAirlines(!isShowMoreAirlines);
@@ -269,16 +284,18 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
         </div> */}
       </div>
       <div className="hidden md:block p-4 rounded-lg w-[260px]">
-        <span className="text-[14px] font-semibold mb-4">
-          {filterData?.length} of{" "}
-        </span>
-        <span className="text-[14px] text-[#FC660F]">
-          {allFlights?.length} flights
-        </span>
+        <div className="pb-4">
+          <span className="text-[14px] font-semibold mb-8">
+            {filterData?.length} of{" "}
+          </span>
+          <span className="text-[14px] text-[#FC660F]">
+            {allFlights?.length} flights
+          </span>
+        </div>
 
-        <section className="mb-6 border-t pt-3 ">
-          <span className="text-[14px] font-semibold ">Stops </span>
-          <div className="space-y-3 mt-4">
+        <section className="mb-6 border-t pt-4 ">
+          <p className="text-[14px] font-semibold mb-4">Stops </p>
+          <div className="space-y-3">
             {["Nonstop", "1 stop", "2+ stops"].map((stop) => (
               <label key={stop} className="flex items-center">
                 <Checkbox
@@ -296,13 +313,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           </div>
         </section>
 
-        <section className="mb-6 border-t pt-3">
-          <span className="text-[14px] font-semibold ">Times </span>
+        <section className="mb-6 border-t pt-4">
+          <p className="text-[14px] font-semibold mb-4">Times </p>
           <div className="space-y-4">
-            <div className="pt-4">
+            <div>
               <div className="mb-4">
-                <p className="mb-1 text-sm">
-                  Take-off from {searchData?.destination}
+                <p className="mb-2 text-sm">
+                  Take-off from {searchData?.origin}
                 </p>
                 <p className="text-xs ">
                   {millisecondsToDateTime(localFilterOptions.takeOffRange?.[0])}{" "}
@@ -327,7 +344,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             </div>
             <div className="pt-4">
               <div className="mb-4">
-                <p className="mb-1 text-sm">Landing at {searchData?.arrival}</p>
+                <p className="mb-1 text-sm">
+                  Landing at {searchData?.destination}
+                </p>
                 <p className="text-xs">
                   {millisecondsToDateTime(localFilterOptions.landingRange?.[0])}{" "}
                   -{" "}
@@ -352,9 +371,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           </div>
         </section>
 
-        <section className="mb-6 border-t pt-3">
+        <section className="mb-6 border-t pt-4">
           <div className="flex justify-between">
-            <span className="text-[14px] font-semibold">Airlines </span>
+            <p className="text-[14px] font-semibold mb-4">Airlines </p>
             <div>
               <button
                 className="text-orange-600 text-sm mr-4"
@@ -371,9 +390,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             </div>
           </div>
           <div
-            className={`space-y-2 mt-3 overflow-hidden ${
-              uniqueAirlines.length > 6 && !isShowMoreAirlines
-                ? "max-h-[168px]"
+            className={`space-y-3 overflow-hidden ${
+              !isShowMoreAirlines && uniqueAirlines.length > 6
+                ? "max-h-[185px]"
                 : "max-h-fit"
             }`}
           >
@@ -400,7 +419,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           {uniqueAirlines.length > 6 && (
             <button
               onClick={toggleMoreLessAirlines}
-              className="text-orange-600 mt-3 text-sm"
+              className="text-orange-600 text-sm mt-2"
             >
               {isShowMoreAirlines
                 ? "Show less"
@@ -408,9 +427,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             </button>
           )}
         </section>
-        <section className="mb-6 border-t pt-3 ">
-          <span className="text-[14px] font-semibold ">Airports </span>
-          <div className="mt-3 space-y-2">
+        {/* <section className="mb-6 border-t pt-4 ">
+          <p className="text-[14px] font-semibold mb-4">Airports </p>
+          <div className="mt-3 space-y-3">
             {uniqueAirports.map((airport) => (
               <div key={airport} className="space-y-0">
                 <span className="text-sm font-medium block mb-1">
@@ -430,18 +449,15 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                       .slice(0, 2)
                       .join(" ")}`}
                   </span>
-                  {/* <span className="ml-auto text-[#64717B] text-[14px]">
-                    Tk 23,404
-                  </span> */}
                 </label>
               </div>
             ))}
           </div>
-        </section>
-        <section className="mb-6 border-t pt-3">
-          <span className="text-[14px] font-semibold ">Duration </span>
-          <div className="space-y-4">
-            <div className="pt-4">
+        </section> */}
+        <section className="mb-6 border-t pt-4">
+          <p className="text-[14px] font-semibold mb-4">Duration </p>
+          <div className="space-y-6">
+            <div>
               <div className="mb-4">
                 <p className="mb-1 text-sm">Flight leg</p>
                 <p className="text-xs ">
@@ -469,7 +485,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
               </div>
             </div>
 
-            <div className="pt-4">
+            <div>
               <div className="mb-4">
                 <p className="mb-1 text-sm">Layover</p>
                 <p className="text-xs ">
@@ -478,7 +494,6 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                 </p>
               </div>
               <div>
-                {/* {minLayoverDuration && maxLayoverDuration ? ( */}
                 <MultiRangeSlider
                   min={minLayoverDuration}
                   max={
@@ -495,136 +510,141 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
                     handleSliderFinalChange("layoverRange", newValues)
                   }
                 />
-                {/* ) : (
-                  <p>Loading slider...</p>
-                )} */}
               </div>
             </div>
+          </div>
+        </section>
+        <section className="mb-6 pt-4">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger className="hover:no-underline">
+                <span className="font-semibold">Price</span>
+              </AccordionTrigger>
+              <AccordionContent style={{ overflow: "visible" }}>
+                <p className="text-xs py-4">
+                  {"৳"}
+                  {localFilterOptions.priceRange?.[0]} - {"৳"}
+                  {localFilterOptions.priceRange?.[1]}
+                </p>
+                <MultiRangeSlider
+                  min={minPrice}
+                  max={minPrice !== maxPrice ? maxPrice : maxPrice + 1}
+                  step={10} // taka
+                  values={localFilterOptions.priceRange}
+                  onChange={(newValues) =>
+                    handleSliderChange("priceRange", newValues)
+                  }
+                  onFinalChange={(newValues) =>
+                    handleSliderFinalChange("priceRange", newValues)
+                  }
+                />
+              </AccordionContent>
+            </AccordionItem>
 
-            {/* <div>
-              <div className="py-4">
-                <p className=" mb-2 text-[18px]">Stopover</p>
-                <p className="text-[12px]  mb-2">1h 0m - 75h 50m </p>
-              </div>
+            <AccordionItem value="item-2">
+              <AccordionTrigger className="hover:no-underline">
+                <span className="font-semibold">Cabin</span>
+              </AccordionTrigger>
+              <p className="mb-4"></p>
+              <AccordionContent style={{ overflow: "visible" }}>
+                {uniqueCabinClass.map((cabinClass) => (
+                  <div key={cabinClass} className="mb-2">
+                    <label className="flex items-center">
+                      <Checkbox
+                        id="direct"
+                        checked={filterOptions.cabinClass?.some(
+                          (cc) => cc === cabinClass
+                        )}
+                        onCheckedChange={(checked) =>
+                          handleCabinClassChange(cabinClass)
+                        }
+                      />
+                      <span className="text-sm ml-2 text-gray-700">
+                        {cabinClass}
+                      </span>
+                    </label>
+                  </div>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
 
-              <Slider
-                min={0}
-                max={72}
-                step={1}
-                value={filterOptions.stopOverRange}
-                onValueChange={(value) =>
-                  handleSliderChange("stopOverRange", value)
-                }
-                className="w-full"
-              />
-            </div> */}
-
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="hover:no-underline">
-                  <span className="font-semibold">Price</span>
-                </AccordionTrigger>
-                <AccordionContent style={{ overflow: "visible" }}>
-                  <p className="text-xs mb-4">
-                    {"৳"}
-                    {localFilterOptions.priceRange?.[0]} - {"৳"}
-                    {localFilterOptions.priceRange?.[1]}
-                  </p>
-                  <MultiRangeSlider
-                    min={minPrice}
-                    max={minPrice !== maxPrice ? maxPrice : maxPrice + 1}
-                    step={10} // taka
-                    values={localFilterOptions.priceRange}
-                    onChange={(newValues) =>
-                      handleSliderChange("priceRange", newValues)
-                    }
-                    onFinalChange={(newValues) =>
-                      handleSliderFinalChange("priceRange", newValues)
-                    }
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="hover:no-underline">
-                  <span className="font-semibold">Layover Airports</span>
-                </AccordionTrigger>
-                <AccordionContent style={{ overflow: "visible" }}>
-                  {" "}
-                  <section className=" ">
-                    <div className=" space-y-2">
-                      {uniqueLayoverAirports.map((airport) => (
-                        <div key={airport} className="space-y-0">
-                          <span className="text-sm font-medium block mb-1">
-                            {getChangingCity(airportsData, airport)
-                              .split(",")
-                              .slice(1, 2)
-                              .join(" ")
-                              .split("(")
-                              .slice(0, 1)}
-                          </span>
-                          <label className="flex items-center">
-                            <Checkbox
-                              id="direct"
-                              checked={filterOptions.layoverAirports?.some(
-                                (ap) => ap === airport
-                              )}
-                              onCheckedChange={(checked) =>
-                                handleLayoverAirportsChange(airport)
-                              }
-                            />
-                            <span className="text-sm ml-2 text-gray-700">
-                              {`${getAirport(airportsData, airport)
-                                .split(" ")
-                                .slice(0, 2)
-                                .join(" ")} (${airport})`}
-                            </span>
-                            {/* <span className="ml-auto text-[#64717B] text-[14px]">
+            <AccordionItem value="item-3">
+              <AccordionTrigger className="hover:no-underline">
+                <span className="font-semibold">Layover Airports</span>
+              </AccordionTrigger>
+              <AccordionContent
+                style={{ overflow: "visible" }}
+                className="pt-4"
+              >
+                <div className="">
+                  {uniqueLayoverAirports.map((airport) => (
+                    <div key={airport} className="mb-2">
+                      <p className="text-sm font-medium mb-2">
+                        {getChangingCity(airportsData, airport)
+                          .split(",")
+                          .slice(1, 2)
+                          .join(" ")
+                          .split("(")
+                          .slice(0, 1)}
+                      </p>
+                      <label className="flex items-center">
+                        <Checkbox
+                          id="direct"
+                          checked={filterOptions.layoverAirports?.some(
+                            (ap) => ap === airport
+                          )}
+                          onCheckedChange={(checked) =>
+                            handleLayoverAirportsChange(airport)
+                          }
+                        />
+                        <span className="text-sm ml-2 text-gray-700">
+                          {`${getAirport(airportsData, airport)
+                            .split(" ")
+                            .slice(0, 2)
+                            .join(" ")} (${airport})`}
+                        </span>
+                        {/* <span className="ml-auto text-[#64717B] text-[14px]">
                           Tk 23,404
                         </span> */}
-                          </label>
-                        </div>
-                      ))}
+                      </label>
                     </div>
-                  </section>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="hover:no-underline">
-                  <span className="font-semibold">Aircraft</span>
-                </AccordionTrigger>
-                <AccordionContent style={{ overflow: "visible" }}>
-                  <span className="text-sm font-medium block mb-1">Model</span>
-                  <section className="">
-                    <div className=" space-y-2">
-                      {uniqueAirlinesModel.map((model) => (
-                        <div key={model} className="space-y-0">
-                          <label className="flex items-center">
-                            <Checkbox
-                              id="direct"
-                              checked={filterOptions.aircraftModel?.some(
-                                (ap) => ap === model
-                              )}
-                              onCheckedChange={(checked) =>
-                                handleAirlinesModelChange(model)
-                              }
-                            />
-                            <span className="text-sm ml-2 text-gray-700">
-                              {model}
-                            </span>
-                          </label>
-                        </div>
-                      ))}
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-4">
+              <AccordionTrigger className="hover:no-underline">
+                <span className="font-semibold">Aircraft</span>
+              </AccordionTrigger>
+              <AccordionContent
+                style={{ overflow: "visible" }}
+                className="pt-4"
+              >
+                <p className="text-sm font-medium mb-2">Model</p>
+                <div className="">
+                  {uniqueAirlinesModel.map((model) => (
+                    <div key={model} className="mb-2">
+                      <label className="flex items-center">
+                        <Checkbox
+                          id="direct"
+                          checked={filterOptions.aircraftModel?.some(
+                            (ap) => ap === model
+                          )}
+                          onCheckedChange={(checked) =>
+                            handleAircraftModelChange(model)
+                          }
+                        />
+                        <span className="text-sm ml-2 text-gray-700">
+                          {model}
+                        </span>
+                      </label>
                     </div>
-                  </section>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </section>
       </div>
     </div>
