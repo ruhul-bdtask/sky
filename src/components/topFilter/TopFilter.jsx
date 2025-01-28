@@ -1,13 +1,53 @@
 "use client";
 import SortIcon from "@/public/icons/SortIcon";
 import { InfoIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import useAirlineStore from "../../../stores/airlineStore";
 
 export default function TopFilter({ setSortCriteria, sortCriteria }) {
+  const [isShowOtherSort, setIsShowOtherSort] = useState(false);
+  const { searchData } = useAirlineStore();
+  const dropdownRef = useRef(null);
+  const othersSortOptions = [
+    "earliestTakeOff",
+    "latestTakeOff",
+    "earliestLanding",
+    "latestLanding",
+    "highestPrice",
+    "lowestPrice",
+  ];
+
+  const handleOtherSort = () => {
+    setIsShowOtherSort(!isShowOtherSort);
+  };
+
+  const handleOtherSortChange = (sortTerm) => {
+    setSortCriteria(sortTerm);
+    setIsShowOtherSort(false);
+  };
+
+  useEffect(() => {
+    setSortCriteria("cheapest");
+  }, []);
+
+  // Hide dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsShowOtherSort(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div>
+    <div className="relative">
       <div className="hidden lg:block w-full h-[100px] bg-white shadow-md  overflow-hidden rounded-[10px]">
-        <div className="grid grid-cols-4  h-full">
+        <div className="grid grid-cols-4 h-full">
           <div
             className={`flex-1 flex flex-col justify-center items-center px-10 relative cursor-pointer`}
             onClick={() => setSortCriteria("cheapest")}
@@ -39,31 +79,76 @@ export default function TopFilter({ setSortCriteria, sortCriteria }) {
           </div>
           <div
             className={`flex-1 flex flex-col justify-center items-center  relative   cursor-pointer`}
-            onClick={() => setSortCriteria("quick")}
+            onClick={() => setSortCriteria("quickest")}
           >
             <div>
               <h3 className="font-semibold text-[14px]">Quickest</h3>
               <p className="text-[12px] text-gray-600">Tk 24,414 • 3h 50m</p>
             </div>
-            {sortCriteria == "quick" && (
+            {sortCriteria == "quickest" && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 w-[80%] mx-auto"></div>
             )}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-14 bg-gray-200"></div>
           </div>
           <div
             className={`flex items-center justify-center px-6 cursor-pointer relative`}
-            onClick={() => setSortCriteria("other")}
+            onClick={handleOtherSort}
           >
             <button className="flex items-center text-gray-600 hover:text-gray-800">
               <SortIcon />
               <span className="mr-2">Other sort</span>
             </button>
-            {sortCriteria == "other" && (
+            {othersSortOptions.includes(sortCriteria) && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 w-[80%] mx-auto"></div>
             )}
           </div>
         </div>
       </div>
+      {isShowOtherSort && (
+        <div
+          ref={dropdownRef}
+          className="absolute right-0 bg-white overflow-y-auto min-w-64 max-h-48 shadow-xl border rounded"
+        >
+          <ul>
+            <li
+              className={`hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer`}
+              onClick={() => handleOtherSortChange("earliestTakeOff")}
+            >
+              Earliest take-off ({searchData.origin})
+            </li>
+            <li
+              className="hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer"
+              onClick={() => handleOtherSortChange("latestTakeOff")}
+            >
+              Latest take-off ({searchData.origin})
+            </li>
+            <li
+              className="hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer"
+              onClick={() => handleOtherSortChange("earliestLanding")}
+            >
+              Earliest landing ({searchData.destination})
+            </li>
+            <li
+              className="hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer"
+              onClick={() => handleOtherSortChange("latestLanding")}
+            >
+              Latest landing ({searchData.destination})
+            </li>
+            <li
+              className="hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer"
+              onClick={() => handleOtherSortChange("highestPrice")}
+            >
+              Highest price
+            </li>
+            <li
+              className="hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer"
+              onClick={() => handleOtherSortChange("lowestPrice")}
+            >
+              Lowest price
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
