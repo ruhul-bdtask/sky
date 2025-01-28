@@ -37,7 +37,7 @@ function Calendar({ className, classNames, ...props }) {
         ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-8 w-10 p-0 font-bold aria-selected:opacity-100"
+          "h-8 w-10 p-0 font-semibold aria-selected:opacity-100 hover:bg-green-200"
         ),
         day_range_start: "day-range-start",
         day_range_end: "day-range-end",
@@ -48,7 +48,7 @@ function Calendar({ className, classNames, ...props }) {
           "day-outside text-muted-foreground opacity-50  aria-selected:bg-green-200/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         day_disabled: "text-muted-foreground opacity-50",
         day_range_middle:
-          "aria-selected:bg-green-200 aria-selected:text-accent-foreground",
+          "aria-selected:bg-green-200 aria-selected:text-accent-foreground hover:bg-green-200",
         day_hidden: "invisible",
         ...classNames,
       }}
