@@ -2,7 +2,6 @@
 // app/components/Header.js
 import { useSidebar } from "@/context/sidebar-context";
 import { formatFlightFare } from "@/lib/formatFlightFare";
-import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
 import { formatTripDate } from "@/lib/formatTripDate";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import ActiveIcon from "@/public/icons/ActiveIcon";
