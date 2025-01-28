@@ -123,15 +123,14 @@ export default function Page({ searchParams }) {
     );
   }, [allFlights]);
 
-  const [sortCriteria, setSortCriteria] = useState("cheapest");
+  const [sortCriteria, setSortCriteria] = useState("");
 
   const durationToMinutes = (duration) => {
     const [hours, minutes] = duration.match(/\d+/g).map(Number);
     return hours * 60 + minutes;
   };
-  const sortedFlights = () => {
+  const sortFlights = () => {
     if (!allFlights?.data?.sortedItineraries) return [];
-
     switch (sortCriteria) {
       case "cheapest":
         return allFlights.data.sortedItineraries.filter(
@@ -142,7 +141,7 @@ export default function Page({ searchParams }) {
       // .sort(
       //   (a, b) => a.fare_details?.total_fare - b.fare_details?.total_fare
       // );
-      case "quick":
+      case "quickest":
         return [...allFlights.data.sortedItineraries].sort((a, b) => {
           return (
             durationToMinutes(a.flight_duration) -
@@ -164,19 +163,57 @@ export default function Page({ searchParams }) {
 
           return aScore - bScore;
         });
+
+      case "earliestTakeOff":
+        return [...allFlights.data.sortedItineraries].sort((a, b) => {
+          return (
+            dateTimeToMilliseconds(a.departure_date, a.departure_time) -
+            dateTimeToMilliseconds(b.departure_date, b.departure_time)
+          );
+        });
+      case "latestTakeOff":
+        return [...allFlights.data.sortedItineraries].sort((a, b) => {
+          return (
+            dateTimeToMilliseconds(b.departure_date, b.departure_time) -
+            dateTimeToMilliseconds(a.departure_date, a.departure_time)
+          );
+        });
+      case "earliestLanding":
+        return [...allFlights.data.sortedItineraries].sort((a, b) => {
+          return (
+            dateTimeToMilliseconds(a.arrival_date, a.arrival_time) -
+            dateTimeToMilliseconds(b.arrival_date, b.arrival_time)
+          );
+        });
+      case "latestLanding":
+        return [...allFlights.data.sortedItineraries].sort((a, b) => {
+          return (
+            dateTimeToMilliseconds(b.arrival_date, b.arrival_time) -
+            dateTimeToMilliseconds(a.arrival_date, a.arrival_time)
+          );
+        });
+      case "highestPrice":
+        return [...allFlights.data.sortedItineraries].sort((a, b) => {
+          return b.fare_details.total_fare - a.fare_details.total_fare;
+        });
+      case "lowestPrice":
+        return [...allFlights.data.sortedItineraries].sort((a, b) => {
+          return a.fare_details.total_fare - b.fare_details.total_fare;
+        });
       default:
         return allFlights.data.sortedItineraries;
     }
   };
 
   const filterOptions = useAirlineStore((state) => state.filterOptions);
-  const sortFlights = sortedFlights();
+
+  const sortedFlights = useMemo(() => sortFlights(), [sortCriteria]);
 
   const filteredFlights = useMemo(
-    () => filterFlightsData(sortFlights, filterOptions),
-    [filterOptions]
+    () => filterFlightsData(sortedFlights, filterOptions),
+    [sortedFlights, filterOptions]
   );
-
+  // this effect for the counting length of filtered flights
   useEffect(() => {
     setFilterData(filteredFlights);
   }, [filterOptions, filteredFlights.length]);
@@ -215,13 +252,14 @@ export default function Page({ searchParams }) {
                     seconds,
                   }}
                   allFlights={allFlights?.data?.sortedItineraries}
-                  sortedFlights={sortedFlights()}
+                  sortedFlights={sortFlights()}
                 />
                 <div className="flex-1">
                   <TopFilter
                     setSortCriteria={setSortCriteria}
                     sortCriteria={sortCriteria}
                   />
+
                   {/* {allFlights?.data?.sortedItineraries ? (
                     allFlights.data.sortedItineraries.map((flight) => (
                       <FlightCard key={flight.id} flight={flight} />
