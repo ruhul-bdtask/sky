@@ -23,7 +23,7 @@ const MultiRangeSlider = ({
             style={{
               background: getTrackBackground({
                 values,
-                colors: ["#ccc", "#FC660F", "#ccc"],
+                colors: ["#ccc", "#137799", "#ccc"], //FC660F
                 min,
                 max,
               }),

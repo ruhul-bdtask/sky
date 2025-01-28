@@ -535,8 +535,8 @@ export default function Header() {
       "Premium Economy": "S", // Premium Economy maps to "S"
     };
 
-    const cabinClass = flight?.passenger_infos?.[0]?.cabin_class;
-    const mappedClass = cabinClassMapping[cabinClass] || "Y";
+    const cabinClasses = flight?.passenger_infos?.[0]?.cabin_class;
+    const mappedClass = cabinClassMapping[cabinClasses] || "Y";
 
     const searchData = {
       origin: flight?.origin_code,

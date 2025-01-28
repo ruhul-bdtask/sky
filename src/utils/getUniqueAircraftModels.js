@@ -1,4 +1,4 @@
-export const getUniqueAircraftModel = (allFlights) => {
+export const getUniqueAircraftModels = (allFlights) => {
   if (!Array.isArray(allFlights)) return [];
 
   const modelsSet = new Set();
