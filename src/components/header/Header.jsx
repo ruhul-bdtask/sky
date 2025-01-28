@@ -2,6 +2,7 @@
 // app/components/Header.js
 import { useSidebar } from "@/context/sidebar-context";
 import { formatFlightFare } from "@/lib/formatFlightFare";
+import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
 import { formatTripDate } from "@/lib/formatTripDate";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import ActiveIcon from "@/public/icons/ActiveIcon";
@@ -535,8 +536,8 @@ export default function Header() {
       "Premium Economy": "S", // Premium Economy maps to "S"
     };
 
-    const cabinClass = flight?.passenger_infos?.[0]?.cabin_class;
-    const mappedClass = cabinClassMapping[cabinClass] || "Y";
+    const cabinClasses = flight?.passenger_infos?.[0]?.cabin_class;
+    const mappedClass = cabinClassMapping[cabinClasses] || "Y";
 
     const searchData = {
       origin: flight?.origin_code,

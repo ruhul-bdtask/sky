@@ -6,8 +6,8 @@ export const filterFlightsData = (sortFlights, filterOptions = {}) => {
   //   stops = [],
   //   airlines = [],
   //   layoverAirports = [],
-  //   aircraftModel = [],
-  //   cabinClass = [],
+  //   aircraftModels = [],
+  //   cabinClasses = [],
   //   takeOffRange = [0, 100],
   //   landingRange = [0, 100],
   //   legRange = [0, 100],
@@ -39,10 +39,10 @@ export const filterFlightsData = (sortFlights, filterOptions = {}) => {
   const layoverAirportsToFilter = filterOptions.layoverAirports;
 
   // Check if the airlines model filter is applied
-  const airlinesModelToFilter = filterOptions.aircraftModel;
+  const airlinesModelToFilter = filterOptions.aircraftModels;
 
   // Check if the airlines model filter is applied
-  const cabinClassToFilter = filterOptions.cabinClass;
+  const cabinClassToFilter = filterOptions.cabinClasses;
 
   // Filter the flights based on the conditions
   return sortFlights.filter((flight) => {

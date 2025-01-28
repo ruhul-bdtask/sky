@@ -9,9 +9,9 @@ import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 import { millisecondsToDateTime } from "@/lib/millisecondsToDateTime";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
-import { getUniqueAircraftModel } from "@/utils/getUniqueAircraftModel";
+import { getUniqueAircraftModels } from "@/utils/getUniqueAircraftModels";
 import { getUniqueAirlinesName } from "@/utils/getUniqueAirlinesName";
-import { getUniqueCabinClass } from "@/utils/getUniqueCabinClass";
+import { getUniqueCabinClasses } from "@/utils/getUniqueCabinClasses";
 import { getUniqueFlightsByAirlineName } from "@/utils/getUniqueFlightsByAirlineName";
 import { getUniqueLayoverAirports } from "@/utils/getUniqueLayoverAirports";
 import { useEffect, useState } from "react";
@@ -50,7 +50,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     airlines: [],
     airports: [],
     layoverAirports: [],
-    aircraftModel: [],
+    aircraftModels: [],
     legRange: [0, 100],
     layoverRange: [0, 100],
     priceRange: [0, 100],
@@ -94,14 +94,14 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     });
   };
 
-  // airports change handler
-  const handleAirportsChange = (airport) => {
-    const updatedAirports = filterOptions.airports.some((ap) => ap === airport)
-      ? filterOptions.airports.filter((air) => air !== airport)
-      : [...filterOptions.airports, airport];
+  // // airports change handler
+  // const handleAirportsChange = (airport) => {
+  //   const updatedAirports = filterOptions.airports.some((ap) => ap === airport)
+  //     ? filterOptions.airports.filter((air) => air !== airport)
+  //     : [...filterOptions.airports, airport];
 
-    setFilterOptions({ ...filterOptions, airports: updatedAirports });
-  };
+  //   setFilterOptions({ ...filterOptions, airports: updatedAirports });
+  // };
 
   // layover airports change handler
   const handleLayoverAirportsChange = (airport) => {
@@ -116,23 +116,26 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
   // airlines model change handler
   const handleAircraftModelChange = (model) => {
-    const updatedAircraftModel = filterOptions.aircraftModel.some(
+    const updatedAircraftModel = filterOptions.aircraftModels.some(
       (al) => al === model
     )
-      ? filterOptions.aircraftModel.filter((mod) => mod !== model)
-      : [...filterOptions.aircraftModel, model];
+      ? filterOptions.aircraftModels.filter((mod) => mod !== model)
+      : [...filterOptions.aircraftModels, model];
 
-    setFilterOptions({ ...filterOptions, aircraftModel: updatedAircraftModel });
+    setFilterOptions({
+      ...filterOptions,
+      aircraftModels: updatedAircraftModel,
+    });
   };
 
   // airlines model change handler
-  const handleCabinClassChange = (cabinClass) => {
-    const updatedCabinClass = filterOptions.cabinClass.some(
-      (cc) => cc === cabinClass
+  const handleCabinClassChange = (cabinClasses) => {
+    const updatedCabinClass = filterOptions.cabinClasses.some(
+      (cc) => cc === cabinClasses
     )
-      ? filterOptions.cabinClass.filter((cc) => cc !== cabinClass)
-      : [...filterOptions.cabinClass, cabinClass];
-    setFilterOptions({ ...filterOptions, cabinClass: updatedCabinClass });
+      ? filterOptions.cabinClasses.filter((cc) => cc !== cabinClasses)
+      : [...filterOptions.cabinClasses, cabinClasses];
+    setFilterOptions({ ...filterOptions, cabinClasses: updatedCabinClass });
   };
 
   // stops
@@ -141,17 +144,17 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   // unique flights by airline name
   const uniqueFlightsByAirlineName = getUniqueFlightsByAirlineName(allFlights);
 
-  // unique airports name list
+  // // unique airports name list
   // const uniqueAirports = getUniqueAirports(allFlights);
 
   // unique airlines model list
-  const uniqueCabinClass = getUniqueCabinClass(allFlights);
+  const uniqueCabinClasses = getUniqueCabinClasses(allFlights);
 
   // unique layover airports name list
   const uniqueLayoverAirports = getUniqueLayoverAirports(allFlights);
 
   // unique airlines model list
-  const uniqueAircraftModel = getUniqueAircraftModel(allFlights);
+  const uniqueAircraftModels = getUniqueAircraftModels(allFlights);
 
   // unique airlines name list
   const uniqueAirlinesName = getUniqueAirlinesName(allFlights);
@@ -203,9 +206,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   };
 
   // reset all stops to default
-  const handleResetCabinClass = (e) => {
+  const handleResetCabinClasses = (e) => {
     e.stopPropagation();
-    setFilterOptions({ cabinClass: uniqueCabinClass });
+    setFilterOptions({ cabinClasses: uniqueCabinClasses });
   };
   // reset all layover airports to default
   const handleResetLayoverAirports = (e) => {
@@ -213,9 +216,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions({ layoverAirports: uniqueLayoverAirports });
   };
   // reset all aircraft model to default
-  const handleResetAircraftModel = (e) => {
+  const handleResetAircraftModels = (e) => {
     e.stopPropagation();
-    setFilterOptions({ aircraftModel: uniqueAircraftModel });
+    setFilterOptions({ aircraftModels: uniqueAircraftModels });
   };
 
   // effect for set initial values for all the filter options
@@ -282,9 +285,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
         ...filterOptions,
         stops: ["Nonstop", "1 stop", "2+ stops"],
         airlines: uniqueAirlinesName,
-        cabinClass: uniqueCabinClass,
+        cabinClasses: uniqueCabinClasses,
         layoverAirports: uniqueLayoverAirports,
-        aircraftModel: uniqueAircraftModel,
+        aircraftModels: uniqueAircraftModels,
       });
     }
   }, []);
@@ -325,7 +328,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           <span className="text-[14px] font-semibold mb-8">
             {filterData?.length} of{" "}
           </span>
-          <span className="text-[14px] text-[#FC660F]">
+          <span className="text-[14px] text-[#137799]">
             {allFlights?.length} flights
           </span>
         </div>
@@ -334,7 +337,10 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           <div className="text-[14px] font-semibold mb-4 flex justify-between">
             <span>Stops </span>
             {stops.length !== filterOptions.stops.length && (
-              <button className="font-medium" onClick={handleResetStops}>
+              <button
+                className="text-[#137799] font-semibold font-mono"
+                onClick={handleResetStops}
+              >
                 Reset
               </button>
             )}
@@ -420,13 +426,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
             <p className="text-[14px] font-semibold mb-4">Airlines </p>
             <div>
               <button
-                className="text-orange-600 text-sm mr-4"
+                className="text-[#137799] font-semibold text-sm mr-4"
                 onClick={handleSelectAllAirlines}
               >
                 Select All
               </button>
               <button
-                className="text-orange-600 text-sm"
+                className="text-[#137799] font-semibold text-sm"
                 onClick={handleClearAllAirlines}
               >
                 Clear all
@@ -463,7 +469,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           {uniqueFlightsByAirlineName.length > 6 && (
             <button
               onClick={toggleMoreLessAirlines}
-              className="text-orange-600 text-sm mt-2"
+              className="text-[#137799] font-semibold text-sm mt-2"
             >
               {isShowMoreAirlines
                 ? "Show less"
@@ -589,9 +595,12 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
               <AccordionTrigger className="hover:no-underline">
                 <div className="w-full flex justify-between">
                   <span className="font-semibold">Cabin</span>
-                  {uniqueCabinClass.length !==
-                    filterOptions.cabinClass.length && (
-                    <button className="mr-2" onClick={handleResetCabinClass}>
+                  {uniqueCabinClasses.length !==
+                    filterOptions.cabinClasses.length && (
+                    <button
+                      className="mr-2 text-[#137799] font-semibold font-mono"
+                      onClick={handleResetCabinClasses}
+                    >
                       Reset
                     </button>
                   )}
@@ -599,20 +608,20 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
               </AccordionTrigger>
               <p className="mb-4"></p>
               <AccordionContent style={{ overflow: "visible" }}>
-                {uniqueCabinClass.map((cabinClass) => (
-                  <div key={cabinClass} className="mb-2">
+                {uniqueCabinClasses.map((cabinClasses) => (
+                  <div key={cabinClasses} className="mb-2">
                     <label className="flex items-center">
                       <Checkbox
                         id="direct"
-                        checked={filterOptions.cabinClass?.some(
-                          (cc) => cc === cabinClass
+                        checked={filterOptions.cabinClasses?.some(
+                          (cc) => cc === cabinClasses
                         )}
                         onCheckedChange={(checked) =>
-                          handleCabinClassChange(cabinClass)
+                          handleCabinClassChange(cabinClasses)
                         }
                       />
                       <span className="text-sm ml-2 text-gray-700">
-                        {cabinClass}
+                        {cabinClasses}
                       </span>
                     </label>
                   </div>
@@ -620,69 +629,74 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-3">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="w-full flex justify-between">
-                  <span className="font-semibold">Layover Airports</span>
-                  {uniqueLayoverAirports.length !==
-                    filterOptions.layoverAirports.length && (
-                    <button
-                      className="mr-2"
-                      onClick={handleResetLayoverAirports}
-                    >
-                      Reset
-                    </button>
-                  )}
-                </div>
-              </AccordionTrigger>
-              <AccordionContent
-                style={{ overflow: "visible" }}
-                className="pt-4"
-              >
-                <div className="">
-                  {uniqueLayoverAirports.map((airport) => (
-                    <div key={airport} className="mb-2">
-                      <p className="text-sm font-medium mb-2">
-                        {getChangingCity(airportsData, airport)
-                          .split(",")
-                          .slice(1, 2)
-                          .join(" ")
-                          .split("(")
-                          .slice(0, 1)}
-                      </p>
-                      <label className="flex items-center">
-                        <Checkbox
-                          id="direct"
-                          checked={filterOptions.layoverAirports?.some(
-                            (ap) => ap === airport
-                          )}
-                          onCheckedChange={(checked) =>
-                            handleLayoverAirportsChange(airport)
-                          }
-                        />
-                        <span className="text-sm ml-2 text-gray-700">
-                          {`${getAirport(airportsData, airport)
-                            .split(" ")
-                            .slice(0, 2)
-                            .join(" ")} (${airport})`}
-                        </span>
-                        {/* <span className="ml-auto text-[#64717B] text-[14px]">
+            {uniqueLayoverAirports.length > 0 && (
+              <AccordionItem value="item-3">
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="w-full flex justify-between">
+                    <span className="font-semibold">Layover Airports</span>
+                    {uniqueLayoverAirports.length !==
+                      filterOptions.layoverAirports.length && (
+                      <button
+                        className="mr-2 text-[#137799] font-semibold font-mono"
+                        onClick={handleResetLayoverAirports}
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent
+                  style={{ overflow: "visible" }}
+                  className="pt-4"
+                >
+                  <div className="">
+                    {uniqueLayoverAirports.map((airport) => (
+                      <div key={airport} className="mb-2">
+                        <p className="text-sm font-medium mb-2">
+                          {getChangingCity(airportsData, airport)
+                            .split(",")
+                            .slice(1, 2)
+                            .join(" ")
+                            .split("(")
+                            .slice(0, 1)}
+                        </p>
+                        <label className="flex items-center">
+                          <Checkbox
+                            id="direct"
+                            checked={filterOptions.layoverAirports?.some(
+                              (ap) => ap === airport
+                            )}
+                            onCheckedChange={(checked) =>
+                              handleLayoverAirportsChange(airport)
+                            }
+                          />
+                          <span className="text-sm ml-2 text-gray-700">
+                            {`${getAirport(airportsData, airport)
+                              .split(" ")
+                              .slice(0, 2)
+                              .join(" ")} (${airport})`}
+                          </span>
+                          {/* <span className="ml-auto text-[#64717B] text-[14px]">
                           Tk 23,404
                         </span> */}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
             <AccordionItem value="item-4">
               <AccordionTrigger className="hover:no-underline">
                 <div className="w-full flex justify-between">
                   <span className="font-semibold">Aircraft</span>
-                  {uniqueAircraftModel.length !==
-                    filterOptions.aircraftModel.length && (
-                    <button className="mr-2" onClick={handleResetAircraftModel}>
+                  {uniqueAircraftModels.length !==
+                    filterOptions.aircraftModels.length && (
+                    <button
+                      className="mr-2 text-[#137799] font-semibold font-mono"
+                      onClick={handleResetAircraftModels}
+                    >
                       Reset
                     </button>
                   )}
@@ -694,12 +708,12 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
               >
                 <p className="text-sm font-medium mb-2">Model</p>
                 <div className="">
-                  {uniqueAircraftModel.map((model) => (
+                  {uniqueAircraftModels.map((model) => (
                     <div key={model} className="mb-2">
                       <label className="flex items-center">
                         <Checkbox
                           id="direct"
-                          checked={filterOptions.aircraftModel?.some(
+                          checked={filterOptions.aircraftModels?.some(
                             (ap) => ap === model
                           )}
                           onCheckedChange={(checked) =>
