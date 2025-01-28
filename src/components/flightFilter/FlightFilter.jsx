@@ -135,6 +135,9 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions({ ...filterOptions, cabinClass: updatedCabinClass });
   };
 
+  // stops
+  const stops = ["Nonstop", "1 stop", "2+ stops"];
+
   // unique flights by airline name
   const uniqueFlightsByAirlineName = getUniqueFlightsByAirlineName(allFlights);
 
@@ -192,6 +195,27 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   // dis select all airlines
   const handleClearAllAirlines = () => {
     setFilterOptions({ ...filterOptions, airlines: [] });
+  };
+
+  // reset all stops to default
+  const handleResetStops = () => {
+    setFilterOptions({ stops: stops.map((stop) => stop) });
+  };
+
+  // reset all stops to default
+  const handleResetCabinClass = (e) => {
+    e.stopPropagation();
+    setFilterOptions({ cabinClass: uniqueCabinClass });
+  };
+  // reset all layover airports to default
+  const handleResetLayoverAirports = (e) => {
+    e.stopPropagation();
+    setFilterOptions({ layoverAirports: uniqueLayoverAirports });
+  };
+  // reset all aircraft model to default
+  const handleResetAircraftModel = (e) => {
+    e.stopPropagation();
+    setFilterOptions({ aircraftModel: uniqueAircraftModel });
   };
 
   // effect for set initial values for all the filter options
@@ -307,9 +331,16 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
         </div>
 
         <section className="mb-6 border-t pt-4 ">
-          <p className="text-[14px] font-semibold mb-4">Stops </p>
+          <div className="text-[14px] font-semibold mb-4 flex justify-between">
+            <span>Stops </span>
+            {stops.length !== filterOptions.stops.length && (
+              <button className="font-medium" onClick={handleResetStops}>
+                Reset
+              </button>
+            )}
+          </div>
           <div className="space-y-3">
-            {["Nonstop", "1 stop", "2+ stops"].map((stop) => (
+            {stops.map((stop) => (
               <label key={stop} className="flex items-center">
                 <Checkbox
                   value={stop}
@@ -556,7 +587,15 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
             <AccordionItem value="item-2">
               <AccordionTrigger className="hover:no-underline">
-                <span className="font-semibold">Cabin</span>
+                <div className="w-full flex justify-between">
+                  <span className="font-semibold">Cabin</span>
+                  {uniqueCabinClass.length !==
+                    filterOptions.cabinClass.length && (
+                    <button className="mr-2" onClick={handleResetCabinClass}>
+                      Reset
+                    </button>
+                  )}
+                </div>
               </AccordionTrigger>
               <p className="mb-4"></p>
               <AccordionContent style={{ overflow: "visible" }}>
@@ -583,7 +622,18 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
             <AccordionItem value="item-3">
               <AccordionTrigger className="hover:no-underline">
-                <span className="font-semibold">Layover Airports</span>
+                <div className="w-full flex justify-between">
+                  <span className="font-semibold">Layover Airports</span>
+                  {uniqueLayoverAirports.length !==
+                    filterOptions.layoverAirports.length && (
+                    <button
+                      className="mr-2"
+                      onClick={handleResetLayoverAirports}
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
               </AccordionTrigger>
               <AccordionContent
                 style={{ overflow: "visible" }}
@@ -628,7 +678,15 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
             <AccordionItem value="item-4">
               <AccordionTrigger className="hover:no-underline">
-                <span className="font-semibold">Aircraft</span>
+                <div className="w-full flex justify-between">
+                  <span className="font-semibold">Aircraft</span>
+                  {uniqueAircraftModel.length !==
+                    filterOptions.aircraftModel.length && (
+                    <button className="mr-2" onClick={handleResetAircraftModel}>
+                      Reset
+                    </button>
+                  )}
+                </div>
               </AccordionTrigger>
               <AccordionContent
                 style={{ overflow: "visible" }}
