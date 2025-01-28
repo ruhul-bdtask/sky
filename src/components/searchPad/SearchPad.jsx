@@ -249,10 +249,10 @@ export default function SearchPad() {
     { name: "Multi-city", price: 150, shortCode: "multi_city" },
   ]);
   const [categories, setCategories] = useState([
-    { name: "Adults", ageRange: "18-64", count: 1 },
-    { name: "Children", ageRange: "5-11", count: 0 },
-    { name: "Kids", ageRange: "2-5", count: 0 },
-    { name: "Infants on lap", ageRange: "under 2", count: 0 },
+    { name: "Adults", ageRange: "18-64", count: 1, type: "ADT" },
+    { name: "Children", ageRange: "5-11", count: 0, type: "C06" },
+    { name: "Kids", ageRange: "2-5", count: 0, type: "C04" },
+    { name: "Infants on lap", ageRange: "under 2", count: 0, type: "INF" },
   ]);
   const [classes, setClasses] = useState([
     { name: "Economy", price: 50, shortCode: "Y" },
@@ -450,7 +450,30 @@ export default function SearchPad() {
 
     return passengers;
   };
+
   const passengers = generatePassengersFromCategories(categories);
+
+  // useEffect(() => {
+  //   if (passengers.length > 0) {
+  //     // Map passengers back to categories
+  //     const updatedCategories = categories.map((category) => {
+  //       const passenger = passengers.find((p) => {
+  //         if (category.name === "Adults") return p.type === "ADT";
+  //         if (category.name === "Children") return p.type === "C06";
+  //         if (category.name === "Kids") return p.type === "C04";
+  //         if (category.name === "Infants on lap") return p.type === "INF";
+  //         return false;
+  //       });
+
+  //       return {
+  //         ...category,
+  //         count: passenger ? passenger.quantity : 0, // Update count
+  //       };
+  //     });
+
+  //     setCategories(updatedCategories);
+  //   }
+  // }, [passengers]);
 
   const dropdownRef = useRef(null);
   const dropdownRefDestination = useRef(null);
@@ -578,30 +601,70 @@ export default function SearchPad() {
     setOriginalArrivalDate(formattedDateTimeOrigin);
   }, [oneWayDate, roundDate, selectedWay]);
 
+  // const handleSubmitRecentSearch = (item) => {
+  //   // const searchData = {
+  //   //   origin: item?.origin,
+  //   //   destination: item?.destination,
+  //   //   tripType: item?.tripType,
+  //   //   class: item?.class,
+  //   //   passengers: item?.passengers,
+  //   //   journeyDate: item?.journeyDate,
+  //   //   returnDate: item?.returnDate,
+  //   // };
+  //   setOneWayDate(item?.journeyDate);
+  //   setRoundDate({
+  //     from: item?.journeyDate,
+  //     to: item?.returnDate,
+  //   });
+  //   setSearchQueryOrigin(item?.origin);
+  //   setOriginAirport(item?.originAirport);
+  //   setDestinationAirport(item?.destinationAirport);
+  //   setSearchQueryDestination(item?.destination);
+  //   setSelectedWay(item?.tripType);
+  //   setSelectedClass(item?.class);
+  //   setPassengerInformation(item?.passengers);
+  //   setIsOpenDestination(false);
+  //   setIsOpenArrival(false);
+  // };
+
   const handleSubmitRecentSearch = (item) => {
-    // const searchData = {
-    //   origin: item?.origin,
-    //   destination: item?.destination,
-    //   tripType: item?.tripType,
-    //   class: item?.class,
-    //   passengers: item?.passengers,
-    //   journeyDate: item?.journeyDate,
-    //   returnDate: item?.returnDate,
-    // };
-    setOriginalDate(item?.journeyDate);
-    setOriginalArrivalDate(item?.returnDate || "");
+    // Update journey and return dates
+    setOneWayDate(item?.journeyDate);
+    setRoundDate({
+      from: item?.journeyDate,
+      to: item?.returnDate,
+    });
+
+    // Update origin and destination
     setSearchQueryOrigin(item?.origin);
     setOriginAirport(item?.originAirport);
     setDestinationAirport(item?.destinationAirport);
     setSearchQueryDestination(item?.destination);
+
+    // Update trip type, class, and passenger info
     setSelectedWay(item?.tripType);
     setSelectedClass(item?.class);
     setPassengerInformation(item?.passengers);
+
+    // Close dropdowns
     setIsOpenDestination(false);
     setIsOpenArrival(false);
+
+    // Sync categories based on passengers
+    if (item?.passengers && Array.isArray(item.passengers)) {
+      const updatedCategories = categories.map((category) => {
+        const matchingPassenger = item.passengers.find(
+          (passenger) => passenger.type === category.type
+        );
+        return {
+          ...category,
+          count: matchingPassenger ? matchingPassenger.quantity : 0,
+        };
+      });
+      setCategories(updatedCategories); // Update the categories state
+    }
   };
 
- 
   const handleSubmitSearch = (e) => {
     e.preventDefault();
     setSelectedFlight({});
@@ -1312,20 +1375,38 @@ export default function SearchPad() {
                     >
                       <div onClick={() => setIsOpenDestination(true)}>
                         <p
-                          className={`text-[14px] absolute right-6 truncate  top-1/2 transform -translate-y-1/2 max-w-fit pe-6  group ${
-                            originAirport == "" || originAirport == undefined
-                              ? // ||
-                                // searchQueryOrigin == "" ||
-                                // searchQueryOrigin == undefined
-                                ""
-                              : "border border-white bg-white px-2 py-0.5 left-[20px] hover:border-black rounded-[3px] transition-all duration-300 leading-[20px] "
+                          className={`text-[14px] absolute right-6 truncate top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            originAirport
+                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              : ""
                           }`}
                         >
-                          {originAirport !== "" ? originAirport : ""}
-                          <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer px-1 py-3  ">
-                            <FaTimes onClick={handleClear} />
-                          </span>
+                          {originAirport && (
+                            <>
+                              <span className="px-1.5 py-0.5">
+                                {originAirport}
+                              </span>
+                              <span
+                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                onMouseEnter={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "hover:border-black",
+                                    "border-white"
+                                  )
+                                }
+                                onMouseLeave={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "border-white",
+                                    "hover:border-black"
+                                  )
+                                }
+                              >
+                                <FaTimes onClick={handleClear} />
+                              </span>
+                            </>
+                          )}
                         </p>
+
                         <input
                           value={searchQueryOrigin}
                           type="text"
@@ -1472,7 +1553,7 @@ export default function SearchPad() {
                     </button>
                     <div className="relative w-full" ref={dropdownRefArrival}>
                       <div onClick={() => setIsOpenArrival(true)}>
-                        <p
+                        {/* <p
                           className={`text-[14px] absolute right-6 truncate  top-1/2 transform -translate-y-1/2  max-w-fit pe-6 ${
                             destinationAirport == "" ||
                             destinationAirport == undefined
@@ -1487,6 +1568,39 @@ export default function SearchPad() {
                           <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer px-1 py-3 ">
                             <FaTimes onClick={handleClearArrival} />
                           </span>
+                        </p> */}
+
+                        <p
+                          className={`text-[14px] absolute right-6 truncate top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            destinationAirport
+                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              : ""
+                          }`}
+                        >
+                          {destinationAirport && (
+                            <>
+                              <span className="px-1.5 py-0.5">
+                                {destinationAirport}
+                              </span>
+                              <span
+                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                onMouseEnter={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "hover:border-black",
+                                    "border-white"
+                                  )
+                                }
+                                onMouseLeave={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "border-white",
+                                    "hover:border-black"
+                                  )
+                                }
+                              >
+                                <FaTimes onClick={handleClear} />
+                              </span>
+                            </>
+                          )}
                         </p>
                         <input
                           value={searchQueryDestination}
@@ -1655,20 +1769,36 @@ export default function SearchPad() {
                       >
                         <div onClick={() => setIsOpenDestination(true)}>
                           <p
-                            className={`text-[14px] absolute right-6 truncate  top-1/2 transform -translate-y-1/2 max-w-fit pe-6 ${
-                              originAirport == "" || originAirport == undefined
-                                ? //  ||
-                                  // searchQueryOrigin == "" ||
-                                  // searchQueryOrigin == undefined
-                                  ""
-                                : "border border-white bg-white px-1 py-0.5 left-[20px] hover:border-black rounded-[3px] transition-all duration-300 leading-[20px]"
+                            className={`text-[14px] absolute right-6 truncate top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                              originAirport
+                                ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                : ""
                             }`}
                           >
-                            {originAirport !== "" ? originAirport : ""}
-
-                            <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer px-1 py-3 ">
-                              <FaTimes onClick={handleClear} />
-                            </span>
+                            {originAirport && (
+                              <>
+                                <span className="px-1.5 py-0.5">
+                                  {originAirport}
+                                </span>
+                                <span
+                                  className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                  onMouseEnter={(e) =>
+                                    e.currentTarget.parentElement.classList.replace(
+                                      "hover:border-black",
+                                      "border-white"
+                                    )
+                                  }
+                                  onMouseLeave={(e) =>
+                                    e.currentTarget.parentElement.classList.replace(
+                                      "border-white",
+                                      "hover:border-black"
+                                    )
+                                  }
+                                >
+                                  <FaTimes onClick={handleClear} />
+                                </span>
+                              </>
+                            )}
                           </p>
                           <input
                             value={searchQueryOrigin}
@@ -1813,22 +1943,36 @@ export default function SearchPad() {
                       <div className="relative w-full" ref={dropdownRefArrival}>
                         <div onClick={() => setIsOpenArrival(true)}>
                           <p
-                            className={`text-[14px] absolute right-6 truncate  top-1/2 transform -translate-y-1/2 max-w-fit pe-6 ${
-                              destinationAirport == "" ||
-                              destinationAirport == undefined
-                                ? // ||
-                                  // searchQueryDestination == undefined ||
-                                  // searchQueryDestination == ""
-                                  ""
-                                : "border border-white bg-white px-1 py-0.5 left-[20px] hover:border-black rounded-[3px] transition-all duration-300 leading-[20px]"
+                            className={`text-[14px] absolute right-6 truncate top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                              destinationAirport
+                                ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                : ""
                             }`}
                           >
-                            {destinationAirport !== ""
-                              ? destinationAirport
-                              : ""}
-                            <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer px-1 py-3 ">
-                              <FaTimes onClick={handleClearArrival} />
-                            </span>
+                            {destinationAirport && (
+                              <>
+                                <span className="px-2 py-0.5">
+                                  {destinationAirport}
+                                </span>
+                                <span
+                                  className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                  onMouseEnter={(e) =>
+                                    e.currentTarget.parentElement.classList.replace(
+                                      "hover:border-black",
+                                      "border-white"
+                                    )
+                                  }
+                                  onMouseLeave={(e) =>
+                                    e.currentTarget.parentElement.classList.replace(
+                                      "border-white",
+                                      "hover:border-black"
+                                    )
+                                  }
+                                >
+                                  <FaTimes onClick={handleClear} />
+                                </span>
+                              </>
+                            )}
                           </p>
                           <input
                             value={searchQueryDestination}

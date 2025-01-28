@@ -75,7 +75,6 @@ export default function DatePicker({
     setActiveButton("to");
     setIsPopoverOpen(true);
   };
-  console.log("originalDate from date picker",originalDate,originalArrivalData)
 
   return (
     <div className={cn("grid gap-2", className)}>
