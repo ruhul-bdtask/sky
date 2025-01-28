@@ -10,7 +10,7 @@ import { millisecondsToDateTime } from "@/lib/millisecondsToDateTime";
 import { getAirport } from "@/utils/getAirport";
 import { getChangingCity } from "@/utils/getChangingCity";
 import { getUniqueAircraftModel } from "@/utils/getUniqueAircraftModel";
-import { getUniqueAirports } from "@/utils/getUniqueAirports";
+import { getUniqueAirlinesName } from "@/utils/getUniqueAirlinesName";
 import { getUniqueCabinClass } from "@/utils/getUniqueCabinClass";
 import { getUniqueFlightsByAirlineName } from "@/utils/getUniqueFlightsByAirlineName";
 import { getUniqueLayoverAirports } from "@/utils/getUniqueLayoverAirports";
@@ -135,20 +135,23 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
     setFilterOptions({ ...filterOptions, cabinClass: updatedCabinClass });
   };
 
-  // unique airlines name list
-  const uniqueAirlines = getUniqueFlightsByAirlineName(allFlights);
+  // unique flights by airline name
+  const uniqueFlightsByAirlineName = getUniqueFlightsByAirlineName(allFlights);
 
   // unique airports name list
-  const uniqueAirports = getUniqueAirports(allFlights);
+  // const uniqueAirports = getUniqueAirports(allFlights);
+
+  // unique airlines model list
+  const uniqueCabinClass = getUniqueCabinClass(allFlights);
 
   // unique layover airports name list
   const uniqueLayoverAirports = getUniqueLayoverAirports(allFlights);
 
   // unique airlines model list
-  const uniqueAirlinesModel = getUniqueAircraftModel(allFlights);
+  const uniqueAircraftModel = getUniqueAircraftModel(allFlights);
 
-  // unique airlines model list
-  const uniqueCabinClass = getUniqueCabinClass(allFlights);
+  // unique airlines name list
+  const uniqueAirlinesName = getUniqueAirlinesName(allFlights);
 
   // show and hide more airline lists
   const toggleMoreLessAirlines = () => {
@@ -177,7 +180,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   // select all airlines handler
   const handleSelectAllAirlines = () => {
     // unique airlines name list
-    const updatedAirlines = uniqueAirlines.map(
+    const updatedAirlines = uniqueFlightsByAirlineName.map(
       (airline) => airline.airline_name
     );
     setFilterOptions({
@@ -249,6 +252,16 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       setMaxLayoverDuration(initialMaxLayoverDuration);
       setMinPrice(initialMinPrice);
       setMaxPrice(initialMaxPrice);
+
+      // all filter options checked by default
+      setFilterOptions({
+        ...filterOptions,
+        stops: ["Nonstop", "1 stop", "2+ stops"],
+        airlines: uniqueAirlinesName,
+        cabinClass: uniqueCabinClass,
+        layoverAirports: uniqueLayoverAirports,
+        aircraftModel: uniqueAircraftModel,
+      });
     }
   }, []);
 
@@ -391,12 +404,12 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
           </div>
           <div
             className={`space-y-3 overflow-hidden ${
-              !isShowMoreAirlines && uniqueAirlines.length > 6
+              !isShowMoreAirlines && uniqueFlightsByAirlineName.length > 6
                 ? "max-h-[185px]"
                 : "max-h-fit"
             }`}
           >
-            {uniqueAirlines.map((flight, index) => (
+            {uniqueFlightsByAirlineName.map((flight, index) => (
               <label key={index} className="flex items-center">
                 <Checkbox
                   id={`flight-${index}`}
@@ -416,14 +429,14 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
               </label>
             ))}
           </div>
-          {uniqueAirlines.length > 6 && (
+          {uniqueFlightsByAirlineName.length > 6 && (
             <button
               onClick={toggleMoreLessAirlines}
               className="text-orange-600 text-sm mt-2"
             >
               {isShowMoreAirlines
                 ? "Show less"
-                : `Show more ${uniqueAirlines.length - 6} airlines`}
+                : `Show more ${uniqueFlightsByAirlineName.length - 6} airlines`}
             </button>
           )}
         </section>
@@ -623,7 +636,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
               >
                 <p className="text-sm font-medium mb-2">Model</p>
                 <div className="">
-                  {uniqueAirlinesModel.map((model) => (
+                  {uniqueAircraftModel.map((model) => (
                     <div key={model} className="mb-2">
                       <label className="flex items-center">
                         <Checkbox
