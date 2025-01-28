@@ -102,8 +102,8 @@ export default function DatePickerOneWay({
                 "[&:has([aria-selected])]:rounded-md"
               ),
               day: cn(
-                "h-8 w-10 p-0 font-bold aria-selected:opacity-100",
-                "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                "h-8 w-10 p-0 font-semibold aria-selected:opacity-100 hover:bg-green-200 rounded-md",
+                " focus:bg-accent focus:text-accent-foreground  "
               ),
               day_selected: "bg-primary text-primary-foreground",
               day_today: "bg-gray-100 text-accent-foreground",

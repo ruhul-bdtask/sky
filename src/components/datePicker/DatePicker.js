@@ -87,7 +87,7 @@ export default function DatePicker({
               type="button"
               className={cn(
                 "w-full md:w-[280px] justify-start text-left font-normal",
-                !originalDate && "text-muted-foreground"
+                !roundDate.from && "text-muted-foreground"
               )}
               onClick={handleFromClick}
             >
@@ -95,7 +95,7 @@ export default function DatePicker({
                 <div className="absolute left-3 text-gray-400">
                   <Calender />
                 </div>
-                {originalDate ? formatLongDataToShort(originalDate) : ""}
+                {roundDate.from ? formatLongDataToShort(roundDate.from) : ""}
                 <div className="flex">
                   <LuChevronLeft
                     size={20}
@@ -117,7 +117,7 @@ export default function DatePicker({
               type="button"
               className={cn(
                 "w-full md:w-[280px] justify-start text-left font-normal",
-                !originalArrivalData && "text-muted-foreground"
+                !roundDate.to && "text-muted-foreground"
               )}
               onClick={handleToClick}
             >
@@ -125,7 +125,7 @@ export default function DatePicker({
                 <div className="absolute left-3 text-gray-400">
                   <Calender />
                 </div>
-                {originalArrivalData ? formatLongDataToShort(originalArrivalData) : ""}
+                {roundDate.to ? formatLongDataToShort(roundDate.to) : ""}
                 <div className="flex">
                   <LuChevronLeft
                     size={20}
@@ -142,7 +142,12 @@ export default function DatePicker({
             </button>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-auto bg-white p-0" align="start">
+        <PopoverContent
+          className="w-auto bg-white p-0"
+          align="start"
+          visible={isPopoverOpen}
+          onVisibleChange={setIsPopoverOpen}
+        >
           <Calendar
             initialFocus
             mode="range"
@@ -152,10 +157,10 @@ export default function DatePicker({
             selected={roundDate}
             onSelect={(date) => {
               if (activeButton === "from") {
+                // Directly set the from date without affecting the to date
                 setRoundDate((prev) => ({
                   ...prev,
                   from: date?.from || date,
-                  to: null,
                 }));
                 setActiveButton("to");
               } else {
@@ -171,6 +176,38 @@ export default function DatePicker({
             numberOfMonths={2}
           />
         </PopoverContent>
+        {/* <PopoverContent className="w-auto bg-white p-0" align="start">
+          <Calendar
+            initialFocus
+            mode="range"
+            defaultMonth={
+              activeButton === "from" ? roundDate?.from : roundDate?.to
+            }
+            selected={roundDate}
+            onSelect={(date) => {
+              // If selecting "from" date
+              if (activeButton === "from") {
+                // Get the clicked date, whether it's before or after existing dates
+                const clickedDate = date?.from || date?.to || date;
+                setRoundDate((prev) => ({
+                  ...prev,
+                  from: clickedDate,
+                }));
+                setActiveButton("to");
+              }
+              // If selecting "to" date
+              else {
+                const clickedDate = date?.from || date?.to || date;
+                setRoundDate((prev) => ({
+                  ...prev,
+                  to: clickedDate,
+                }));
+                setIsPopoverOpen(false);
+              }
+            }}
+            numberOfMonths={2}
+          />
+        </PopoverContent> */}
       </Popover>
     </div>
   );

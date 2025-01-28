@@ -1597,7 +1597,7 @@ export default function SearchPad() {
                                   )
                                 }
                               >
-                                <FaTimes onClick={handleClear} />
+                                <FaTimes onClick={handleClearArrival} />
                               </span>
                             </>
                           )}
@@ -1969,7 +1969,7 @@ export default function SearchPad() {
                                     )
                                   }
                                 >
-                                  <FaTimes onClick={handleClear} />
+                                  <FaTimes onClick={handleClearArrival} />
                                 </span>
                               </>
                             )}

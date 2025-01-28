@@ -158,32 +158,32 @@ export default function Travels({ travelsData, homeDataLoading }) {
           >
             {travelsData?.map((travel, index) => (
               <SwiperSlide key={index}>
-                <div className="w-[300px] overflow-hidden">
-                  <div className="relative">
-                    <img
-                      src={travel?.image_url}
-                      alt="Bangkok cityscape"
-                      className="object-cover h-[400px] w-full rounded-xl"
-                    />
-                    <button className="absolute top-2 right-2 text-black bg-white hover:bg-slate-200 transition-colors px-3 py-1 rounded-[4px]">
-                      <HeartIcon className="w-4 h-4" />
-                    </button>
-                    <div className="absolute bottom-3 left-4 bg-white text-black text-xs font-semibold py-1 px-2 rounded">
-                      {travel?.stop == 1
-                        ? "Direct"
-                        : travel?.stop == 2
-                        ? "1 Stop"
-                        : "Multi stops"}
-                    </div>
-                  </div>
-                  <div className="py-4">
-                    <h3 className="font-semibold text-[16px] mb-1 text-black">
-                      {travel?.title}
-                    </h3>
-                    <p className="text-[14px] text-black">{travel?.distance}</p>
+              <div className="">
+                <div className="relative">
+                  <img
+                    src={travel?.image_url}
+                    alt="Bangkok cityscape"
+                    className="object-cover h-[400px] w-full rounded-xl"
+                  />
+                  <button className="absolute top-2 right-2 text-black bg-white hover:bg-slate-200 transition-colors px-3 py-1 rounded-[4px]">
+                    <HeartIcon className="w-4 h-4" />
+                  </button>
+                  <div className="absolute bottom-3 left-4 bg-white text-black text-xs font-semibold py-1 px-2 rounded">
+                    {travel?.stop == 1
+                      ? "Direct"
+                      : travel?.stop == 2
+                      ? "1 Stop"
+                      : "Multi stops"}
                   </div>
                 </div>
-              </SwiperSlide>
+                {/* <div className="py-4">
+                  <h3 className="font-semibold text-[16px] mb-1 text-black">
+                    {travel?.title}
+                  </h3>
+                  <p className="text-[14px] text-black">{travel?.distance}</p>
+                </div> */}
+              </div>
+            </SwiperSlide>
             ))}
           </Swiper>
         </div>
