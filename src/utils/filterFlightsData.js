@@ -63,7 +63,7 @@ export const filterFlightsData = (sortFlights, filterOptions = {}) => {
     //   );
 
     const matchesLayoverAirports =
-      !layoverAirportsToFilter.length || // Allow all if the array is empty
+      flight.schedules.length === 1 ||
       flight.schedules.some((schedule) =>
         layoverAirportsToFilter.includes(schedule.departure_airport)
       );
@@ -80,17 +80,15 @@ export const filterFlightsData = (sortFlights, filterOptions = {}) => {
     const matchesTakeOffRange =
       filterOptions.takeOffRange[0] === 0 &&
       filterOptions.takeOffRange[1] === 100
-        ? true // If range is [0, 0], include all flights
+        ? true // If range is [0, 100], include all flights
         : flight.schedules.some((schedule) => {
             const departureTime = dateTimeToMilliseconds(
               schedule.departure_date,
               schedule.departure_time
             );
 
-            // Extract start and end range from filterOptions
             const [takeOffStart, takeOffEnd] = filterOptions.takeOffRange;
 
-            // Check if departureTime is within the range
             return departureTime >= takeOffStart && departureTime <= takeOffEnd;
           });
 
@@ -98,16 +96,14 @@ export const filterFlightsData = (sortFlights, filterOptions = {}) => {
     const matchesLandingRange =
       filterOptions.landingRange[0] === 0 &&
       filterOptions.landingRange[1] === 100
-        ? true // If range is [0, 0], include all flights
+        ? true
         : flight.schedules.some((schedule) => {
             const arrivalTime = dateTimeToMilliseconds(
               schedule.arrival_date,
               schedule.arrival_time
             );
-            // Extract start and end range from filterOptions
             const [landingStart, landingEnd] = filterOptions.landingRange;
 
-            // Check if arrivalTime is within the range
             return arrivalTime >= landingStart && arrivalTime <= landingEnd;
           });
 
