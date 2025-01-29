@@ -14,7 +14,7 @@ export default function TopFilter({ setSortCriteria, sortCriteria }) {
     "earliestLanding",
     "latestLanding",
     "highestPrice",
-    "lowestPrice",
+    "slowest",
   ];
 
   const handleOtherSort = () => {
@@ -142,9 +142,9 @@ export default function TopFilter({ setSortCriteria, sortCriteria }) {
             </li>
             <li
               className="hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer"
-              onClick={() => handleOtherSortChange("lowestPrice")}
+              onClick={() => handleOtherSortChange("slowest")}
             >
-              Lowest price
+              Slowest
             </li>
           </ul>
         </div>
