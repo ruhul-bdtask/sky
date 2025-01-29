@@ -529,10 +529,10 @@ export default function Header() {
     }));
 
     const cabinClassMapping = {
-      Economy: "Y", // Economy class maps to "Y"
-      Business: "C", // Business class maps to "C"
-      First: "F", // First class maps to "F"
-      "Premium Economy": "S", // Premium Economy maps to "S"
+      Economy: "Y",
+      Business: "C",
+      First: "F", 
+      "Premium Economy": "S",
     };
 
     const cabinClasses = flight?.passenger_infos?.[0]?.cabin_class;
@@ -602,7 +602,8 @@ export default function Header() {
       originDestinationInfo: JSON.stringify(originDestinationInfo),
     }).toString();
 
-    router.push(`/search-result?${queryString}`);
+    // router.push(`/search-result?${queryString}`);
+    window.location.href = `/search-result?${queryString}`;
   };
 
   useEffect(() => {
@@ -612,7 +613,7 @@ export default function Header() {
   }, [router]);
 
   return (
-    <header className={`bg-white  fixed left-0 z-50 right-0 h-20 border-b  `}>
+    <header className={`bg-white fixed left-0 z-50 right-0 h-20 border-b  `}>
       <ModalLayout
         isModalOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
