@@ -196,9 +196,12 @@ export default function Page({ searchParams }) {
         return [...allFlights.data.sortedItineraries].sort((a, b) => {
           return b.fare_details.total_fare - a.fare_details.total_fare;
         });
-      case "lowestPrice":
+      case "slowest":
         return [...allFlights.data.sortedItineraries].sort((a, b) => {
-          return a.fare_details.total_fare - b.fare_details.total_fare;
+          return (
+            b.itinerary_leg_descs[0].duration -
+            a.itinerary_leg_descs[0].duration
+          );
         });
       default:
         return allFlights.data.sortedItineraries;
