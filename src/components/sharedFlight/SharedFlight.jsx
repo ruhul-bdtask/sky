@@ -25,9 +25,9 @@ import {
 import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
-import FlightDetails from "./FlightDetails";
+import FlightDetails from "../flightCard/FlightDetails";
 
-export default function FlightCard({ flight, setLoadingRevalidate, type }) {
+export default function SharedFlight({ flight, setLoadingRevalidate }) {
   const router = useRouter();
   const {
     token,
@@ -409,138 +409,7 @@ export default function FlightCard({ flight, setLoadingRevalidate, type }) {
 
   const condition = shareExtraConditions.every((inc) => inc === true);
 
-  const generateComp = (schedules) => {
-    const dacToJfkStart = schedules.findIndex(
-      (flight) => flight.departure_airport === customFlightFilter[0]
-    );
-    const dacToJfkEnd =
-      schedules.findIndex(
-        (flight) => flight.arrival_airport === customFlightFilter[1]
-      ) + 1;
-
-    const jfkToDacStart = schedules.findIndex(
-      (flight) => flight.departure_airport === customFlightFilter[1]
-    );
-    const jfkToDacEnd =
-      schedules.findIndex(
-        (flight) => flight.arrival_airport === customFlightFilter[0]
-      ) + 1;
-
-    // Slicing the arrays
-    const departureHereToThere = schedules.slice(dacToJfkStart, dacToJfkEnd);
-    const departureThereToHere = schedules.slice(jfkToDacStart, jfkToDacEnd);
-
-    let departureElapsedTime = departureHereToThere
-      .map(
-        (item) =>
-          parseInt(item.elapsed_time) +
-          parseInt(item.layover_time ? item.layover_time : 0)
-      )
-      .reduce((a, b) => a + b, 0);
-
-    let arrivalElapsedTime = departureThereToHere
-      .map(
-        (item) =>
-          parseInt(item.elapsed_time) +
-          parseInt(item.layover_time ? item.layover_time : 0)
-      )
-      .reduce((a, b) => a + b, 0);
-
-    return (
-      <>
-        <div className="flex flex-col gap-4">
-          <div className="flex justify-between items-center gap-5 mt-2">
-            <div className="flex items-center gap-5">
-              <Image
-                width={50}
-                height={50}
-                alt="air"
-                src={flight?.airline_logo}
-              ></Image>
-              <div>
-                <p className="text-[13px]">
-                  {departureHereToThere[0]?.departure_airport} -{" "}
-                  {
-                    departureHereToThere[departureHereToThere.length - 1]
-                      ?.arrival_airport
-                  }
-                </p>
-                <p className="text-lg font-semibold">
-                  {unifyTimeFormat(departureHereToThere[0]?.departure_time)} -{" "}
-                  {unifyTimeFormat(
-                    departureHereToThere[departureHereToThere.length - 1]
-                      ?.arrival_time
-                  )}{" "}
-                </p>
-
-                <div>
-                  <p className="text-[#5F6D77] text-[12px]">
-                    {flight?.airline_name}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-5">
-              <p className="text-sm font-semibold text-start">
-                {flight?.schedules.length === 0 && " Direct"}
-                {flight?.schedules.length === 1 && "1 Stop"}
-                {flight?.schedules.length > 1 &&
-                  flight?.schedules.length + " " + "Stops"}
-              </p>
-              <p className="text-sm font-semibold text-start">
-                {formatMinutesToHours(departureElapsedTime)}
-              </p>
-            </div>
-          </div>
-
-          {/* second */}
-          <div className="flex justify-between items-center gap-5">
-            <div className="flex items-center gap-5">
-              <Image
-                width={50}
-                height={50}
-                alt="air"
-                src={flight?.airline_logo}
-              ></Image>
-              <div>
-                <p className="text-[13px]">
-                  {departureThereToHere[0]?.departure_airport} -{" "}
-                  {
-                    departureThereToHere[departureThereToHere.length - 1]
-                      ?.arrival_airport
-                  }
-                </p>
-                <p className="text-lg font-semibold">
-                  {unifyTimeFormat(departureThereToHere[0]?.departure_time)} -{" "}
-                  {unifyTimeFormat(
-                    departureThereToHere[departureThereToHere.length - 1]
-                      ?.arrival_time
-                  )}{" "}
-                </p>
-
-                <div>
-                  <p className="text-[#5F6D77] text-[12px]">
-                    {flight?.airline_name}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-5">
-              <p className="text-sm font-semibold text-start">
-                {flight?.schedules.length === 0 && " Direct"}
-                {flight?.schedules.length === 1 && "1 Stop"}
-                {flight?.schedules.length > 1 &&
-                  flight?.schedules.length + " " + "Stops"}
-              </p>
-              <p className="text-sm font-semibold text-start">
-                {formatMinutesToHours(arrivalElapsedTime)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  };
+  
 
   const isSavedFlight = savedTrips.some((trip) =>
     trip?.flights.some(
@@ -561,14 +430,11 @@ export default function FlightCard({ flight, setLoadingRevalidate, type }) {
     <>
       <div
         onClick={toggleFlightDetails}
-        className={`w-full  bg-white rounded-[7px] shadow-md overflow-hidden ${
-          type == "shared" ? "mt-0 mb-5" : "mt-5 mb-0"
-        }  h-fit border border-white transition-all  duration-500  hover:border-black cursor-pointer`}
+        className="w-full  bg-white rounded-[7px] shadow-md overflow-hidden mb-5 h-fit border border-white transition-all  duration-500  hover:border-black cursor-pointer"
       >
         {sharedInfo?.departure_time == flight?.departure_time &&
           sharedInfo?.arrival_time == flight?.arrival_time &&
-          condition &&
-          type == "shared" && (
+          condition && (
             <div className="border-b w-full p-3">
               <p className="text-[15px]">Shared flight</p>
             </div>

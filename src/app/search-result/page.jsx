@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import LoadingBar from "react-top-loading-bar";
 import useAirlineStore from "../../../stores/airlineStore";
 import { filterFlightsData } from "@/utils/filterFlightsData";
+import SharedFlight from "@/components/sharedFlight/SharedFlight";
 export default function Page({ searchParams }) {
   const [loadingRevalidate, setLoadingRevalidate] = useState(false);
   const ref = useRef(null);
@@ -218,6 +219,36 @@ export default function Page({ searchParams }) {
     setFilterData(filteredFlights);
   }, [filterOptions, filteredFlights.length]);
 
+  const filterInfo = {
+    departure_time: searchParams?.departure_time,
+    arrival_time: searchParams?.arrival_time,
+    flight_number: searchParams?.flight_number,
+    operating_code: searchParams?.operating_code,
+  };
+
+  const matchingFlight = allFlights?.data.sortedItineraries.find((flight) => {
+    // Check if any schedule inside the flight matches the given flight number and operating code
+    const scheduleMatch = flight?.schedules?.some(
+      (schedule) =>
+        filterInfo.flight_number?.includes(String(schedule.flight_number)) &&
+        filterInfo.operating_code?.includes(String(schedule.operating_code))
+    );
+
+    // Match departure and arrival times from the main flight object
+    return (
+      scheduleMatch &&
+      flight.departure_time === filterInfo.departure_time &&
+      flight.arrival_time === filterInfo.arrival_time
+    );
+  });
+
+  console.log(
+    "filteredFlights",
+    matchingFlight,
+    filterInfo,
+    allFlights?.data.sortedItineraries
+  );
+
   return (
     <>
       <div className="bg-[#F0F3F5] py-10">
@@ -254,7 +285,15 @@ export default function Page({ searchParams }) {
                   allFlights={allFlights?.data?.sortedItineraries}
                   sortedFlights={sortFlights()}
                 />
+
                 <div className="flex-1">
+                  {matchingFlight !== undefined && (
+                    <FlightCard
+                      type="shared"
+                      setLoadingRevalidate={setLoadingRevalidate}
+                      flight={matchingFlight}
+                    />
+                  )}
                   <TopFilter
                     setSortCriteria={setSortCriteria}
                     sortCriteria={sortCriteria}

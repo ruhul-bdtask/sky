@@ -201,31 +201,114 @@ export default function SearchPad() {
     );
   };
 
-  const filteredAirportsArrivalMulti = cities.map((city) =>
-    airportsData.filter(
-      (airport) =>
-        (airport.name
-          .toLowerCase()
-          .includes(city.searchQueryDestination.toLowerCase()) ||
-          airport.value
-            .toLowerCase()
-            .includes(city.searchQueryDestination.toLowerCase())) &&
-        airport.value !== city.searchQueryOrigin
-    )
-  );
+  // const filteredAirportsArrivalMulti = cities.map((city) =>
+  //   airportsData.filter(
+  //     (airport) =>
+  //       (airport.name
+  //         .toLowerCase()
+  //         .includes(city.searchQueryDestination.toLowerCase()) ||
+  //         airport.value
+  //           .toLowerCase()
+  //           .includes(city.searchQueryDestination.toLowerCase())) &&
+  //       airport.value !== city.searchQueryOrigin
+  //   )
+  // );
 
-  const filteredAirportsDestinationMulti = cities.map((city) =>
-    airportsData.filter(
-      (airport) =>
-        (airport.name
-          .toLowerCase()
-          .includes(city.searchQueryOrigin.toLowerCase()) ||
-          airport.value
-            .toLowerCase()
-            .includes(city.searchQueryOrigin.toLowerCase())) &&
-        airport.value !== city.searchQueryDestination
-    )
-  );
+  const [filteredAirportsArrivalMulti, setFilteredAirportsArrivalMulti] =
+    useState([]);
+
+  useEffect(() => {
+    const debouncedFilter = debounce(() => {
+      const updatedArrivalMultiCityAirports = cities.map((city) =>
+        city.searchQueryDestination.length >= 2
+          ? airportsData
+              .filter(
+                (airport) =>
+                  (airport.name
+                    .toLowerCase()
+                    .includes(city.searchQueryDestination.toLowerCase()) ||
+                    airport.value
+                      .toLowerCase()
+                      .includes(city.searchQueryDestination.toLowerCase())) &&
+                  airport.value !== city.searchQueryOrigin
+              )
+              .sort((a, b) => {
+                const aMatchesValue =
+                  a.value.toLowerCase() ===
+                  city.searchQueryDestination.toLowerCase();
+                const bMatchesValue =
+                  b.value.toLowerCase() ===
+                  city.searchQueryDestination.toLowerCase();
+
+                if (aMatchesValue && !bMatchesValue) return -1;
+                if (!aMatchesValue && bMatchesValue) return 1;
+                return 0;
+              })
+          : []
+      );
+
+      setFilteredAirportsArrivalMulti(updatedArrivalMultiCityAirports);
+    }, 300);
+
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [cities, airportsData]);
+
+  const [
+    filteredAirportsDestinationMulti,
+    setFilteredAirportsDestinationMulti,
+  ] = useState([]);
+
+  useEffect(() => {
+    const debouncedFilter = debounce(() => {
+      const updatedMultiCityAirports = cities?.map((city) =>
+        city.searchQueryOrigin.length >= 2
+          ? airportsData
+              .filter(
+                (airport) =>
+                  airport.name
+                    .toLowerCase()
+                    .includes(city.searchQueryOrigin.toLowerCase()) ||
+                  airport.value
+                    .toLowerCase()
+                    .includes(city.searchQueryOrigin.toLowerCase())
+              )
+              .sort((a, b) => {
+                const aMatchesValue =
+                  a.value.toLowerCase() ===
+                  city.searchQueryOrigin.toLowerCase();
+                const bMatchesValue =
+                  b.value.toLowerCase() ===
+                  city.searchQueryOrigin.toLowerCase();
+
+                if (aMatchesValue && !bMatchesValue) return -1;
+                if (!aMatchesValue && bMatchesValue) return 1;
+                return 0;
+              })
+          : []
+      );
+
+      setFilteredAirportsDestinationMulti(updatedMultiCityAirports);
+    }, 300);
+
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [cities, airportsData]);
+
+  // const filteredAirportsDestinationMulti = cities.map((city) =>
+  //   airportsData.filter(
+  //     (airport) =>
+  //       (airport.name
+  //         .toLowerCase()
+  //         .includes(city.searchQueryOrigin.toLowerCase()) ||
+  //         airport.value
+  //           .toLowerCase()
+  //           .includes(city.searchQueryOrigin.toLowerCase())) &&
+  //       airport.value !== city.searchQueryDestination
+  //   )
+  // );
 
   useEffect(() => {
     if (Object.keys(userData).length > 0 && userData?.home_airport) {
@@ -399,19 +482,6 @@ export default function SearchPad() {
       if (!aMatchesValue && bMatchesValue) return 1;
       return 0; // Keep the same order for other cases
     });
-
-  // useEffect(() => {
-  //   const debouncedFilter = debounce(() => {
-  //     if (searchQueryOrigin?.length >= 2) {
-  //       setFilteredAirportsDestination(airOriginData);
-  //     } else {
-  //       setFilteredAirportsDestination([]);
-  //     }
-  //   }, 300);
-  //   debouncedFilter();
-
-  //   return () => clearTimeout(debouncedFilter);
-  // }, [searchQueryOrigin, airportsData]);
 
   useEffect(() => {
     const debouncedFilter = debounce(() => {
@@ -880,6 +950,41 @@ export default function SearchPad() {
     setDestinationAirport("");
   };
 
+  const handleClearAllMultiCity = () => {
+    setCities([
+      {
+        id: 1,
+        searchQueryOrigin: "",
+        searchQueryDestination: "",
+        departureDate: null,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: "",
+        destinationAirport: "",
+      },
+      {
+        id: 2,
+        searchQueryOrigin: "",
+        searchQueryDestination: "",
+        departureDate: null,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: "",
+        destinationAirport: "",
+      },
+      {
+        id: 3,
+        searchQueryOrigin: "",
+        searchQueryDestination: "",
+        departureDate: null,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: "",
+        destinationAirport: "",
+      },
+    ]);
+  };
+
   return (
     <div>
       <main>
@@ -1095,7 +1200,7 @@ export default function SearchPad() {
                   >
                     <div className="relative" id={`origin-dropdown-${index}`}>
                       <div onClick={() => toggleField(row.id, "isOpenOrigin")}>
-                        <p
+                        {/* <p
                           className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
                             row?.originAirport == "" ||
                             row?.originAirport == undefined ||
@@ -1109,6 +1214,40 @@ export default function SearchPad() {
                           <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
                             <FaTimes onClick={() => handleClearMulti(row.id)} />
                           </span>
+                        </p> */}
+                        <p
+                          className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            row?.originAirport
+                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              : ""
+                          }`}
+                        >
+                          {row?.originAirport && (
+                            <>
+                              <span className="px-1.5 py-0.5 truncate">
+                                {row?.originAirport}
+                              </span>
+                              <span
+                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                onMouseEnter={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "hover:border-black",
+                                    "border-white"
+                                  )
+                                }
+                                onMouseLeave={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "border-white",
+                                    "hover:border-black"
+                                  )
+                                }
+                              >
+                                <FaTimes
+                                  onClick={() => handleClearMulti(row.id)}
+                                />
+                              </span>
+                            </>
+                          )}
                         </p>
                         <input
                           value={row.searchQueryOrigin}
@@ -1205,23 +1344,40 @@ export default function SearchPad() {
                         onClick={() => toggleField(row.id, "isOpenDestination")}
                       >
                         <p
-                          className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
-                            row?.destinationAirport == "" ||
-                            row?.destinationAirport == undefined ||
-                            row.searchQueryDestination == "" ||
-                            row.searchQueryDestination == undefined
-                              ? ""
-                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                          className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            row?.destinationAirport
+                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              : ""
                           }`}
                         >
-                          {row?.destinationAirport !== ""
-                            ? row?.destinationAirport
-                            : ""}
-                          <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
-                            <FaTimes
-                              onClick={() => handleClearMultiArrival(row.id)}
-                            />
-                          </span>
+                          {row?.destinationAirport && (
+                            <>
+                              <span className="px-1.5 py-0.5 truncate">
+                                {row?.destinationAirport}
+                              </span>
+                              <span
+                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                onMouseEnter={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "hover:border-black",
+                                    "border-white"
+                                  )
+                                }
+                                onMouseLeave={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "border-white",
+                                    "hover:border-black"
+                                  )
+                                }
+                              >
+                                <FaTimes
+                                  onClick={() =>
+                                    handleClearMultiArrival(row.id)
+                                  }
+                                />
+                              </span>
+                            </>
+                          )}
                         </p>
                         <input
                           value={row.searchQueryDestination}
@@ -1233,7 +1389,7 @@ export default function SearchPad() {
                               e.target.value
                             )
                           }
-                          placeholder="From ?"
+                          placeholder="To ?"
                           className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                         />
 
@@ -1303,6 +1459,7 @@ export default function SearchPad() {
                     <div className="col-span-2 flex gap-2 justify-between">
                       <DatePickerOneWay
                         className="w-[95%]"
+                        originalDate={row.departureDate}
                         oneWayDate={row.departureDate}
                         setOneWayDate={(date) =>
                           updateCityData(row.id, "departureDate", date)
@@ -1348,7 +1505,11 @@ export default function SearchPad() {
                   >
                     + Add another flight
                   </button>
-                  <button type="button" className="text-gray-500">
+                  <button
+                    type="button"
+                    className="text-gray-500"
+                    onClick={handleClearAllMultiCity}
+                  >
                     clear all
                   </button>
 
@@ -1375,7 +1536,7 @@ export default function SearchPad() {
                     >
                       <div onClick={() => setIsOpenDestination(true)}>
                         <p
-                          className={`text-[14px] absolute right-6 truncate top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                          className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                             originAirport
                               ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
                               : ""
@@ -1383,7 +1544,7 @@ export default function SearchPad() {
                         >
                           {originAirport && (
                             <>
-                              <span className="px-1.5 py-0.5">
+                              <span className="px-1.5 py-0.5 truncate">
                                 {originAirport}
                               </span>
                               <span
@@ -1571,7 +1732,7 @@ export default function SearchPad() {
                         </p> */}
 
                         <p
-                          className={`text-[14px] absolute right-6 truncate top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                          className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                             destinationAirport
                               ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
                               : ""
@@ -1579,7 +1740,7 @@ export default function SearchPad() {
                         >
                           {destinationAirport && (
                             <>
-                              <span className="px-1.5 py-0.5">
+                              <span className="px-1.5 py-0.5 truncate">
                                 {destinationAirport}
                               </span>
                               <span
@@ -1769,7 +1930,7 @@ export default function SearchPad() {
                       >
                         <div onClick={() => setIsOpenDestination(true)}>
                           <p
-                            className={`text-[14px] absolute right-6 truncate top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                               originAirport
                                 ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
                                 : ""
@@ -1777,7 +1938,7 @@ export default function SearchPad() {
                           >
                             {originAirport && (
                               <>
-                                <span className="px-1.5 py-0.5">
+                                <span className="px-1.5 py-0.5 truncate">
                                   {originAirport}
                                 </span>
                                 <span
@@ -1943,7 +2104,7 @@ export default function SearchPad() {
                       <div className="relative w-full" ref={dropdownRefArrival}>
                         <div onClick={() => setIsOpenArrival(true)}>
                           <p
-                            className={`text-[14px] absolute right-6 truncate top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                               destinationAirport
                                 ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
                                 : ""
@@ -1951,7 +2112,7 @@ export default function SearchPad() {
                           >
                             {destinationAirport && (
                               <>
-                                <span className="px-2 py-0.5">
+                                <span className="px-2 py-0.5 truncate">
                                   {destinationAirport}
                                 </span>
                                 <span
