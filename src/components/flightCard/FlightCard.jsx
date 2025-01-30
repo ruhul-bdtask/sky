@@ -27,7 +27,12 @@ import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
 
-export default function FlightCard({ flight, setLoadingRevalidate, type }) {
+export default function FlightCard({
+  flight,
+  setLoadingRevalidate,
+  sortCriteria,
+  type,
+}) {
   const router = useRouter();
   const {
     token,
@@ -577,21 +582,23 @@ export default function FlightCard({ flight, setLoadingRevalidate, type }) {
           <div className="  col-span-6 p-3 flex flex-col justify-between">
             <div className="flex justify-between items-center  flex-wrap">
               <div className="flex space-x-2">
-                {flight?.tags?.includes("Best") && (
+                {flight?.tags?.includes("Best") && sortCriteria === "best" && (
                   <span className="bg-[#DFF9FF] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
                     Best
                   </span>
                 )}
-                {flight?.tags?.includes("Cheapest") && (
-                  <span className="bg-[#CCFFE5] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
-                    Cheapest
-                  </span>
-                )}
-                {flight?.tags?.includes("Quickest") && (
-                  <span className="bg-[#F9F6E6] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
-                    Quickest
-                  </span>
-                )}
+                {flight?.tags?.includes("Cheapest") &&
+                  sortCriteria === "best" && (
+                    <span className="bg-[#CCFFE5] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
+                      Cheapest
+                    </span>
+                  )}
+                {/* {flight?.tags?.includes("Quickest") &&
+                  sortCriteria === "best" && (
+                    <span className="bg-[#F9F6E6] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
+                      Quickest
+                    </span>
+                  )} */}
               </div>
               <div className="text-right col-span-3">
                 <div className="flex justify-end  gap-5 p-2">

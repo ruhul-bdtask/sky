@@ -384,6 +384,7 @@ export default function Page({ searchParams }) {
                         setLoadingRevalidate={setLoadingRevalidate}
                         key={flight.id}
                         flight={flight}
+                        sortCriteria={sortCriteria}
                       />
                     ))
                   ) : (
