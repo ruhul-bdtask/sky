@@ -5,13 +5,13 @@ import TopFilter from "@/components/topFilter/TopFilter";
 import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 import ResultPageSkeleton from "@/skeletons/ResultPageSkeleton";
 import { fetchData } from "@/utils/api";
+import { getFilteredFlights } from "@/utils/getFilteredFlights";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LoadingBar from "react-top-loading-bar";
 import useAirlineStore from "../../../stores/airlineStore";
-import { filterFlightsData } from "@/utils/filterFlightsData";
 import SharedFlight from "@/components/sharedFlight/SharedFlight";
 export default function Page({ searchParams }) {
   const [loadingRevalidate, setLoadingRevalidate] = useState(false);
@@ -34,8 +34,9 @@ export default function Page({ searchParams }) {
     timeLeft,
     startCountdown,
     resetTime,
-    filterData,
-    setFilterData,
+    filteredData,
+    setFilteredData,
+    filterOptions,
   } = useAirlineStore();
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -134,10 +135,8 @@ export default function Page({ searchParams }) {
     if (!allFlights?.data?.sortedItineraries) return [];
     switch (sortCriteria) {
       case "cheapest":
-        return allFlights.data.sortedItineraries.filter(
-          (flight) =>
-            flight.fare_details?.total_fare >= minPrice &&
-            flight.fare_details?.total_fare <= maxPrice
+        return [...allFlights.data.sortedItineraries].sort(
+          (a, b) => a.fare_details?.total_fare - b.fare_details?.total_fare
         );
       // .sort(
       //   (a, b) => a.fare_details?.total_fare - b.fare_details?.total_fare
@@ -145,25 +144,99 @@ export default function Page({ searchParams }) {
       case "quickest":
         return [...allFlights.data.sortedItineraries].sort((a, b) => {
           return (
-            durationToMinutes(a.flight_duration) -
-            durationToMinutes(b.flight_duration)
+            a.itinerary_leg_descs[0].duration -
+            b.itinerary_leg_descs[0].duration
           );
         });
 
-      case "best":
-        return [...allFlights.data.sortedItineraries].sort((a, b) => {
-          const aScore =
-            a.fare_details?.total_fare * 0.4 +
-            durationToMinutes(a.flight_duration) * 0.4 +
-            (a.total_stop || 0) * 0.2;
+      case "best": {
+        const itineraries = [...allFlights.data.sortedItineraries]; // Work with a copy
 
-          const bScore =
-            b.fare_details?.total_fare * 0.4 +
-            durationToMinutes(b.flight_duration) * 0.4 +
-            (b.total_stop || 0) * 0.2;
+        // Step 1: Initialize min/max values
+        let minFare = Infinity,
+          maxFare = -Infinity,
+          minDuration = Infinity,
+          maxDuration = -Infinity,
+          minLayover = Infinity,
+          maxLayover = -Infinity;
 
-          return aScore - bScore;
+        itineraries.forEach((flight) => {
+          const fare = flight.fare_details?.total_fare || 0;
+          const duration = flight.itinerary_leg_descs?.[0]?.duration || 0;
+          const layover = flight.itinerary_leg_descs?.[0]?.schedules
+            ?.map((s) => s.layover_time || 0)
+            .reduce((a, b) => a + b, 0); // Sum up layover times
+
+          minFare = Math.min(minFare, fare);
+          maxFare = Math.max(maxFare, fare);
+          minDuration = Math.min(minDuration, duration);
+          maxDuration = Math.max(maxDuration, duration);
+          minLayover = Math.min(minLayover, layover);
+          maxLayover = Math.max(maxLayover, layover);
         });
+
+        // Step 2: Compute best score in a single loop
+        itineraries.forEach((flight) => {
+          const fare = flight.fare_details?.total_fare || 0;
+          const duration = flight.itinerary_leg_descs?.[0]?.duration || 0;
+          const layover = flight.itinerary_leg_descs?.[0]?.schedules
+            ?.map((s) => s.layover_time || 0)
+            .reduce((a, b) => a + b, 0); // Sum up layover times
+
+          // Normalize each parameter (Lower values are better)
+          const normalizedFare = (fare - minFare) / (maxFare - minFare || 1);
+          const normalizedDuration =
+            (duration - minDuration) / (maxDuration - minDuration || 1);
+          const normalizedLayover =
+            (layover - minLayover) / (maxLayover - minLayover || 1);
+
+          // Compute best score (Lower score is better)
+          flight.bestScore =
+            normalizedFare + normalizedDuration + normalizedLayover;
+          flight.tags = []; // Initialize empty tags
+        });
+
+        // Step 3: Sort flights for ranking
+        const sortByCheapest = [...itineraries].sort(
+          (a, b) =>
+            (a.fare_details?.total_fare || 0) -
+            (b.fare_details?.total_fare || 0)
+        );
+        const sortByQuickest = [...itineraries].sort(
+          (a, b) =>
+            (a.itinerary_leg_descs?.[0]?.duration || 0) -
+            (b.itinerary_leg_descs?.[0]?.duration || 0)
+        );
+        const sortByBest = [...itineraries].sort(
+          (a, b) => a.bestScore - b.bestScore // Lower is better
+        );
+
+        // Step 4: Get top-ranked flights
+        const cheapestFlight = sortByCheapest[0];
+        const quickestFlight = sortByQuickest[0];
+        const bestFlight = sortByBest[0];
+
+        // Step 5: Assign tags (Allow multiple tags)
+        itineraries.forEach((flight) => {
+          if (
+            flight.fare_details?.total_fare ===
+            cheapestFlight.fare_details?.total_fare
+          ) {
+            flight.tags.push("Cheapest");
+          }
+          if (
+            flight.itinerary_leg_descs?.[0]?.duration ===
+            quickestFlight.itinerary_leg_descs?.[0]?.duration
+          ) {
+            flight.tags.push("Quickest");
+          }
+          if (flight === bestFlight) {
+            flight.tags.push("Best");
+          }
+        });
+
+        return itineraries;
+      }
 
       case "earliestTakeOff":
         return [...allFlights.data.sortedItineraries].sort((a, b) => {
@@ -209,17 +282,15 @@ export default function Page({ searchParams }) {
     }
   };
 
-  const filterOptions = useAirlineStore((state) => state.filterOptions);
-
   const sortedFlights = useMemo(() => sortFlights(), [sortCriteria]);
 
   const filteredFlights = useMemo(
-    () => filterFlightsData(sortedFlights, filterOptions),
+    () => getFilteredFlights(sortedFlights, filterOptions),
     [sortedFlights, filterOptions]
   );
   // this effect for the counting length of filtered flights
   useEffect(() => {
-    setFilterData(filteredFlights);
+    setFilteredData(filteredFlights);
   }, [filterOptions, filteredFlights.length]);
 
   const filterInfo = {
@@ -245,12 +316,12 @@ export default function Page({ searchParams }) {
     );
   });
 
-  console.log(
-    "filteredFlights",
-    matchingFlight,
-    filterInfo,
-    allFlights?.data.sortedItineraries
-  );
+  // console.log(
+  //   "filteredFlights",
+  //   matchingFlight,
+  //   filterInfo,
+  //   allFlights?.data.sortedItineraries
+  // );
 
   return (
     <>
@@ -315,6 +386,7 @@ export default function Page({ searchParams }) {
                         setLoadingRevalidate={setLoadingRevalidate}
                         key={flight.id}
                         flight={flight}
+                        sortCriteria={sortCriteria}
                       />
                     ))
                   ) : (

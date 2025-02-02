@@ -33,8 +33,8 @@ const useAirlineStore = create()(
           layoverRange: [0, 100], // in minutes
           priceRange: [0, 100], // in BDT
         },
-        filterData: [],
-        setFilterData: (newData) => set({ filterData: newData }),
+        filteredData: [],
+        setFilteredData: (newData) => set({ filteredData: newData }),
         minPrice: 0,
         maxPrice: Infinity,
         userData: {},

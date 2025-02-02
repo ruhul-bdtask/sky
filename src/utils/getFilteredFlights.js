@@ -1,6 +1,6 @@
 import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 
-export const filterFlightsData = (sortFlights, filterOptions = {}) => {
+export const getFilteredFlights = (sortFlights, filterOptions = {}) => {
   console.log("filtering...");
   // const {
   //   stops = [],

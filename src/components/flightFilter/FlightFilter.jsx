@@ -28,13 +28,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const {
     filterOptions,
     setFilterOptions,
-    filterData,
+    filteredData,
     originQuery,
     searchData,
   } = useAirlineStore();
   // const filterOptions = useAirlineStore((state) => state.filterOptions);
   // const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
-  // const filterData = useAirlineStore((state) => state.filterData);
+  // const filteredData = useAirlineStore((state) => state.filteredData);
 
   //load airports data from JSON
   const { airportsData, airportError, airportLoading } = useAirports();
@@ -223,73 +223,94 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
 
   // effect for set initial values for all the filter options
   useEffect(() => {
-    if (allFlights && allFlights.length > 0) {
-      const takeOffTimestamps = allFlights.map((flight) =>
+    if (!allFlights || allFlights.length === 0) return;
+
+    // const takeOffTimestamps = allFlights.map((flight) =>
+    //   dateTimeToMilliseconds(flight.departure_date, flight.departure_time)
+    // );
+    // const landingTimestamps = allFlights.map((flight) =>
+    //   dateTimeToMilliseconds(flight.arrival_date, flight.arrival_time)
+    // );
+    // const legTimestamps = allFlights.map(
+    //   (flight) => flight?.itinerary_leg_descs?.[0]?.duration
+    // );
+
+    // const layoverTimestamps = allFlights.flatMap(
+    //   (flight) =>
+    //     flight?.schedules?.reduce(
+    //       (total, leg) => total + Number(leg.layover_time),
+    //       0
+    //     ) || [0]
+    // );
+
+    // const prices = allFlights.map((flight) => flight?.fare_details?.total_fare);
+
+    let takeOffTimestamps = [],
+      landingTimestamps = [],
+      legTimestamps = [],
+      layoverTimestamps = [],
+      prices = [];
+
+    allFlights.forEach((flight) => {
+      takeOffTimestamps.push(
         dateTimeToMilliseconds(flight.departure_date, flight.departure_time)
       );
-      const landingTimestamps = allFlights.map((flight) =>
+      landingTimestamps.push(
         dateTimeToMilliseconds(flight.arrival_date, flight.arrival_time)
       );
-      const legTimestamps = allFlights.map(
-        (flight) => flight?.itinerary_leg_descs?.[0]?.duration
+      legTimestamps.push(flight?.itinerary_leg_descs?.[0]?.duration || 0);
+      layoverTimestamps.push(
+        flight?.schedules?.reduce(
+          (total, leg) => total + Number(leg.layover_time),
+          0
+        ) || 0
       );
+      prices.push(flight?.fare_details?.total_fare || 0);
+    });
 
-      const layoverTimestamps = allFlights.flatMap(
-        (flight) =>
-          flight?.schedules?.reduce(
-            (total, leg) => total + Number(leg.layover_time),
-            0
-          ) || [0]
-      );
+    const initialMinTakeOff = Math.min(...takeOffTimestamps);
+    const initialMaxTakeOff = Math.max(...takeOffTimestamps);
 
-      const price = allFlights.map(
-        (flight) => flight?.fare_details?.total_fare
-      );
+    const initialMinLanding = Math.min(...landingTimestamps);
+    const initialMaxLanding = Math.max(...landingTimestamps);
 
-      const initialMinTakeOff = Math.min(...takeOffTimestamps);
-      const initialMaxTakeOff = Math.max(...takeOffTimestamps);
+    const initialMinLegDuration = Math.min(...legTimestamps);
+    const initialMaxLegDuration = Math.max(...legTimestamps);
 
-      const initialMinLanding = Math.min(...landingTimestamps);
-      const initialMaxLanding = Math.max(...landingTimestamps);
+    const initialMinLayoverDuration = Math.min(...layoverTimestamps);
+    const initialMaxLayoverDuration = Math.max(...layoverTimestamps);
 
-      const initialMinLegDuration = Math.min(...legTimestamps);
-      const initialMaxLegDuration = Math.max(...legTimestamps);
+    const initialMinPrice = Math.min(...prices);
+    const initialMaxPrice = Math.max(...prices);
 
-      const initialMinLayoverDuration = Math.min(...layoverTimestamps);
-      const initialMaxLayoverDuration = Math.max(...layoverTimestamps);
+    setLocalFilterOptions({
+      ...localFilterOptions,
+      takeOffRange: [initialMinTakeOff, initialMaxTakeOff],
+      landingRange: [initialMinLanding, initialMaxLanding],
+      legRange: [initialMinLegDuration, initialMaxLegDuration],
+      layoverRange: [initialMinLayoverDuration, initialMaxLayoverDuration],
+      priceRange: [initialMinPrice, initialMaxPrice],
+    });
+    setMinTakeOff(initialMinTakeOff);
+    setMaxTakeOff(initialMaxTakeOff);
+    setMinLanding(initialMinLanding);
+    setMaxLanding(initialMaxLanding);
+    setMinLegDuration(initialMinLegDuration);
+    setMaxLegDuration(initialMaxLegDuration);
+    setMinLayoverDuration(initialMinLayoverDuration);
+    setMaxLayoverDuration(initialMaxLayoverDuration);
+    setMinPrice(initialMinPrice);
+    setMaxPrice(initialMaxPrice);
 
-      const initialMinPrice = Math.min(...price);
-      const initialMaxPrice = Math.max(...price);
-
-      setLocalFilterOptions({
-        ...localFilterOptions,
-        takeOffRange: [initialMinTakeOff, initialMaxTakeOff],
-        landingRange: [initialMinLanding, initialMaxLanding],
-        legRange: [initialMinLegDuration, initialMaxLegDuration],
-        layoverRange: [initialMinLayoverDuration, initialMaxLayoverDuration],
-        priceRange: [initialMinPrice, initialMaxPrice],
-      });
-      setMinTakeOff(initialMinTakeOff);
-      setMaxTakeOff(initialMaxTakeOff);
-      setMinLanding(initialMinLanding);
-      setMaxLanding(initialMaxLanding);
-      setMinLegDuration(initialMinLegDuration);
-      setMaxLegDuration(initialMaxLegDuration);
-      setMinLayoverDuration(initialMinLayoverDuration);
-      setMaxLayoverDuration(initialMaxLayoverDuration);
-      setMinPrice(initialMinPrice);
-      setMaxPrice(initialMaxPrice);
-
-      // all filter options checked by default
-      setFilterOptions({
-        ...filterOptions,
-        stops: ["Nonstop", "1 stop", "2+ stops"],
-        airlines: uniqueAirlinesName,
-        cabinClasses: uniqueCabinClasses,
-        layoverAirports: uniqueLayoverAirports,
-        aircraftModels: uniqueAircraftModels,
-      });
-    }
+    // all filter options checked by default
+    setFilterOptions({
+      ...filterOptions,
+      stops: ["Nonstop", "1 stop", "2+ stops"],
+      airlines: uniqueAirlinesName,
+      cabinClasses: uniqueCabinClasses,
+      layoverAirports: uniqueLayoverAirports,
+      aircraftModels: uniqueAircraftModels,
+    });
   }, []);
 
   return (
@@ -326,7 +347,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       <div className="hidden md:block p-4 rounded-lg w-[260px]">
         <div className="pb-4">
           <span className="text-[14px] font-semibold mb-8">
-            {filterData?.length} of{" "}
+            {filteredData?.length} of{" "}
           </span>
           <span className="text-[14px] text-[#137799]">
             {allFlights?.length} flights
