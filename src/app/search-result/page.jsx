@@ -5,6 +5,7 @@ import TopFilter from "@/components/topFilter/TopFilter";
 import { dateTimeToMilliseconds } from "@/lib/dateTimeToMilliseconds";
 import ResultPageSkeleton from "@/skeletons/ResultPageSkeleton";
 import { fetchData } from "@/utils/api";
+import { getFilteredFlights } from "@/utils/getFilteredFlights";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
@@ -12,7 +13,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import LoadingBar from "react-top-loading-bar";
 import useAirlineStore from "../../../stores/airlineStore";
 import SharedFlight from "@/components/sharedFlight/SharedFlight";
-import { getFilteredFlights } from "@/utils/getFilteredFlights";
 export default function Page({ searchParams }) {
   const [loadingRevalidate, setLoadingRevalidate] = useState(false);
   const ref = useRef(null);
@@ -34,8 +34,8 @@ export default function Page({ searchParams }) {
     timeLeft,
     startCountdown,
     resetTime,
-    filterData,
-    setFilterData,
+    filteredData,
+    setFilteredData,
   } = useAirlineStore();
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -291,7 +291,7 @@ export default function Page({ searchParams }) {
   );
   // this effect for the counting length of filtered flights
   useEffect(() => {
-    setFilterData(filteredFlights);
+    setFilteredData(filteredFlights);
   }, [filterOptions, filteredFlights.length]);
 
   const filterInfo = {

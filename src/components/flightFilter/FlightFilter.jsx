@@ -28,13 +28,13 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
   const {
     filterOptions,
     setFilterOptions,
-    filterData,
+    filteredData,
     originQuery,
     searchData,
   } = useAirlineStore();
   // const filterOptions = useAirlineStore((state) => state.filterOptions);
   // const setFilterOptions = useAirlineStore((state) => state.setFilterOptions);
-  // const filterData = useAirlineStore((state) => state.filterData);
+  // const filteredData = useAirlineStore((state) => state.filteredData);
 
   //load airports data from JSON
   const { airportsData, airportError, airportLoading } = useAirports();
@@ -347,7 +347,7 @@ export default function FlightFilter({ sortedFlights, allFlights, timer }) {
       <div className="hidden md:block p-4 rounded-lg w-[260px]">
         <div className="pb-4">
           <span className="text-[14px] font-semibold mb-8">
-            {filterData?.length} of{" "}
+            {filteredData?.length} of{" "}
           </span>
           <span className="text-[14px] text-[#137799]">
             {allFlights?.length} flights
