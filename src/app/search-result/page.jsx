@@ -155,31 +155,43 @@ export default function Page({ searchParams }) {
         let minFare = Infinity,
           maxFare = -Infinity,
           minDuration = Infinity,
-          maxDuration = -Infinity;
+          maxDuration = -Infinity,
+          minLayover = Infinity,
+          maxLayover = -Infinity;
 
-        itineraries.forEach((f) => {
-          const fare = f.fare_details?.total_fare || 0;
-          const duration = f.itinerary_leg_descs?.[0]?.duration || 0;
+        itineraries.forEach((flight) => {
+          const fare = flight.fare_details?.total_fare || 0;
+          const duration = flight.itinerary_leg_descs?.[0]?.duration || 0;
+          const layover = flight.itinerary_leg_descs?.[0]?.schedules
+            ?.map((s) => s.layover_time || 0)
+            .reduce((a, b) => a + b, 0); // Sum up layover times
 
-          if (fare < minFare) minFare = fare;
-          if (fare > maxFare) maxFare = fare;
-
-          if (duration < minDuration) minDuration = duration;
-          if (duration > maxDuration) maxDuration = duration;
+          minFare = Math.min(minFare, fare);
+          maxFare = Math.max(maxFare, fare);
+          minDuration = Math.min(minDuration, duration);
+          maxDuration = Math.max(maxDuration, duration);
+          minLayover = Math.min(minLayover, layover);
+          maxLayover = Math.max(maxLayover, layover);
         });
 
         // Step 2: Compute best score in a single loop
         itineraries.forEach((flight) => {
-          const totalFare = flight.fare_details?.total_fare || 0;
-          const totalDuration = flight.itinerary_leg_descs?.[0]?.duration || 0;
+          const fare = flight.fare_details?.total_fare || 0;
+          const duration = flight.itinerary_leg_descs?.[0]?.duration || 0;
+          const layover = flight.itinerary_leg_descs?.[0]?.schedules
+            ?.map((s) => s.layover_time || 0)
+            .reduce((a, b) => a + b, 0); // Sum up layover times
 
-          const normalizedFare =
-            (maxFare - totalFare) / (maxFare - minFare || 1);
-
+          // Normalize each parameter (Lower values are better)
+          const normalizedFare = (fare - minFare) / (maxFare - minFare || 1);
           const normalizedDuration =
-            (maxDuration - totalDuration) / (maxDuration - minDuration || 1);
+            (duration - minDuration) / (maxDuration - minDuration || 1);
+          const normalizedLayover =
+            (layover - minLayover) / (maxLayover - minLayover || 1);
 
-          flight.bestScore = normalizedFare + normalizedDuration; // Higher score is better
+          // Compute best score (Lower score is better)
+          flight.bestScore =
+            normalizedFare + normalizedDuration + normalizedLayover;
           flight.tags = []; // Initialize empty tags
         });
 
@@ -195,7 +207,7 @@ export default function Page({ searchParams }) {
             (b.itinerary_leg_descs?.[0]?.duration || 0)
         );
         const sortByBest = [...itineraries].sort(
-          (a, b) => b.bestScore - a.bestScore
+          (a, b) => a.bestScore - b.bestScore // Lower is better
         );
 
         // Step 4: Get top-ranked flights
@@ -207,26 +219,17 @@ export default function Page({ searchParams }) {
         itineraries.forEach((flight) => {
           if (
             flight.fare_details?.total_fare ===
-              cheapestFlight.fare_details?.total_fare &&
-            flight.itinerary_leg_descs?.[0]?.duration ===
-              cheapestFlight.itinerary_leg_descs?.[0]?.duration
+            cheapestFlight.fare_details?.total_fare
           ) {
             flight.tags.push("Cheapest");
           }
           if (
-            flight.fare_details?.total_fare ===
-              quickestFlight.fare_details?.total_fare &&
             flight.itinerary_leg_descs?.[0]?.duration ===
-              quickestFlight.itinerary_leg_descs?.[0]?.duration
+            quickestFlight.itinerary_leg_descs?.[0]?.duration
           ) {
             flight.tags.push("Quickest");
           }
-          if (
-            flight.fare_details?.total_fare ===
-              bestFlight.fare_details?.total_fare &&
-            flight.itinerary_leg_descs?.[0]?.duration ===
-              bestFlight.itinerary_leg_descs?.[0]?.duration
-          ) {
+          if (flight === bestFlight) {
             flight.tags.push("Best");
           }
         });
