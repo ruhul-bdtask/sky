@@ -36,6 +36,7 @@ export default function Page({ searchParams }) {
     resetTime,
     filteredData,
     setFilteredData,
+    filterOptions,
   } = useAirlineStore();
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -280,8 +281,6 @@ export default function Page({ searchParams }) {
         return allFlights.data.sortedItineraries;
     }
   };
-
-  const filterOptions = useAirlineStore((state) => state.filterOptions);
 
   const sortedFlights = useMemo(() => sortFlights(), [sortCriteria]);
 
