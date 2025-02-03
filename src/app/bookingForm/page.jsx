@@ -260,8 +260,8 @@ export default function BookingForm() {
   const registerPayload = {
     first_name: passengerInformation?.[0]?.firstName,
     last_name: passengerInformation?.[0]?.lastName,
-    email: contactInformation?.email,
-    phone: contactInformation?.phone,
+    email: contactInfo?.email,
+    phone: contactInfo?.phone,
     verify_by: "email",
   };
   const {
@@ -277,12 +277,9 @@ export default function BookingForm() {
 
   const handleBooking = (e) => {
     e.preventDefault();
-    const isEmailValid = validateEmail(
-      contactInfo.email || contactInformation?.email
-    );
-    const isPhoneValid = validatePhone(
-      contactInfo.phone || contactInformation?.phone
-    );
+    const isEmailValid = validateEmail(contactInfo.email);
+    const isPhoneValid = validatePhone(contactInfo.phone);
+
     if (!isEmailValid) {
       toast.error("Please enter a valid email address");
     }
@@ -326,8 +323,8 @@ export default function BookingForm() {
     }
   }, [bookingData]);
 
-  const handleContactInfo = (e) => {
-    e.preventDefault();
+  const handleChangeTab = (arg) => {
+    setActiveTab(arg);
     if (contactInfo?.email == "") {
       toast.error("Please enter a valid email address");
       return;
@@ -337,7 +334,6 @@ export default function BookingForm() {
       return;
     }
     setContactInformation(contactInfo);
-    toast.success("Contact saved");
   };
 
   return (
@@ -431,11 +427,7 @@ export default function BookingForm() {
                         type="text"
                         id={`email`}
                         name={`email`}
-                        value={
-                          contactInfo?.email
-                            ? contactInfo?.email
-                            : contactInformation?.email
-                        }
+                        value={contactInfo?.email ? contactInfo?.email : ""}
                         placeholder="Email address"
                         className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
                       />
@@ -451,17 +443,13 @@ export default function BookingForm() {
                           }
                           type="text"
                           id={`phone`}
-                          value={
-                            contactInfo?.phone
-                              ? contactInfo?.phone
-                              : contactInformation?.phone
-                          }
+                          value={contactInfo?.phone ? contactInfo?.phone : ""}
                           name={`phone`}
                           placeholder="Phone Number"
                           className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
                         />
                       </div>
-                      {Object.keys(contactInformation).length == 0 && (
+                      {/*  {Object.keys(contactInfo).length == 0 && (
                         <div className="flex justify-center  md:justify-end ">
                           <button
                             onClick={handleContactInfo}
@@ -470,7 +458,7 @@ export default function BookingForm() {
                             Save & Next
                           </button>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 </div>
@@ -499,7 +487,7 @@ export default function BookingForm() {
                 {passengerInformation?.length > 0 && (
                   <div className="p-3 border rounded-[6px]">
                     <button
-                      onClick={() => setActiveTab("payment")}
+                      onClick={() => handleChangeTab("payment")}
                       // type="submit"
                       className=" float-right bg-transparent text-[#717171] font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
                     >

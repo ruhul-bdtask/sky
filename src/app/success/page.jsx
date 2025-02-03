@@ -23,26 +23,28 @@ export default function Page({ searchParams }) {
   // }, [router]);
 
   const payload = {
-    tran_id: searchParams?.tran_id,
+    tran_id: searchParams?.slack,
   };
   const {
     data: bookingData,
     error: bookingError,
-    isLoading: bookingLoading,
+    isLoading: bookingLoading = true,
     refetch: refetchBookingData,
   } = useQuery({
     queryKey: ["ticketData", payload],
-    queryFn: () => fetchData("/gds/reservation-info", "POST", payload, token),
-    enabled: true,
+    queryFn: () => fetchData("/gds/reservation-info", "POST", payload),
+    enabled: false,
   });
 
   useEffect(() => {
-    if (searchParams?.tran_id && token) {
+    if (searchParams?.slack) {
       refetchBookingData();
     }
-  }, []);
+  }, [searchParams?.slack]);
 
-  if (!token || !searchParams?.tran_id || bookingLoading) {
+  console.log(searchParams);
+
+  if (!searchParams?.slack || bookingLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
