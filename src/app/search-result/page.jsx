@@ -12,7 +12,6 @@ import { notFound, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LoadingBar from "react-top-loading-bar";
 import useAirlineStore from "../../../stores/airlineStore";
-import SharedFlight from "@/components/sharedFlight/SharedFlight";
 import _ from "lodash";
 export default function Page({ searchParams }) {
   const [loadingRevalidate, setLoadingRevalidate] = useState(false);
