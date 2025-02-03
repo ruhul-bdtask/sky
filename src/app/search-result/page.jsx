@@ -12,7 +12,6 @@ import { notFound, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LoadingBar from "react-top-loading-bar";
 import useAirlineStore from "../../../stores/airlineStore";
-import { filterFlightsData } from "@/utils/filterFlightsData";
 export default function Page({ searchParams }) {
   const [loadingRevalidate, setLoadingRevalidate] = useState(false);
   const ref = useRef(null);
