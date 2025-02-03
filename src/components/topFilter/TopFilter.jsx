@@ -1,10 +1,16 @@
 "use client";
+import { formatFlightFare } from "@/lib/formatFlightFare";
+import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 import SortIcon from "@/public/icons/SortIcon";
 import { InfoIcon } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useAirlineStore from "../../../stores/airlineStore";
 
-export default function TopFilter({ setSortCriteria, sortCriteria }) {
+export default function TopFilter({
+  setSortCriteria,
+  sortCriteria,
+  topSortedFlights,
+}) {
   const [isShowOtherSort, setIsShowOtherSort] = useState(false);
   const { searchData } = useAirlineStore();
   const dropdownRef = useRef(null);
@@ -49,12 +55,21 @@ export default function TopFilter({ setSortCriteria, sortCriteria }) {
       <div className="hidden lg:block w-full h-[100px] bg-white shadow-md  overflow-hidden rounded-[10px]">
         <div className="grid grid-cols-4 h-full">
           <div
-            className={`flex-1 flex flex-col justify-center items-center px-10 relative cursor-pointer`}
+            className={`flex-1 flex flex-col justify-center items-center relative cursor-pointer`}
             onClick={() => setSortCriteria("cheapest")}
           >
             <div>
               <h3 className="font-semibold text-[14px]">Cheapest</h3>
-              <p className="text-[12px] text-gray-600">Tk 24,414 • 3h 55m</p>
+              <p className="text-[12px] text-gray-600">
+                Tk{" "}
+                {formatFlightFare(
+                  topSortedFlights?.cheapest?.fare_details?.total_fare
+                )}{" "}
+                •{" "}
+                {formatMinutesToHours(
+                  topSortedFlights?.cheapest?.itinerary_leg_descs?.[0]?.duration
+                )}
+              </p>
             </div>
             {sortCriteria == "cheapest" && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 w-[80%] mx-auto"></div>
@@ -70,7 +85,16 @@ export default function TopFilter({ setSortCriteria, sortCriteria }) {
                 Best
                 <InfoIcon className="w-4 h-4 ml-1 text-gray-400" />
               </h3>
-              <p className="text-[12px] text-gray-600">Tk 23,414 • 3h 55m</p>
+              <p className="text-[12px] text-gray-600">
+                Tk{" "}
+                {formatFlightFare(
+                  topSortedFlights?.best?.fare_details?.total_fare
+                )}{" "}
+                •{" "}
+                {formatMinutesToHours(
+                  topSortedFlights?.best?.itinerary_leg_descs?.[0]?.duration
+                )}
+              </p>
             </div>
             {sortCriteria == "best" && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 w-[80%] mx-auto"></div>
@@ -83,7 +107,16 @@ export default function TopFilter({ setSortCriteria, sortCriteria }) {
           >
             <div>
               <h3 className="font-semibold text-[14px]">Quickest</h3>
-              <p className="text-[12px] text-gray-600">Tk 24,414 • 3h 50m</p>
+              <p className="text-[12px] text-gray-600">
+                Tk{" "}
+                {formatFlightFare(
+                  topSortedFlights?.quickest?.fare_details?.total_fare
+                )}{" "}
+                •{" "}
+                {formatMinutesToHours(
+                  topSortedFlights?.quickest?.itinerary_leg_descs?.[0]?.duration
+                )}
+              </p>
             </div>
             {sortCriteria == "quickest" && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 w-[80%] mx-auto"></div>
