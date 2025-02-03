@@ -1,11 +1,10 @@
 "use client";
+import { formatFlightFare } from "@/lib/formatFlightFare";
+import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 import SortIcon from "@/public/icons/SortIcon";
 import { InfoIcon } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useAirlineStore from "../../../stores/airlineStore";
-import { formatFlightFare } from "@/lib/formatFlightFare";
-import formatDateTime from "@/lib/formatDateTime";
-import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 
 export default function TopFilter({
   setSortCriteria,
