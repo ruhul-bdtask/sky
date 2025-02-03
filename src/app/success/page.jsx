@@ -10,17 +10,17 @@ export default function Page({ searchParams }) {
   const token = Cookies.get("auth-token");
   const router = useRouter();
 
-  useEffect(() => {
-    const checkAuth = () => {
+  // useEffect(() => {
+  //   const checkAuth = () => {
 
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-    };
+  //     if (!token) {
+  //       router.push("/login");
+  //       return;
+  //     }
+  //   };
 
-    checkAuth();
-  }, [router]);
+  //   checkAuth();
+  // }, [router]);
 
   const payload = {
     tran_id: searchParams?.tran_id,
@@ -33,7 +33,7 @@ export default function Page({ searchParams }) {
   } = useQuery({
     queryKey: ["ticketData", payload],
     queryFn: () => fetchData("/gds/reservation-info", "POST", payload, token),
-    enabled: false,
+    enabled: true,
   });
 
   useEffect(() => {
