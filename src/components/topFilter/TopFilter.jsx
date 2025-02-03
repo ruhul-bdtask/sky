@@ -53,6 +53,28 @@ export default function TopFilter({
     setIsShowOtherSort(false);
   };
 
+  let mainContent = "";
+  let subContent = "";
+  if (selectedOtherSort === "earliestTakeOff") {
+    mainContent = `Take-off (${searchData.origin})`;
+    subContent = `Earliest to latest`;
+  } else if (selectedOtherSort === "latestTakeOff") {
+    mainContent = `Take-off (${searchData.origin})`;
+    subContent = `Latest to earliest`;
+  } else if (selectedOtherSort === "earliestLanding") {
+    mainContent = `Landing (${searchData.destination})`;
+    subContent = `Earliest to latest`;
+  } else if (selectedOtherSort === "latestLanding") {
+    mainContent = `Landing (${searchData.destination})`;
+    subContent = `Latest to earliest`;
+  } else if (selectedOtherSort === "highestPrice") {
+    mainContent = `Highest price`;
+    subContent = `Highest to lowest`;
+  } else if (selectedOtherSort === "slowest") {
+    mainContent = `Slowest`;
+    subContent = `Longest to shortest`;
+  }
+
   useEffect(() => {
     setSortCriteria("cheapest");
   }, []);
@@ -144,14 +166,16 @@ export default function TopFilter({
             )}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-14 bg-gray-200"></div>
           </div>
+
+          {/* conditionally render the content if other filter options selected */}
           {othersSortOptions.includes(selectedOtherSort) ? (
             <div
               onClick={handleToggleOtherSort}
-              className="flex justify-center items-center  relative  cursor-pointer"
+              className="flex gap-4 justify-center items-center cursor-pointer relative"
             >
-              <div className="flex flex-col items-center justify-center px-6 cursor-pointer relative">
-                <h3 className="font-semibold text-[14px]">Landing JFK</h3>
-                <p className="text-[12px] text-gray-600">{sortCriteria}</p>
+              <div className="flex flex-col items-start justify-center cursor-pointer">
+                <h3 className="font-semibold text-[14px]">{mainContent}</h3>
+                <p className="text-[12px] text-gray-600">{subContent}</p>
               </div>
               <SortIcon />
               {othersSortOptions.includes(sortCriteria) && (
@@ -160,12 +184,12 @@ export default function TopFilter({
             </div>
           ) : (
             <div
-              className={`flex items-center justify-center px-6 cursor-pointer relative`}
+              className={`flex items-center justify-center cursor-pointer`}
               onClick={handleToggleOtherSort}
             >
-              <button className="flex items-center text-gray-600 hover:text-gray-800">
+              <button className="flex gap-2 items-center text-gray-600 hover:text-gray-800">
                 <SortIcon />
-                <span className="mr-2">Other sort</span>
+                <span>Other sort</span>
               </button>
             </div>
           )}
@@ -178,7 +202,7 @@ export default function TopFilter({
         >
           <ul>
             <li
-              className={`hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer ${
+              className={`hover:bg-gray-200 transition-all text-sm text-gray-900 px-4 py-2 cursor-pointer ${
                 sortCriteria === "earliestTakeOff"
                   ? "bg-gray-200 font-semibold"
                   : ""
@@ -188,7 +212,7 @@ export default function TopFilter({
               Earliest take-off ({searchData.origin})
             </li>
             <li
-              className={`hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer ${
+              className={`hover:bg-gray-200 transition-all text-sm text-gray-900 px-4 py-2 cursor-pointer ${
                 sortCriteria === "latestTakeOff"
                   ? "bg-gray-200 font-semibold"
                   : ""
@@ -198,7 +222,7 @@ export default function TopFilter({
               Latest take-off ({searchData.origin})
             </li>
             <li
-              className={`hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer ${
+              className={`hover:bg-gray-200 transition-all text-sm text-gray-900 px-4 py-2 cursor-pointer ${
                 sortCriteria === "earliestLanding"
                   ? "bg-gray-200 font-semibold"
                   : ""
@@ -208,7 +232,7 @@ export default function TopFilter({
               Earliest landing ({searchData.destination})
             </li>
             <li
-              className={`hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer ${
+              className={`hover:bg-gray-200 transition-all text-sm text-gray-900 px-4 py-2 cursor-pointer ${
                 sortCriteria === "latestLanding"
                   ? "bg-gray-200 font-semibold"
                   : ""
@@ -218,7 +242,7 @@ export default function TopFilter({
               Latest landing ({searchData.destination})
             </li>
             <li
-              className={`hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer ${
+              className={`hover:bg-gray-200 transition-all text-sm text-gray-900 px-4 py-2 cursor-pointer ${
                 sortCriteria === "highestPrice"
                   ? "bg-gray-200 font-semibold"
                   : ""
@@ -228,7 +252,7 @@ export default function TopFilter({
               Highest price
             </li>
             <li
-              className={`hover:bg-gray-200 transition-all px-4 py-2 cursor-pointer ${
+              className={`hover:bg-gray-200 transition-all text-sm text-gray-900 px-4 py-2 cursor-pointer ${
                 sortCriteria === "slowest" ? "bg-gray-200 font-semibold" : ""
               }`}
               onClick={() => handleChangeOtherSort("slowest")}
