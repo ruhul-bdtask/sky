@@ -20,7 +20,7 @@ export default function Page({ searchParams }) {
 
     setTimeout(() => {
       ref.current?.complete();
-    }, 2000);
+    }, 200);
   }, []);
 
   const {
