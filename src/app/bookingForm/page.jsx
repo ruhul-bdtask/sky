@@ -108,6 +108,7 @@ export default function BookingForm() {
   }, {});
 
   const updatePassengerData = (index, field, value) => {
+    console.log(index, field, value);
     setPassengerData((prevData) =>
       prevData.map((passenger, i) =>
         i === index
@@ -172,16 +173,29 @@ export default function BookingForm() {
   //   }, {}),
   // };
 
+  const formatPassengerDate = (dateString) => {
+    if (!dateString) {
+      return "";
+    }
+    const date = new Date(dateString);
+    return date?.toISOString().split("T")[0]; // Extract YYYY-MM-DD
+  };
+
+  // // const formattedDate = formatDate("Sun Feb 02 2025 00:00:00 GMT+0600");
+  // console.log(formattedDate); // "2025-02-02"
+
   const PassengerInformation = {
     email: contactInfo?.email,
     phone_no: contactInfo?.phone,
     pxn_type: passengerData?.map((p) => p.pxn_type),
     first_name: passengerData?.map((p) => p.firstName),
     last_name: passengerData?.map((p) => p.lastName),
-    dob: passengerData?.map((p) => p.dob || ""),
+    dob: passengerData?.map((p) => formatPassengerDate(p.dob) || ""),
     doc_type: passengerData?.map((p) => p.documentType || ""),
     doc_number: passengerData?.map((p) => p.docNumber || ""),
-    doc_expire_date: passengerData?.map((p) => p.doc_expire_date),
+    doc_expire_date: passengerData?.map((p) =>
+      formatPassengerDate(p.doc_expire_date)
+    ),
     doc_issue_country: passengerData?.map((p) => p.country || ""),
     nationality: passengerData?.map((p) => p.country || ""),
     ...passengerData?.reduce((acc, passenger, index) => {
@@ -231,6 +245,7 @@ export default function BookingForm() {
       PassengerInformation: PassengerInformation,
     },
   };
+
   const {
     data: bookingData,
     error: bookingError,
