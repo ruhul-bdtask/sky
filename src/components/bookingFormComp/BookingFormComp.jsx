@@ -105,7 +105,8 @@ export default function BookingFormComp({
     const isValid = validatePassengers(passengerData);
     if (isValid) {
       setPassengerInformation(passengerData);
-      handleDetails(index);
+      setTabIndex(null); 
+      setIsDetailed(false);
     }
   };
 
@@ -298,15 +299,18 @@ export default function BookingFormComp({
                 </div>
               </div>
             </div>
-            <div className="flex justify-center md:justify-end mt-4">
-              <button
-                type="button"
-                onClick={(e) => handlePassengerInfo(e, index)}
-                className="bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
-              >
-                Save & Next
-              </button>
-            </div>
+
+            {index === passengerData.length - 1 && (
+              <div className="flex justify-center md:justify-end mt-4">
+                <button
+                  type="button"
+                  onClick={(e) => handlePassengerInfo(e, index)}
+                  className="bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
+                >
+                  Save & Next
+                </button>
+              </div>
+            )}
           </form>
         </div>
       </div>
