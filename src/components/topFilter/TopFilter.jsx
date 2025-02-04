@@ -26,32 +26,18 @@ export default function TopFilter({
   const [isShowOtherSort, setIsShowOtherSort] = useState(false);
   const [isShow, setIsShow] = useState(true);
 
-  // const handleToggleOtherSort = () => {
-  //   if (!selectedOtherSort && isShow) {
-  //     setIsShowOtherSort(true);
-  //   } else if (selectedOtherSort && isShow) {
-  //     setIsShowOtherSort(true);
-  //   } else if (selectedOtherSort && !isShow) {
-  //     setSortCriteria(selectedOtherSort);
-  //     setIsShow(true);
-  //   }
-  // };
+  const handleChangeRegularSort = (criteria) => {
+    setSortCriteria(criteria);
+    if (selectedOtherSort) {
+      setIsShow(false);
+    }
+  };
 
   const handleToggleOtherSort = () => {
     if (isShow) {
       setIsShowOtherSort(true);
     } else if (selectedOtherSort) {
       setSortCriteria(selectedOtherSort);
-      setIsShow(true);
-    }
-  };
-
-  const handleChangeSort = (criteria) => {
-    setSortCriteria(criteria);
-
-    if (selectedOtherSort) {
-      setIsShow(false);
-    } else {
       setIsShow(true);
     }
   };
@@ -92,6 +78,7 @@ export default function TopFilter({
   const { mainContent = "", subContent = "" } =
     sortOptions[selectedOtherSort] || {};
 
+  // Set default sort criteria to cheapest
   useEffect(() => {
     setSortCriteria("cheapest");
   }, []);
@@ -117,7 +104,7 @@ export default function TopFilter({
           <div className={`flex justify-center items-center relative `}>
             <div
               className="flex-1 mx-2 hover:bg-gray-200 px-3 py-2 rounded-lg cursor-pointer"
-              onClick={() => handleChangeSort("cheapest")}
+              onClick={() => handleChangeRegularSort("cheapest")}
             >
               <h3 className="font-semibold text-[14px]">Cheapest</h3>
               <p className="text-[12px] text-gray-600">
@@ -139,7 +126,7 @@ export default function TopFilter({
           <div className={`flex justify-center items-center relative`}>
             <div
               className="flex-1 mx-2 hover:bg-gray-200 px-3 py-2 rounded-lg cursor-pointer"
-              onClick={() => handleChangeSort("best")}
+              onClick={() => handleChangeRegularSort("best")}
             >
               <h3 className="font-semibold text-[14px] flex items-center">
                 Best
@@ -164,7 +151,7 @@ export default function TopFilter({
 
           <div className={`flex justify-center items-center relative`}>
             <div
-              onClick={() => handleChangeSort("quickest")}
+              onClick={() => handleChangeRegularSort("quickest")}
               className="flex-1 mx-2 hover:bg-gray-200 px-3 py-2 rounded-lg cursor-pointer"
             >
               <h3 className="font-semibold text-[14px]">Quickest</h3>
