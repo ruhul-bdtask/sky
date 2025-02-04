@@ -53,27 +53,35 @@ export default function TopFilter({
     setIsShowOtherSort(false);
   };
 
-  let mainContent = "";
-  let subContent = "";
-  if (selectedOtherSort === "earliestTakeOff") {
-    mainContent = `Take-off (${searchData.origin})`;
-    subContent = `Earliest to latest`;
-  } else if (selectedOtherSort === "latestTakeOff") {
-    mainContent = `Take-off (${searchData.origin})`;
-    subContent = `Latest to earliest`;
-  } else if (selectedOtherSort === "earliestLanding") {
-    mainContent = `Landing (${searchData.destination})`;
-    subContent = `Earliest to latest`;
-  } else if (selectedOtherSort === "latestLanding") {
-    mainContent = `Landing (${searchData.destination})`;
-    subContent = `Latest to earliest`;
-  } else if (selectedOtherSort === "highestPrice") {
-    mainContent = `Highest price`;
-    subContent = `Highest to lowest`;
-  } else if (selectedOtherSort === "slowest") {
-    mainContent = `Slowest`;
-    subContent = `Longest to shortest`;
-  }
+  const sortOptions = {
+    earliestTakeOff: {
+      mainContent: `Take-off (${searchData.origin})`,
+      subContent: "Earliest to latest",
+    },
+    latestTakeOff: {
+      mainContent: `Take-off (${searchData.origin})`,
+      subContent: "Latest to earliest",
+    },
+    earliestLanding: {
+      mainContent: `Landing (${searchData.destination})`,
+      subContent: "Earliest to latest",
+    },
+    latestLanding: {
+      mainContent: `Landing (${searchData.destination})`,
+      subContent: "Latest to earliest",
+    },
+    highestPrice: {
+      mainContent: "Highest price",
+      subContent: "Highest to lowest",
+    },
+    slowest: {
+      mainContent: "Slowest",
+      subContent: "Longest to shortest",
+    },
+  };
+
+  const { mainContent = "", subContent = "" } =
+    sortOptions[selectedOtherSort] || {};
 
   useEffect(() => {
     setSortCriteria("cheapest");
