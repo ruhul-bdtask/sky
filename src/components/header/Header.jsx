@@ -20,7 +20,6 @@ import { AiOutlinePlus } from "react-icons/ai";
 import { FaExchangeAlt } from "react-icons/fa";
 import { LuChevronsLeftRight } from "react-icons/lu";
 import { MdOutlineArrowRightAlt } from "react-icons/md";
-import { isExpired } from "react-jwt";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useAirlineStore from "../../../stores/airlineStore";
@@ -30,6 +29,8 @@ import PopupBtn from "./PopupBtn";
 import SearchDestination from "./SearchDestination";
 import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
 import { Bounce } from "react-toastify";
+import { isExpired } from "react-jwt";
+import { useQuery } from "@tanstack/react-query";
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -58,14 +59,16 @@ export default function Header() {
     setIsOpenSavedDialog,
     setSearchData,
     setUserData,
-    userData,
+    // userData,
     setSavedTrips,
     setSelectedSavedTrip,
     searchData,
     originAirportName,
+    setPassengerInformation,
     destinationAirportName,
     setSavedSingleFlight,
     setTravelPlanningDate,
+    setSelectedFlight,
   } = useAirlineStore();
   const { destination, origin, journeyDate, returnDate, tripType } = searchData;
 
@@ -85,6 +88,34 @@ export default function Header() {
     start_date: "",
     end_date: "",
   });
+
+  const [userInfo, setUserInfo] = useState(null);
+  const [userDataLoading, setUserDataLoading] = useState(true);
+  const [userDataError, setUserDataError] = useState(null);
+
+  const userPayload = {
+    document_type: "NID",
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    setUserDataLoading(true);
+    fetchData("/user/me", "POST", userPayload, token)
+      .then((data) => {
+        setUserInfo(data);
+        setUserData(data?.data ? data?.data : {});
+      })
+
+      .catch((error) => setUserDataError(error))
+      .finally(() => setUserDataLoading(false));
+  }, [token]);
+
+  // useEffect(() => {
+  //   if (userData) {
+  //     refetchUserData();
+  //   }
+  // }, [token]);
 
   const [renameTripTerm, setRenameTripTerm] = useState("");
   const [isRenameTrip, setIsRenameTrip] = useState(false);
@@ -138,9 +169,7 @@ export default function Header() {
 
   // useEffect(() => {
   //   const checkAuth = () => {
-  //     if (!token) {
-  //       return;
-  //     } else {
+  //     if (token) {
   //       try {
   //         const decodedToken = jwtDecode(token);
   //         const currentTime = Math.floor(Date.now() / 1000);
@@ -148,12 +177,10 @@ export default function Header() {
   //         if (decodedToken.exp && decodedToken.exp < currentTime) {
   //           Cookies.remove("auth-token");
   //           setToken(null);
-  //           router.push("/login");
   //         }
   //       } catch (error) {
   //         Cookies.remove("auth-token");
   //         setToken(null);
-  //         router.push("/login");
   //       }
   //     }
   //   };
@@ -161,11 +188,14 @@ export default function Header() {
   //   checkAuth();
   // }, [router]);
 
-  // useEffect(() => {
-  //   if (!selectedSavedTrip.name) {
-  //     setIsChangeTrip(true);
-  //   }
-  // }, [selectedSavedTrip.name]);
+  const isExp = isExpired(token);
+  useEffect(() => {
+    if (token && isExp) {
+      Cookies.remove("auth-token");
+      setToken(null);
+      setUserData({});
+    }
+  }, [isExp]);
 
   useEffect(() => {
     savedTrips?.forEach((trip) => {
@@ -531,7 +561,7 @@ export default function Header() {
     const cabinClassMapping = {
       Economy: "Y",
       Business: "C",
-      First: "F", 
+      First: "F",
       "Premium Economy": "S",
     };
 
@@ -635,6 +665,8 @@ export default function Header() {
             <a
               href={"/"}
               onClick={() => {
+                setSelectedFlight({});
+                setPassengerInformation({});
                 setSearchData({});
                 setTravelPlanningDate("");
               }}
@@ -1200,7 +1232,7 @@ export default function Header() {
                     <div className="w-[40px] h-[40px] cursor-pointer">
                       <img
                         className="rounded-full h-full w-full object-cover"
-                        src={userData?.profile_pic}
+                        src={userInfo?.data?.profile_pic}
                         alt=""
                       />
                     </div>
@@ -1212,17 +1244,19 @@ export default function Header() {
                         <div className="w-[40px] h-[40px] ">
                           <img
                             className="rounded-full h-full w-full object-cover"
-                            src={userData?.profile_pic}
+                            src={userInfo?.data?.profile_pic}
                             alt=""
                           />
                         </div>
                         <div className="flex flex-1 justify-between items-center">
                           <div>
                             <p className="text-[16px] font-[500] text-black">
-                              {userData?.first_name + " " + userData?.last_name}
+                              {userInfo?.data?.first_name +
+                                " " +
+                                userInfo?.data?.last_name}
                             </p>
                             <p className="text-[10px] text-black">
-                              {userData?.email}
+                              {userInfo?.data?.email}
                             </p>
                           </div>
                           <ActiveIcon />

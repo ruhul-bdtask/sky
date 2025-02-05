@@ -105,8 +105,7 @@ export default function BookingFormComp({
     const isValid = validatePassengers(passengerData);
     if (isValid) {
       setPassengerInformation(passengerData);
-      setTabIndex(null); 
-      setIsDetailed(false);
+      handleDetails(index);
     }
   };
 
