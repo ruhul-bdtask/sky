@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import BookingFormComp from "@/components/bookingFormComp/BookingFormComp";
 import { ChevronLeft, Info, Timer } from "lucide-react";
 import Link from "next/link";
-import { isExpired, decodeToken } from "react-jwt";
+import { isExpired } from "react-jwt";
 import {
   ChevronDown,
   ChevronUp,
@@ -209,7 +209,7 @@ export default function BookingForm() {
     // Initialize passengers with default values
     const totalPassengers = passengers?.flatMap((p) =>
       Array.from({ length: p.quantity }, () => ({
-        pxn_type: p.type,
+        pxn_type: p.type === "ADT" || p.type == "INF" ? p.type : "CNN",
         pxn_title: "Mr.", // Default title
         firstName: "",
         lastName: "",
@@ -403,6 +403,7 @@ export default function BookingForm() {
             <h2 className="text-[18px] font-[700] py-5">
               Enter Traveler Details
             </h2>
+
             <form className="flex flex-col gap-5" onSubmit={handleBooking}>
               <div className="py-6 px-16 shadow-custom_shadow">
                 <label
@@ -463,15 +464,16 @@ export default function BookingForm() {
                   </div>
                 </div>
               </div>
-              {passengerData?.map((passenger, index) => (
-                <BookingFormComp
-                  passengerData={passengerData}
-                  updatePassengerData={updatePassengerData}
-                  passenger={passenger}
-                  index={index}
-                  key={index}
-                />
-              ))}
+              {timeLeft > 0 &&
+                passengerData?.map((passenger, index) => (
+                  <BookingFormComp
+                    passengerData={passengerData}
+                    updatePassengerData={updatePassengerData}
+                    passenger={passenger}
+                    index={index}
+                    key={index}
+                  />
+                ))}
               {/* <pre>{JSON.stringify(passengerData, null, 2)}</pre> */}
 
               <div className="flex justify-between items-center">

@@ -12,9 +12,9 @@ export default function Page() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const token = Cookies.get("auth-token");
+  const authToken = Cookies.get("auth-token");
 
-  const { setUserData, setToken } = useAirlineStore();
+  const { setUserData, setToken, token } = useAirlineStore();
 
   // useEffect(() => {
   //   const checkAuth = () => {
@@ -36,9 +36,9 @@ export default function Page() {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = Cookies.get("auth-token");
+      const authToken = Cookies.get("auth-token");
 
-      if (!token) {
+      if (!authToken) {
         Cookies.remove("auth-token");
         setToken(null);
         router.push("/login");
@@ -46,7 +46,7 @@ export default function Page() {
       }
 
       try {
-        const decodedToken = jwtDecode(token);
+        const decodedToken = jwtDecode(authToken);
         const currentTime = Math.floor(Date.now() / 1000);
 
         if (decodedToken.exp && decodedToken.exp < currentTime) {
@@ -66,7 +66,7 @@ export default function Page() {
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, token]);
 
   const userPayload = {
     document_type: "NID",
@@ -94,7 +94,6 @@ export default function Page() {
       </div>
     );
   }
-  
 
   return (
     <div>

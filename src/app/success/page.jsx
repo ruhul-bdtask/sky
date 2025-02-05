@@ -69,7 +69,7 @@ export default function Page({ searchParams }) {
 
   return (
     <>
-      <BookingSuccess data={bookingData?.data} />
+      <BookingSuccess data={bookingData?.data} slack={searchParams?.slack} />
     </>
   );
 }
