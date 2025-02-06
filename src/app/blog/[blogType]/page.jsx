@@ -1,6 +1,5 @@
-import BlackBlog from "@/components/blackBlog/BlackBlog";
-import BlogTypeCard from "@/components/blogTypeCard/BlogTypeCard";
-import React from "react";
+import BlackBlog from "@/components/blogs/blackBlog/BlackBlog";
+import BlogTypeCard from "@/components/blogs/blogTypeCard/BlogTypeCard";
 
 export default function page() {
   return (
