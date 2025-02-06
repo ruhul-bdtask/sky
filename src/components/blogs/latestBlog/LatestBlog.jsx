@@ -2,6 +2,7 @@ import { useFetchBlogs } from "@/hooks/useFetchBlogs";
 import blog1 from "@/public/images/blog1.png";
 import BlogsPageSkeleton from "@/skeletons/BlogsPageSkeleton";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function LatestBlog() {
   const { data, isLoading, isError, error } = useFetchBlogs("/category/latest");
@@ -12,19 +13,20 @@ export default function LatestBlog() {
   );
   if (isLoading) return <BlogsPageSkeleton />;
   if (isError) return <p>{error.message}</p>;
-  // console.log(latestBlog);
   return (
     <>
       <div className="lg:col-span-1">
         <h2 className="text-[32px] font-bold mb-4">Latest</h2>
-        <div className="  overflow-hidden">
-          <Image
-            src={latestBlog?.image}
-            height={600}
-            width={600}
-            alt="Tropical destination"
-            className="w-full h-full rounded-[8px]  object-cover"
-          />
+        <div className="overflow-hidden">
+          <Link href={`/travel-blog/${"slug"}`}>
+            <Image
+              src={latestBlog?.image}
+              height={600}
+              width={600}
+              alt="Tropical destination"
+              className="w-full h-full rounded-[8px]  object-cover"
+            />
+          </Link>
           <div className="py-4">
             <span className="text-[14px] font-semibold text-[#192024] uppercase">
               Travel Recommendations
@@ -48,8 +50,6 @@ export default function LatestBlog() {
           </div>
         </div>
       </div>
-
-      {/* Trending Section */}
     </>
   );
 }
