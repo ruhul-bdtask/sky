@@ -1,9 +1,8 @@
 "use client";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
-export default function BlogHeader() {
+export default function BlogsNavbar() {
   return (
     <div>
       <div className="bg-[#F0F3F5] flex justify-between px-5">
