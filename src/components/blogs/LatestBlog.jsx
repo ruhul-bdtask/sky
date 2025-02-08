@@ -4,23 +4,23 @@ import LatestBlogSkeleton from "@/skeletons/LatestBlogSkeleton";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function LatestBlog() {
-  const { data, isLoading, isError, error } = useFetchBlogs("/category/latest");
+export default function LatestBlog({ slug }) {
+  const { data, isLoading, isError, error } = useFetchBlogs(
+    `/category/${slug}`
+  );
 
   if (isLoading) return <LatestBlogSkeleton />;
   if (isError) return <p>{error.message}</p>;
-  const blogs = data?.data;
-  const latestBlog = blogs?.find(
-    (blog) => blog.category.toLowerCase() === "latest".toLowerCase()
-  );
-  if (blogs.length === 0) return <p>No data found!</p>;
+  if (data?.data?.length === 0) return <p>No data found!</p>;
+
+  const latestBlog = data?.data?.[0];
 
   return (
     <>
       <div className="lg:col-span-1">
         <h2 className="text-[32px] font-bold mb-4">Latest</h2>
         <div className="overflow-hidden">
-          <Link href={`/travel-blog/${"slug"}`}>
+          <Link href={`/travel-blog/${latestBlog?.slug}`}>
             <Image
               src={latestBlog?.image}
               height={600}

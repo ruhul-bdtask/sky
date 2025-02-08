@@ -1,7 +1,6 @@
-import React from "react";
 import blog1 from "@/public/images/blog1.png";
-import BlogCover from "./BlogCover";
 import BlogList from "./BlogList";
+import SectionCover from "./SectionCover";
 import SectionHeader from "./SectionHeader";
 
 const TipsAndTricks = () => {
@@ -45,7 +44,7 @@ const TipsAndTricks = () => {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-20">
-        <BlogCover category="tips-and-tricks" />
+        <SectionCover category="tips-and-tricks" />
         <BlogList category="tips-and-tricks" />
       </div>
     </div>

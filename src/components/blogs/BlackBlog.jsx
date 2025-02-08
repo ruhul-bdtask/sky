@@ -8,7 +8,6 @@ import { usePathname } from "next/navigation";
 
 export default function BlackBlog({ category }) {
   const pathname = usePathname();
-  console.log(pathname);
   const lastSegment = pathname.split("/").pop();
   return (
     <div className="bg-[#192024] h-full lg:h-[711px] flex justify-center items-center">

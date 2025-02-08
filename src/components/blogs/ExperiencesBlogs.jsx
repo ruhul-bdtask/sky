@@ -1,7 +1,7 @@
 import { useFetchBlogs } from "@/hooks/useFetchBlogs";
 import BlogsPageSkeleton from "@/skeletons/LatestBlogSkeleton";
-import BlogCover from "./BlogCover";
 import BlogList from "./BlogList";
+import SectionCover from "./SectionCover";
 import SectionHeader from "./SectionHeader";
 
 export default function ExperiencesBlogs() {
@@ -25,7 +25,7 @@ export default function ExperiencesBlogs() {
         category="travel-experiences"
       />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-20">
-        <BlogCover category="travel-experiences" />
+        <SectionCover category="travel-experiences" />
         <BlogList category="travel-experiences" />
       </div>
     </div>
