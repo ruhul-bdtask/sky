@@ -19,9 +19,9 @@ export default function BlackBlog({ position }) {
                 ? position == 1
                   ? "Ready to get out there?"
                   : "News"
-                : lastSegment == "tips-tricks"
+                : lastSegment == "tips-and-tricks"
                 ? "Tips & tricks"
-                : lastSegment == "travel-experience"
+                : lastSegment == "travel-experiences"
                 ? "Travel-exp"
                 : ""}
             </h2>
@@ -32,7 +32,7 @@ export default function BlackBlog({ position }) {
                   : "Read the latest news about the travel industry, our products and services, and what’s happening at TICKETING."
                 : lastSegment == "tips-tricks"
                 ? "Hack your way to the most amazing trips ever with tips on everything from how to pack your carry-on to how to eat dumplings."
-                : lastSegment == "travel-experience"
+                : lastSegment == "travel-experiences"
                 ? "Travel-exp"
                 : ""}
             </p>

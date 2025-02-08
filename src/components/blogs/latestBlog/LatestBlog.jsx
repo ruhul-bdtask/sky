@@ -1,18 +1,20 @@
 import { useFetchBlogs } from "@/hooks/useFetchBlogs";
 import blog1 from "@/public/images/blog1.png";
-import BlogsPageSkeleton from "@/skeletons/BlogsPageSkeleton";
+import LatestBlogSkeleton from "@/skeletons/LatestBlogSkeleton";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function LatestBlog() {
   const { data, isLoading, isError, error } = useFetchBlogs("/category/latest");
 
+  if (isLoading) return <LatestBlogSkeleton />;
+  if (isError) return <p>{error.message}</p>;
   const blogs = data?.data;
   const latestBlog = blogs?.find(
     (blog) => blog.category.toLowerCase() === "latest".toLowerCase()
   );
-  if (isLoading) return <BlogsPageSkeleton />;
-  if (isError) return <p>{error.message}</p>;
+  if (blogs.length === 0) return <p>No data found!</p>;
+
   return (
     <>
       <div className="lg:col-span-1">
@@ -28,11 +30,15 @@ export default function LatestBlog() {
             />
           </Link>
           <div className="py-4">
-            <span className="text-[14px] font-semibold text-[#192024] uppercase">
-              Travel Recommendations
-            </span>
+            <span
+              className="text-[14px] font-semibold text-[#192024] uppercase"
+              dangerouslySetInnerHTML={{
+                __html: latestBlog?.content?.slice(0, 100),
+              }}
+            />
+
             <h3 className="text-[20px] font-semibold mt-2 text-[#192024]">
-              {latestBlog.title}
+              {latestBlog?.title}
             </h3>
             <p className="text-[15px] mt-2 text-[#192024]">
               Experience Venice without the crowds this winter.
@@ -44,7 +50,8 @@ export default function LatestBlog() {
                 className="rounded-full w-[34px] h-[34px]"
               />
               <span className="ml-2 text-sm text-gray-600">
-                Jennifer Breking | 9 mins read
+                {latestBlog?.author || "Author"} |{" "}
+                {latestBlog?.readTime || "9 mins read"}
               </span>
             </div>
           </div>

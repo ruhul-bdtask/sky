@@ -13,7 +13,7 @@ export default function BlogHeader() {
 
             <Link href="/blog/travel-recommended">Travel recommendations</Link>
             <Link href="/blog/the-taste-of-travel">The taste of travel</Link>
-            <Link href="/blog/tips-tricks">Tips & tricks</Link>
+            <Link href="/blog/tips-and-tricks">Tips & tricks</Link>
 
             <Link href="/blog/travel-experience">Travel Experience</Link>
             <Link href="/blog/news">News</Link>

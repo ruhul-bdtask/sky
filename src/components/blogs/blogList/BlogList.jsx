@@ -1,22 +1,23 @@
-import Image from "next/image";
-import React from "react";
-import blog1 from "@/public/images/blog1.png";
-import BlogsPageSkeleton from "@/skeletons/BlogsPageSkeleton";
 import { useFetchBlogs } from "@/hooks/useFetchBlogs";
+import blog1 from "@/public/images/blog1.png";
+import BlogListSkeleton from "@/skeletons/BlogListSkeleton";
+import Image from "next/image";
 import Link from "next/link";
 
-const TrendingBlogs = () => {
-  const { data, isLoading, isError, error } =
-    useFetchBlogs("/category/trending");
+const BlogList = ({ category, heading }) => {
+  const { data, isLoading, isError, error } = useFetchBlogs(
+    `/category/${category}`
+  );
 
   const trendingBlogs = data?.data?.slice(0, 4);
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return <BlogListSkeleton />;
   if (isError) return <p>{error.message}</p>;
+  if (trendingBlogs.length === 0) return <p>No data found!</p>;
 
   return (
     <div>
-      <h2 className="text-[32px] font-bold mb-4">Trending</h2>
+      <h2 className="text-[32px] font-bold mb-4">{heading}</h2>
       <div className="space-y-4">
         {trendingBlogs.map((article, index) => (
           <Link
@@ -44,9 +45,12 @@ const TrendingBlogs = () => {
                   alt={article?.author}
                   className="rounded-full w-[34px] h-[34px]"
                 />
-                <span className="ml-2 text-[14px] text-gray-600">
-                  {article?.author || "Author Name"} | {article?.readTime}
-                </span>
+                <Link href={`/author/id`}>
+                  <span className="ml-2 text-[14px] text-gray-600">
+                    {article?.author || "Author"} |{" "}
+                    {article?.readTime || "9 mins read"}
+                  </span>
+                </Link>
               </div>
             </div>
           </Link>
@@ -56,4 +60,4 @@ const TrendingBlogs = () => {
   );
 };
 
-export default TrendingBlogs;
+export default BlogList;

@@ -1,7 +1,8 @@
 import BlackBlog from "@/components/blogs/blackBlog/BlackBlog";
 import BlogTypeCard from "@/components/blogs/blogTypeCard/BlogTypeCard";
 
-export default function page() {
+export default function page({ blog }) {
+  console.log(blog);
   return (
     <div>
       <BlackBlog />
@@ -9,3 +10,14 @@ export default function page() {
     </div>
   );
 }
+
+// export async function getServerSideProps({ params }) {
+//   const res = await fetch(
+//     `http://143.110.191.53/b2c/api/articles/${params.blohType}`
+//   );
+//   const blog = await res.json();
+
+//   return {
+//     props: { blog },
+//   };
+// }
