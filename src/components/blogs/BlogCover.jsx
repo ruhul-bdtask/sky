@@ -6,11 +6,11 @@ import blog6 from "@/public/images/blog6.png";
 
 const BlogCover = ({ category }) => {
   return (
-    <div className="lg:col-span-1">
-      <div className=" rounded-lg  overflow-hidden">
+    <div className="lg:col-span-1 md:p-10">
+      <div className="rounded-lg overflow-hidden">
         <Image
           src={
-            category === "travelexperiences"
+            category === "travel-experiences"
               ? blog2
               : category === "travel-recommended"
               ? blog4

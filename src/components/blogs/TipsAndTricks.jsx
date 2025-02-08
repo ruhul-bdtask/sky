@@ -1,14 +1,10 @@
 import React from "react";
-import Image from "next/image";
-import blog4 from "@/public/images/blog4.png";
 import blog1 from "@/public/images/blog1.png";
-import blog6 from "@/public/images/blog6.png";
-import Link from "next/link";
-import SectionHeader from "../SectionHeader";
-import BlogCover from "../blogCover/BlogCover";
-import BlogList from "../blogList/BlogList";
+import BlogCover from "./BlogCover";
+import BlogList from "./BlogList";
+import SectionHeader from "./SectionHeader";
 
-export default function RecommendedBlog({ position }) {
+const TipsAndTricks = () => {
   const trendingData = [
     {
       title: "The 10 best warm places to visit in March",
@@ -43,16 +39,17 @@ export default function RecommendedBlog({ position }) {
   return (
     <div className="max-w-7xl mx-auto my-20 p-4 md:p-8">
       <SectionHeader
-        title="Travel recommendations"
-        description="The world is a big place—not sure where to go? Get recommendations
-            on destinations, the best times to go there and what to do."
-        category="travel-recommended"
+        title="Tips & tricks"
+        description="The world is a big place—not sure where to go? Get recommendations on destinations, the best times to go there and what to do."
+        category="tips-and-tricks"
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-20">
-        <BlogCover category="travel-recommended" />
-        <BlogList category="travel-recommended" />
+        <BlogCover category="tips-and-tricks" />
+        <BlogList category="tips-and-tricks" />
       </div>
     </div>
   );
-}
+};
+
+export default TipsAndTricks;

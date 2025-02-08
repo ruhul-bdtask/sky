@@ -15,6 +15,38 @@ const BlogList = ({ category, heading }) => {
   if (isError) return <p>{error.message}</p>;
   if (trendingBlogs.length === 0) return <p>No data found!</p>;
 
+  const trendingData = [
+    {
+      title: "The 10 best warm places to visit in March",
+      category: "Travel Recommendations",
+      author: "Duncan Madden",
+      readTime: "12 mins read",
+      image: blog1,
+    },
+    {
+      title:
+        "Here's your selection of 10 all-inclusive vacations with no passport needed",
+      category: "Travel Recommendations",
+      author: "Jennifer Breking",
+      readTime: "7 mins read",
+      image: blog1,
+    },
+    {
+      title: "The 6 largest airports in the world",
+      category: "Tips & Tricks",
+      author: "Jennifer Sincocco",
+      readTime: "9 mins read",
+      image: blog1,
+    },
+    {
+      title: "The 10 best warm places to visit in February",
+      category: "Travel Recommendations",
+      author: "Duncan Madden",
+      readTime: "12 mins read",
+      image: blog1,
+    },
+  ];
+
   return (
     <div>
       <h2 className="text-[32px] font-bold mb-4">{heading}</h2>
