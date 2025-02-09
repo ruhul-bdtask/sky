@@ -4,6 +4,7 @@ import blog1 from "@/public/images/blog1.png";
 import blog7 from "@/public/images/blog7.png";
 import blog8 from "@/public/images/blog8.png";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function BlogTypeCard() {
@@ -18,46 +19,45 @@ export default function BlogTypeCard() {
   return (
     <div className="max-w-7xl mx-auto px-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 my-20">
-        {blogs?.map((type, index) => (
-          <div
-            className="h-[500px] shadow-lg rounded-lg overflow-hidden"
-            key={index}
-          >
-            <Image
-              height={400}
-              width={400}
-              src={type?.image}
-              alt="Tropical destination"
-              className="w-full h-64  object-cover"
-            />
-            <div className="p-4">
-              <span className="text-[14px] font-semibold text-[#192024] uppercase">
-                {type?.category}
-              </span>
-              <h3 className="text-[20px] font-semibold mt-2 text-[#192024]">
-                {type?.title}
-              </h3>
-              <p
-                className="text-[15px] mt-2 text-[#192024] h-16 overflow-hidden"
-                dangerouslySetInnerHTML={{
-                  __html:
-                    type?.content?.length > 150
-                      ? type?.content.slice(0, 150) + "..."
-                      : type?.content,
-                }}
+        {blogs?.map((blog, index) => (
+          <Link href={`/travel-blog/${blog?.slug}`} key={blog?.slug}>
+            <div className="h-[500px] shadow-lg rounded-lg overflow-hidden">
+              <Image
+                height={400}
+                width={400}
+                src={blog?.image}
+                alt="Tropical destination"
+                className="w-full h-64  object-cover"
               />
-              <div className="flex items-center mt-4">
-                <Image
-                  src={blog1}
-                  alt={"author"}
-                  className="rounded-full w-[34px] h-[34px]"
-                />
-                <span className="ml-2 text-sm text-gray-600">
-                  {type?.author} | {type?.read_time}
+              <div className="p-4">
+                <span className="text-[14px] font-semibold text-[#192024] uppercase">
+                  {blog?.category}
                 </span>
+                <h3 className="text-[20px] font-semibold mt-2 text-[#192024]">
+                  {blog?.title}
+                </h3>
+                <p
+                  className="text-[15px] mt-2 text-[#192024] h-16 overflow-hidden"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      blog?.content?.length > 150
+                        ? blog?.content.slice(0, 150) + "..."
+                        : blog?.content,
+                  }}
+                />
+                <div className="flex items-center mt-4">
+                  <Image
+                    src={blog1}
+                    alt={"author"}
+                    className="rounded-full w-[34px] h-[34px]"
+                  />
+                  <span className="ml-2 text-sm text-gray-600">
+                    {blog?.author} | {blog?.read_time}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
