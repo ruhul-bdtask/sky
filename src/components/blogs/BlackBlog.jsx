@@ -4,18 +4,32 @@ import blog5 from "@/public/images/blog5.png";
 
 import { useFetchBlogs } from "@/hooks/useFetchBlogs";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
+import Skeleton from "react-loading-skeleton";
 
 export default function BlackBlog({ category }) {
-  const pathname = usePathname();
-  const lastSegment = pathname.split("/").pop();
-
-  const { data } = useFetchBlogs(`/categories`);
+  const { blogType } = useParams();
+  // const lastSegment = pathname.split("/").pop();
+  const { data, isLoading } = useFetchBlogs(`/categories`);
 
   const categories = data?.data;
   const foundCategory = categories?.find(
-    (category) => category?.slug === lastSegment
+    (category) => category?.slug === blogType
   );
+
+  if (isLoading)
+    return (
+      <div className="w-screen ">
+        <Skeleton className=" h-72" />
+      </div>
+    );
+
+  if (!isLoading && !foundCategory)
+    return (
+      <div className="p-10 text-center text-xl font-semibold bg-slate-100">
+        <h2>No blog category found!</h2>
+      </div>
+    );
 
   return (
     <div className="bg-[#192024] h-full lg:h-[711px] flex justify-center items-center">

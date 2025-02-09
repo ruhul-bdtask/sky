@@ -9,11 +9,11 @@ const SectionHeader = ({ category }) => {
         <p className="text-[15px] mt-2 text-[#192024] max-w-4xl">
           {category?.description}
         </p>
-        <button className=" px-4 border text-[14px] font-semibold h-10 rounded-[4px]">
-          <Link href={`/blog/${category?.slug}`}>
+        <Link href={`/blog/${category?.slug}`}>
+          <button className=" px-4 border text-[14px] font-semibold h-10 rounded-[4px]">
             <span>See all</span>
-          </Link>
-        </button>
+          </button>
+        </Link>
       </div>
     </div>
   );

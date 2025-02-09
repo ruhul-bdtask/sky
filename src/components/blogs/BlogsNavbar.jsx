@@ -10,7 +10,9 @@ export default function BlogsNavbar() {
           <ul className="flex items-center gap-7 p-4 cursor-pointer">
             <Link href="/travel-blog">Home</Link>
 
-            <Link href="/blog/travel-recommended">Travel recommendations</Link>
+            <Link href="/blog/travel-recommendations">
+              Travel recommendations
+            </Link>
             <Link href="/blog/the-taste-of-travel">The taste of travel</Link>
             <Link href="/blog/tips-and-tricks">Tips & tricks</Link>
 
