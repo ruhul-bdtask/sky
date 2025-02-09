@@ -2,7 +2,6 @@ import BlackBlog from "@/components/blogs/BlackBlog";
 import BlogTypeCard from "@/components/blogs/BlogTypeCard";
 
 export default function page({ blog }) {
-  console.log(blog);
   return (
     <div>
       <BlackBlog />

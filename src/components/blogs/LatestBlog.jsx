@@ -51,7 +51,7 @@ export default function LatestBlog({ slug }) {
               />
               <span className="ml-2 text-sm text-gray-600">
                 {latestBlog?.author || "Author"} |{" "}
-                {latestBlog?.readTime || "9 mins read"}
+                {latestBlog?.read_time || "9 mins read"}
               </span>
             </div>
           </div>

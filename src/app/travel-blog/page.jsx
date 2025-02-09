@@ -26,13 +26,8 @@ export default function Page() {
         </div>
       </div>
 
-      {blogCategories?.map((category, index) => (
-        <RecommendedBlogs
-          heading={category.name}
-          sectionImage={category.image}
-          slug={category.slug}
-          key={category.slug}
-        />
+      {blogCategories?.map((category) => (
+        <RecommendedBlogs category={category} key={category.slug} />
       ))}
 
       <BlackBlog category="out-there" />

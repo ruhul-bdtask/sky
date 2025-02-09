@@ -46,7 +46,7 @@ const BlogList = ({ slug, heading }) => {
                 <Link href={`/author/id`}>
                   <span className="ml-2 text-[14px] text-gray-600">
                     {blog?.author || "Author"} |{" "}
-                    {blog?.readTime || "9 mins read"}
+                    {blog?.read_time || "9 mins read"}
                   </span>
                 </Link>
               </div>
@@ -65,7 +65,7 @@ export default BlogList;
 //     title: "The 10 best warm places to visit in March",
 //     category: "Travel Recommendations",
 //     author: "Duncan Madden",
-//     readTime: "12 mins read",
+//     read_time: "12 mins read",
 //     image: blog1,
 //   },
 //   {
@@ -73,21 +73,21 @@ export default BlogList;
 //       "Here's your selection of 10 all-inclusive vacations with no passport needed",
 //     category: "Travel Recommendations",
 //     author: "Jennifer Breking",
-//     readTime: "7 mins read",
+//     read_time: "7 mins read",
 //     image: blog1,
 //   },
 //   {
 //     title: "The 6 largest airports in the world",
 //     category: "Tips & Tricks",
 //     author: "Jennifer Sincocco",
-//     readTime: "9 mins read",
+//     read_time: "9 mins read",
 //     image: blog1,
 //   },
 //   {
 //     title: "The 10 best warm places to visit in February",
 //     category: "Travel Recommendations",
 //     author: "Duncan Madden",
-//     readTime: "12 mins read",
+//     read_time: "12 mins read",
 //     image: blog1,
 //   },
 // ];
