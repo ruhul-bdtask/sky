@@ -17,12 +17,7 @@ export default function BlackBlog({ category }) {
     (category) => category?.slug === blogType
   );
 
-  if (isLoading)
-    return (
-      <div className="w-screen ">
-        <Skeleton className=" h-72" />
-      </div>
-    );
+  if (isLoading) return <Skeleton className=" h-72" />;
   // if (!isLoading && !foundCategory)
   //   return (
   //     <div className="p-10 text-center text-xl font-semibold bg-slate-100">
