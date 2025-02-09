@@ -9,10 +9,10 @@ import Skeleton from "react-loading-skeleton";
 
 export default function BlackBlog({ category }) {
   const { blogType } = useParams();
-  // const lastSegment = pathname.split("/").pop();
   const { data, isLoading } = useFetchBlogs(`/categories`);
 
   const categories = data?.data;
+
   const foundCategory = categories?.find(
     (category) => category?.slug === blogType
   );
@@ -50,6 +50,9 @@ export default function BlackBlog({ category }) {
           <Image
             className="rounded-[12px]"
             src={category?.image || blog5}
+            height={600}
+            width={600}
+            alt="traveler"
           ></Image>
         </div>
       </div>

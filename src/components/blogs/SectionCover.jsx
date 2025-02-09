@@ -6,7 +6,6 @@ const SectionCover = ({ category }) => {
   function getImgUrl(name) {
     return new URL(`@/public/images/blog4.png`, import.meta.url).href;
   }
-  console.log(category);
   return (
     <div className="lg:col-span-1 md:p-4">
       <div className="rounded-lg overflow-hidden">
