@@ -1,9 +1,8 @@
 "use client";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
-export default function BlogHeader() {
+export default function BlogsNavbar() {
   return (
     <div>
       <div className="bg-[#F0F3F5] flex justify-between px-5">
@@ -11,9 +10,11 @@ export default function BlogHeader() {
           <ul className="flex items-center gap-7 p-4 cursor-pointer">
             <Link href="/travel-blog">Home</Link>
 
-            <Link href="/blog/travel-recommended">Travel recommendations</Link>
+            <Link href="/blog/travel-recommendations">
+              Travel recommendations
+            </Link>
             <Link href="/blog/the-taste-of-travel">The taste of travel</Link>
-            <Link href="/blog/tips-tricks">Tips & tricks</Link>
+            <Link href="/blog/tips-and-tricks">Tips & tricks</Link>
 
             <Link href="/blog/travel-experience">Travel Experience</Link>
             <Link href="/blog/news">News</Link>

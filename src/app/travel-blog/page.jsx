@@ -1,24 +1,35 @@
-import LatestBlog from "@/components/latestBlog/LatestBlog";
-import ExperienceBlog from "@/components/experienceBlog/ExperienceBlog";
-import BlackBlog from "@/components/blackBlog/BlackBlog";
-import RecommendBlog from "@/components/recommendBlog/RecommendBlog";
-import BlogHeader from "@/components/blogHeader/BlogHeader";
+"use client";
+import BlackBlog from "@/components/blogs/BlackBlog";
+import BlogList from "@/components/blogs/BlogList";
+import BlogCategorySection from "@/components/blogs/BlogCategorySection";
+import BlogsNavbar from "@/components/blogs/BlogsNavbar";
+import LatestBlog from "@/components/blogs/LatestBlog";
+import { useFetchBlogs } from "@/hooks/useFetchBlogs";
 
-export default function page() {
+export default function Page() {
+  const { data, isLoading, isError, error } = useFetchBlogs(`/categories`);
+
+  const blogCategories = data?.data;
+
+  const categorySlug = blogCategories?.[0]?.slug;
+
+  if (isError) return <p>{error.message}</p>;
   return (
     <div>
-      <BlogHeader />
-      <div className="min-h-screen  p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          <LatestBlog />
-          {/* Travel experience */}
-          <ExperienceBlog />
+      <BlogsNavbar />
+      <div className="p-4 ">
+        <div className="max-w-7xl mx-auto md:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <LatestBlog slug={categorySlug} />
+            <BlogList slug={categorySlug} heading="Trending" />
+          </div>
         </div>
       </div>
-      <BlackBlog position={1} />
-      <RecommendBlog position={1} />
-      <BlackBlog position={2} />
-      <RecommendBlog position={2} />
+
+      {blogCategories?.map((category) => (
+        <BlogCategorySection category={category} key={category.slug} />
+      ))}
+      <BlackBlog category="news" />
     </div>
   );
 }
