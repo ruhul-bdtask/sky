@@ -1,7 +1,12 @@
+"use client";
 import BlackBlog from "@/components/blogs/BlackBlog";
 import BlogTypeCard from "@/components/blogs/BlogTypeCard";
+import { useParams } from "next/navigation";
 
-export default function page() {
+export default function Page() {
+  const { blogType } = useParams();
+
+  console.log(blogType);
   return (
     <div>
       <BlackBlog />

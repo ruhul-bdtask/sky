@@ -1,7 +1,7 @@
 "use client";
 import BlackBlog from "@/components/blogs/BlackBlog";
 import BlogList from "@/components/blogs/BlogList";
-import RecommendedBlogs from "@/components/blogs/BlogSection";
+import BlogCategorySection from "@/components/blogs/BlogCategorySection";
 import BlogsNavbar from "@/components/blogs/BlogsNavbar";
 import LatestBlog from "@/components/blogs/LatestBlog";
 import { useFetchBlogs } from "@/hooks/useFetchBlogs";
@@ -27,10 +27,8 @@ export default function Page() {
       </div>
 
       {blogCategories?.map((category) => (
-        <RecommendedBlogs category={category} key={category.slug} />
+        <BlogCategorySection category={category} key={category.slug} />
       ))}
-
-      <BlackBlog category="out-there" />
       <BlackBlog category="news" />
     </div>
   );
