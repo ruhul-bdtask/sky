@@ -1,7 +1,7 @@
 import BlackBlog from "@/components/blogs/BlackBlog";
 import BlogTypeCard from "@/components/blogs/BlogTypeCard";
 
-export default function page({ blog }) {
+export default function page() {
   return (
     <div>
       <BlackBlog />
