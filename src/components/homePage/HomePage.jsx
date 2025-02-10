@@ -26,12 +26,21 @@ export default function HomePage({ searchParams }) {
 
   const {
     data: homeData,
-    error: homeDataError,
     isLoading: homeDataLoading,
     refetch: refetchHomeData,
   } = useQuery({
     queryKey: ["home-data"],
     queryFn: () => fetchData("/getDashboardElement", "GET"),
+    enabled: true,
+  });
+
+  const {
+    data: latestFlights,
+    isLoading: latestFlightsLoading,
+    refetch: refetchLatestFlights,
+  } = useQuery({
+    queryKey: ["latest-flights"],
+    queryFn: () => fetchData("/latest-flight-list", "GET"),
     enabled: true,
   });
 
@@ -43,8 +52,8 @@ export default function HomePage({ searchParams }) {
         homeDataLoading={homeDataLoading}
       />
       <Travels
-        travelsData={homeData?.data?.hopList}
-        homeDataLoading={homeDataLoading}
+        travelsData={latestFlights?.data}
+        latestFlightsLoading={latestFlightsLoading}
       />
       <WishlistTravels
         wishlistData={homeData?.data?.wishlist}

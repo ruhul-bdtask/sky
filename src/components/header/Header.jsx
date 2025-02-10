@@ -188,14 +188,28 @@ export default function Header() {
   //   checkAuth();
   // }, [router]);
 
-  const isExp = isExpired(token);
+  // const isExp = isExpired(token);
+  // console.log(isExp)
+  // useEffect(() => {
+  //   if (token && isExp) {
+  //     Cookies.remove("auth-token");
+  //     setToken(null);
+  //     setUserData({});
+  //   }
+  // }, [isExp]);
+
   useEffect(() => {
-    if (token && isExp) {
-      Cookies.remove("auth-token");
-      setToken(null);
-      setUserData({});
+    const storedToken = Cookies.get("auth-token");
+    if (storedToken) {
+      const isExp = isExpired(storedToken);
+
+      if (isExp) {
+        Cookies.remove("auth-token");
+        setToken(null);
+        setUserData({});
+      } 
     }
-  }, [isExp]);
+  }, []);
 
   useEffect(() => {
     savedTrips?.forEach((trip) => {

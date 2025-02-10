@@ -331,7 +331,7 @@ export default function SearchPad() {
     { name: "Multi-city", price: 150, shortCode: "multi_city" },
   ]);
   const [categories, setCategories] = useState([
-    { name: "Adults", ageRange: "18-64", count: 1, type: "ADT" },
+    { name: "Adults", ageRange: "11-64", count: 1, type: "ADT" },
     { name: "Children", ageRange: "5-11", count: 0, type: "C06" },
     { name: "Kids", ageRange: "2-5", count: 0, type: "C04" },
     { name: "Infants on lap", ageRange: "under 2", count: 0, type: "INF" },
@@ -500,27 +500,28 @@ export default function SearchPad() {
 
     const adults = categories.find((cat) => cat.name === "Adults");
     if (adults && adults.count > 0) {
-      passengers.push({ type: "ADT", quantity: adults.count });
+      passengers.push({ type: "ADT", quantity: adults.count, age: "18" });
     }
 
     const children = categories.find((cat) => cat.name === "Children");
     if (children && children.count > 0) {
-      passengers.push({ type: "C06", quantity: children.count });
+      passengers.push({ type: "C06", quantity: children.count, age: "6" });
     }
     const kids = categories.find((kid) => kid.name === "Kids");
     if (kids && kids.count > 0) {
-      passengers.push({ type: "C04", quantity: kids.count });
+      passengers.push({ type: "C04", quantity: kids.count, age: "4" });
     }
 
     const infants = categories.find((cat) => cat.name === "Infants on lap");
     if (infants && infants.count > 0) {
-      passengers.push({ type: "INF", quantity: infants.count });
+      passengers.push({ type: "INF", quantity: infants.count, age: "1" });
     }
 
     return passengers;
   };
 
   const passengers = generatePassengersFromCategories(categories);
+
 
   // useEffect(() => {
   //   if (passengers.length > 0) {

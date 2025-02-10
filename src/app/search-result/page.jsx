@@ -91,6 +91,7 @@ export default function Page({ searchParams }) {
       PassengerTypeQuantity: parsedSearchData?.passengers?.map((passenger) => ({
         Code: passenger.type,
         Quantity: passenger.quantity,
+        Age: passenger?.age,
         TPA_Extensions: {
           VoluntaryChanges: {
             Match: "Info",

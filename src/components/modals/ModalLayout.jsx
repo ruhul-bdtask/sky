@@ -399,21 +399,21 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
     const adults = categories.find((cat) => cat.name === "Adults");
     if (adults && adults.count > 0) {
-      passengers.push({ type: "ADT", quantity: adults.count });
+      passengers.push({ type: "ADT", quantity: adults.count, age: "18" });
     }
 
     const children = categories.find((cat) => cat.name === "Children");
     if (children && children.count > 0) {
-      passengers.push({ type: "C06", quantity: children.count });
+      passengers.push({ type: "C06", quantity: children.count, age: "6" });
     }
     const kids = categories.find((kid) => kid.name === "Kids");
     if (kids && kids.count > 0) {
-      passengers.push({ type: "C04", quantity: kids.count });
+      passengers.push({ type: "C04", quantity: kids.count, age: "4" });
     }
 
     const infants = categories.find((cat) => cat.name === "Infants on lap");
     if (infants && infants.count > 0) {
-      passengers.push({ type: "INF", quantity: infants.count });
+      passengers.push({ type: "INF", quantity: infants.count, age: "1" });
     }
 
     return passengers;
@@ -540,10 +540,30 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       });
     }
 
+    if (selectedWay !== "multi_city") {
+      const recentSearch = {
+        origin: searchQueryOrigin,
+        destination: searchQueryDestination,
+        tripType: selectedWay,
+        class: selectedClass,
+        passengers: passengers,
+        journeyDate: originalDate,
+        returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+        originAirport: originAirport,
+        destinationAirport: destinationAirport,
+      };
+
+      const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
+        0,
+        5
+      );
+      setRecentSearchData(updatedRecentSearches);
+    }
+
     setOriginDestinationInformation(originDestinationInfo);
 
-    const updatedRecentSearches = [searchData, ...recentSearchData].slice(0, 5);
-    setRecentSearchData(updatedRecentSearches);
+    // const updatedRecentSearches = [searchData, ...recentSearchData].slice(0, 5);
+    // setRecentSearchData(updatedRecentSearches);
 
     if (selectedWay === "multi_city") {
       if (transformedData.length < 2) {

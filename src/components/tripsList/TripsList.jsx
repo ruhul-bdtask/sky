@@ -41,15 +41,26 @@ export default function TripsList({ booking }) {
                       {booking.legs[0]?.last_airport}
                     </h2>
                   </div>
-                  <Link
-                    href={`/ticket-copy?status=success&slack=${booking?.transaction_number}`}
-                    className="bg-[#FC660F] text-white px-3 py-2 rounded-[10px] text-sm flex items-center gap-2 "
-                  >
-                    <div className="hidden md:block">
-                      <DownloadIcon />
-                    </div>
-                    Ticket Copy
-                  </Link>
+                  <div className="flex items-center gap-4">
+                    <Link
+                      href={`/ticket-copy?status=success&slack=${booking?.transaction_number}`}
+                      className="bg-[#FC660F] text-white px-3 py-2 rounded-[10px] text-sm flex items-center gap-2 "
+                    >
+                      <div className="hidden md:block">
+                        <DownloadIcon />
+                      </div>
+                      Ticket Copy
+                    </Link>
+                    <Link
+                      href={`/ticket-invoice?status=success&slack=${booking?.transaction_number}`}
+                      className="bg-[#FC660F] text-white px-3 py-2 rounded-[10px] text-sm flex items-center gap-2 "
+                    >
+                      <div className="hidden md:block">
+                        <DownloadIcon />
+                      </div>
+                      Ticket invoice
+                    </Link>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <img

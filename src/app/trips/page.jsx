@@ -1,16 +1,19 @@
 "use client";
 import TripsList from "@/components/tripsList/TripsList";
 import RightIcon from "@/public/icons/RightIcon";
-import React, { useEffect } from "react";
-
+import React, { useEffect, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/utils/api";
 import useAirlineStore from "../../../stores/airlineStore";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 export default function Page() {
-  const { token, setToken } = useAirlineStore();
+  const { token, setToken, savedTrips } = useAirlineStore();
   const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -26,6 +29,7 @@ export default function Page() {
 
     checkAuth();
   }, [token]);
+
   const {
     data: allPnrData,
     error: allPnrDataError,
@@ -43,7 +47,13 @@ export default function Page() {
     }
   }, [token]);
 
-  if (allPnrDataLoading) {
+  useEffect(() => {
+    if (allPnrData?.success == true) {
+      setLoading(false);
+    }
+  }, [allPnrData]);
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -89,9 +99,47 @@ export default function Page() {
       <h2 className="text-[20px] font-[600] w-[160px] my-10 ml-2 pb-1  border-b-2 border-black">
         Ticket List <span className="">({allPnrData?.data?.length})</span>
       </h2>
-      {allPnrData?.data?.map((booking, index) => (
-        <TripsList booking={booking} key={index} />
-      ))}
+
+      <div className="w-full max-w-5xl mx-auto  ">
+        <Tabs defaultValue="list" className="w-full ">
+          <TabsList className="grid w-full grid-cols-3 gap-2">
+            <TabsTrigger value="list" className="border">
+              All
+            </TabsTrigger>
+            <TabsTrigger value="saved" className="border">
+              Saved
+            </TabsTrigger>
+            <TabsTrigger value="trips" className="border">
+              Trips
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="list">
+            <div className="">
+              <ScrollArea className="max-h-screen overflow-y-scroll">
+                <div className="mt-10 p-4 ">
+                  {allPnrData?.data?.map((booking, index) => (
+                    <TripsList booking={booking} key={index} />
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </TabsContent>
+          <TabsContent value="saved">
+            <div className="border rounded-lg p-8 text-center">
+              <p className="text-muted-foreground">
+                Saved tab content goes here
+              </p>
+            </div>
+          </TabsContent>
+          <TabsContent value="trips">
+            <div className="border rounded-lg p-8 text-center">
+              <p className="text-muted-foreground">
+                Trips tab content goes here
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
