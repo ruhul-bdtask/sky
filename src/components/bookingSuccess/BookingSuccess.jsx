@@ -32,9 +32,8 @@ export default function BookingSuccess({ data, slack }) {
     });
   };
 
-  console.log(data);
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-100">
+    <div className="max-h-screen flex items-center justify-center p-4 bg-gray-100 py-20">
       <div className="w-full max-w-[700px] bg-white rounded-lg shadow-lg">
         <div className="flex flex-col items-center p-6">
           {/* Success Icon */}
@@ -55,7 +54,7 @@ export default function BookingSuccess({ data, slack }) {
           </div>
 
           {/* Confirmation Message */}
-          <h2 className="text-xl font-semibold mb-6 text-center">
+          <h2 className="text-xl font-semibold mb-6 text-center text-green-500">
             You have Successfully Booked ticket
           </h2>
 
@@ -91,7 +90,7 @@ export default function BookingSuccess({ data, slack }) {
             >
               <div className="flex items-center gap-4 mb-4">
                 <img
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-52nTtWkTxtmcIcGckobw53Vn7HyqC3.png"
+                  src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${flight?.airline_code}.png`}
                   alt="Air Asia Airlines"
                   className="rounded-full w-12 h-12"
                 />
@@ -116,7 +115,7 @@ export default function BookingSuccess({ data, slack }) {
                   <div className="relative">
                     <div className="border-t-2 border-gray-300 w-full absolute top-1/2 -translate-y-1/2"></div>
                     <div className="text-center text-sm text-gray-500">
-                      Non-stop
+                      {flight?.cabin_class}
                     </div>
                     <div className="text-center text-xs text-gray-400">
                       {formatMinutesToHours(flight?.duration_minutes)}
@@ -132,11 +131,11 @@ export default function BookingSuccess({ data, slack }) {
                   <p className="text-sm font-medium">{flight?.to_location}</p>
                 </div>
               </div>
-
+              {/* 
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">{flight?.cabin_class}</span>
-                {/* <span className="font-bold">Tk.14,345</span> */}
-              </div>
+                <span className="font-bold">Tk.14,345</span>
+              </div> */}
             </div>
           ))}
 

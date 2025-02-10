@@ -109,6 +109,45 @@ export default function BookingFormComp({
     }
   };
 
+  const getDateLimits = (passengerType) => {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+
+    switch (passengerType) {
+      case "ADT": // Adult (11-64 years old)
+        return {
+          maxDate: new Date(currentYear - 11, 11, 31), // Latest DOB: 11 years ago
+          minDate: new Date(currentYear - 99, 0, 1), // Earliest DOB: 99 years ago
+        };
+
+      case "C04": // Kids (2-5 years old)
+        return {
+          minDate: new Date(currentYear - 5, 0, 1), // Earliest DOB: 5 years ago
+          maxDate: new Date(currentYear - 2, 11, 31), // Latest DOB: 2 years ago
+        };
+
+      case "C06": // Children (5-11 years old)
+        return {
+          minDate: new Date(currentYear - 11, 0, 1), // Earliest DOB: 11 years ago
+          maxDate: new Date(currentYear - 5, 11, 31), // Latest DOB: 5 years ago
+        };
+
+      case "INF": // Infant (under 2 years old)
+        return {
+          minDate: new Date(currentYear - 2, 0, 1), // Earliest DOB: 2 years ago
+          maxDate: today, // Latest DOB: today (newborns)
+        };
+
+      default:
+        return {
+          minDate: new Date(1900, 0, 1),
+          maxDate: today,
+        };
+    }
+  };
+
+  const { minDate, maxDate } = getDateLimits(passenger.type);
+
   return (
     <div>
       <div className="py-6 px-4 md:px-16  shadow-custom_shadow">
@@ -120,7 +159,13 @@ export default function BookingFormComp({
         >
           {Object.keys(passengerInformation).length == 0 ? (
             <>
-              <span>Passenger {index + 1}</span> ({passenger?.pxn_type})
+              <span>Passenger {index + 1}</span> (
+              {passenger?.type == "C04"
+                ? "KID"
+                : passenger.type == "C06"
+                ? "CHILD"
+                : passenger?.type}
+              )
             </>
           ) : passengerInformation[index]?.firstName == "" ? (
             "Fill up this box also..."
@@ -283,7 +328,7 @@ export default function BookingFormComp({
                   <div
                     className="w-full border-2 border-gray-300 rounded-[4px] focus:outline-none" // Ensure border styles here
                   >
-                    <DatePicker
+                    {/* <DatePicker
                       onChange={(date) => {
                         updatePassengerData(index, "dob", date); // Update passenger data
                       }}
@@ -293,6 +338,21 @@ export default function BookingFormComp({
                       className="w-full p-3  focus:outline-none" // Ensure border styles here
                       calendarClassName="rounded-md shadow-lg border-gray-200"
                       clearIcon={null} // Removes the clear icon for a cleaner design
+                    /> */}
+                    <DatePicker
+                      onChange={(date) =>
+                        updatePassengerData(index, "dob", date)
+                      }
+                      value={
+                        passenger.dob ? moment(passenger.dob).toDate() : ""
+                      }
+                      minDate={minDate}
+                      maxDate={maxDate}
+                      format="dd-MM-yyyy"
+                      className="w-full p-3 focus:outline-none"
+                      calendarClassName="rounded-md shadow-lg border-gray-200"
+                      clearIcon={null}
+                      placeholderText="Select Date of Birth"
                     />
                   </div>
                 </div>

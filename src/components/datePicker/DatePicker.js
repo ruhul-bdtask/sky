@@ -76,7 +76,6 @@ export default function DatePicker({
       from: "",
     }));
   };
-  console.log("activeButton", activeButton);
 
   const handleToClick = (e) => {
     e.stopPropagation();

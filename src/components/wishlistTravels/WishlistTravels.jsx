@@ -17,35 +17,10 @@ import "swiper/css/navigation";
 // Import required modules from Swiper
 import { Navigation } from "swiper/modules";
 import Skeleton from "react-loading-skeleton";
+import useAirlineStore from "../../../stores/airlineStore";
+import Link from "next/link";
 export default function WishlistTravels({ wishlistData, homeDataLoading }) {
-  const travelsData = [
-    {
-      title: "New Delhi, National Capital Territory of India, India",
-      distance: "from Tk 27,114",
-      image: bangkok,
-    },
-    {
-      title: "Mumbai, Maharashtra, India",
-      distance: "from Tk 27,114",
-      image: bangkok2,
-    },
-    {
-      title: "New Delhi, National Capital Territory of India, India",
-      distance: "from Tk 27,114",
-      image: bangkok,
-    },
-    {
-      title: "Mumbai, Maharashtra, India",
-      distance: "from Tk 27,114",
-      image: bangkok2,
-    },
-    {
-      title: "Mumbai, Maharashtra, India",
-      distance: "from Tk 27,114",
-      image: bangkok,
-    },
-  ];
-
+  const { savedTrips } = useAirlineStore();
   const wishListData = [
     {
       title: "New Delhi, National Capital Territory of India, India",
@@ -131,34 +106,36 @@ export default function WishlistTravels({ wishlistData, homeDataLoading }) {
             }}
             modules={[Navigation]}
           >
-            {wishlistData?.map((travel, index) => (
+            {savedTrips?.map((item, index) => (
               <SwiperSlide key={index}>
-                <div className="w-full xl:w-[631px] overflow-hidden">
-                  <div className="relative">
+                <Link
+                  href={"/trips"}
+                  className="w-full xl:w-[631px] overflow-hidden"
+                >
+                  <div className="">
                     <Image
-                      src={travel?.image_url}
-                      alt="Bangkok cityscape"
+                      src={item?.image_url ? item?.image_url : bangkok}
+                      alt="Trip"
                       width={631}
                       height={200}
                       className="object-cover h-[370px] w-full rounded-xl"
                     />
-                    <button className="absolute top-2 right-2 text-black bg-white hover:bg-slate-200 transition-colors px-3 py-1 rounded-[4px]">
-                      <HeartIcon className="w-4 h-4" />
-                    </button>
                   </div>
                   <div className="py-4">
                     <h3 className="font-semibold text-[16px] mb-1 text-black">
-                      {travel?.title}
+                      {item?.destination}
                     </h3>
-                    <p className="text-[14px] text-black">{travel?.price}</p>
+                    <p className="text-[14px] text-black">
+                      {item?.start_date} - {item?.end_date}
+                    </p>
                   </div>
-                </div>
+                </Link>
               </SwiperSlide>
             ))}
           </Swiper>
         </div>
       )}
-      <div>
+      {/* <div>
         <div className="pb-6">
           <h2 className="text-[24px] font-bold text-black">
             Your Wishlist starts here
@@ -191,7 +168,7 @@ export default function WishlistTravels({ wishlistData, homeDataLoading }) {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -4,12 +4,12 @@ import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function Page({ searchParams }) {
   const token = Cookies.get("auth-token");
   const router = useRouter();
-
+  const [loading, setLoading] = useState(true);
   // useEffect(() => {
   //   const checkAuth = () => {
 
@@ -42,9 +42,13 @@ export default function Page({ searchParams }) {
     }
   }, [searchParams?.slack]);
 
-  console.log(searchParams);
+  useEffect(() => {
+    if (bookingData) {
+      setLoading(false);
+    }
+  }, [bookingData]);
 
-  if (!searchParams?.slack || bookingLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -55,7 +59,7 @@ export default function Page({ searchParams }) {
     );
   }
 
-  if (bookingData?.success == false) {
+  if (bookingData?.success == false || !searchParams?.slack) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div>
