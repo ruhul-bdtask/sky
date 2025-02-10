@@ -26,6 +26,7 @@ import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 import FlightDetails from "./FlightDetails";
+import { useMemo } from "react";
 
 export default function FlightCard({
   flight,
@@ -166,7 +167,7 @@ export default function FlightCard({
     // getting matching flight to remove
     const matchingFlight = savedTrips
       .map((trip) =>
-        trip.flights.find(
+        trip.flights?.find(
           (fl) =>
             fl?.flight_data?.airline_code === flight?.airline_code &&
             fl?.flight_data?.destination_code === flight?.destination_code &&
@@ -185,7 +186,7 @@ export default function FlightCard({
 
     // Check if the flight already exists in any trip and update the trips
     let updatedSavedTrips = savedTrips.map((trip) => {
-      const flightExists = trip?.flights.some(
+      const flightExists = trip?.flights?.some(
         (fl) =>
           fl?.flight_data?.airline_code === flight?.airline_code &&
           fl?.flight_data?.destination_code === flight?.destination_code &&
@@ -289,10 +290,10 @@ export default function FlightCard({
     } else {
       // Add the flight to the selectedSavedTrip
       updatedSavedTrips = updatedSavedTrips.map((trip) => {
-        if (trip.name === selectedSavedTrip.name) {
+        if (trip?.name === selectedSavedTrip?.name) {
           return {
             ...trip,
-            flights: [...trip.flights, { flight_data: flight }],
+            flights: [...trip?.flights, { flight_data: flight }],
           };
         }
         return trip;
@@ -547,21 +548,20 @@ export default function FlightCard({
     );
   };
 
-  const isSavedFlight = savedTrips.some((trip) =>
-    trip?.flights.some(
-      (fl) =>
-        fl?.flight_data?.airline_code === flight?.airline_code &&
-        fl?.flight_data?.destination_code === flight?.destination_code &&
-        fl?.flight_data?.origin_code === flight?.origin_code &&
-        fl?.flight_data?.departure_date === flight?.departure_date &&
-        fl?.flight_data?.arrival_date === flight?.arrival_date &&
-        fl?.flight_data?.arrival_time === flight?.arrival_time &&
-        fl?.flight_data?.departure_date === flight?.departure_date &&
-        fl?.flight_data?.air_pricing_solution_key ===
-          flight?.air_pricing_solution_key
-    )
-  );
-
+  const isSavedFlight = useMemo(() => {
+    return savedTrips?.some((trip) =>
+      trip?.flights?.some(
+        (fl) =>
+          fl?.flight_data?.airline_code === flight?.airline_code &&
+          fl?.flight_data?.destination_code === flight?.destination_code &&
+          fl?.flight_data?.origin_code === flight?.origin_code &&
+          fl?.flight_data?.departure_date === flight?.departure_date &&
+          fl?.flight_data?.arrival_date === flight?.arrival_date &&
+          fl?.flight_data?.arrival_time === flight?.arrival_time &&
+          fl?.flight_data?.departure_date === flight?.departure_date
+      )
+    );
+  }, [savedTrips, flight]);
   return (
     <>
       <div
