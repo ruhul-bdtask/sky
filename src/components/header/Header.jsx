@@ -518,9 +518,9 @@ export default function Header() {
     setIsShowSearchDestination(false);
   };
 
-  const containerRef = useRef(); // Reference for the input and dropdown container
+  const containerRef = useRef(); // Reference for the input and search input container
 
-  // Close dropdown if clicking outside
+  // Close search input if clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -1118,12 +1118,6 @@ export default function Header() {
                                   onFocus={() =>
                                     setIsShowSearchDestination(true)
                                   }
-                                  // onBlur={() =>
-                                  //   setTimeout(
-                                  //     () => setIsShowSearchDestination(false),
-                                  //     200
-                                  //   )
-                                  // }
                                 />
                                 {tripErrors.destination && (
                                   <p className="text-red-500 text-xs">
