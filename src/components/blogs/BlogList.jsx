@@ -17,7 +17,7 @@ const BlogList = ({ slug, heading }) => {
     <div>
       <h2 className="text-[32px] font-bold mb-4">{heading}</h2>
       <div className="space-y-4">
-        {blogs.slice(0, 4).map((blog, index) => (
+        {blogs?.slice(0, 4).map((blog, index) => (
           <Link
             key={blog?.slug}
             href={`/travel-blog/${blog.slug}`}
