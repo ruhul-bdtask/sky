@@ -421,7 +421,6 @@ export default function Page({ searchParams }) {
                     seconds,
                   }}
                   allFlights={allFlights?.data?.sortedItineraries}
-                  sortedFlights={sortFlights()}
                 />
 
                 <div className="flex-1">
