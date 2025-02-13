@@ -24,7 +24,7 @@ import {
 } from "../ui/accordion";
 import MultiRangeSlider from "../ui/multiRangeSlider";
 
-export default function FlightFilter({ sortedFlights, allFlights, timer }) {
+export default function FlightFilter({ allFlights, timer }) {
   const {
     filterOptions,
     setFilterOptions,

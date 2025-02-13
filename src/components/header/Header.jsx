@@ -79,6 +79,19 @@ export default function Header() {
     end_date: "",
     flights: [],
   });
+  useEffect(() => {
+    const today = new Date();
+    const nextMonth = new Date();
+    nextMonth.setMonth(today.getMonth() + 1);
+
+    setFormData({
+      ...formData,
+      start_date: today,
+      end_date: nextMonth,
+    });
+  }, [formData.name, formData.destination]);
+
+  // console.log(formData);
 
   const [tripNameExistError, setTripNameExistError] = useState("");
 
@@ -207,7 +220,7 @@ export default function Header() {
         Cookies.remove("auth-token");
         setToken(null);
         setUserData({});
-      } 
+      }
     }
   }, []);
 
@@ -505,9 +518,9 @@ export default function Header() {
     setIsShowSearchDestination(false);
   };
 
-  const containerRef = useRef(); // Reference for the input and dropdown container
+  const containerRef = useRef(); // Reference for the input and search input container
 
-  // Close dropdown if clicking outside
+  // Close search input if clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -1105,12 +1118,6 @@ export default function Header() {
                                   onFocus={() =>
                                     setIsShowSearchDestination(true)
                                   }
-                                  // onBlur={() =>
-                                  //   setTimeout(
-                                  //     () => setIsShowSearchDestination(false),
-                                  //     200
-                                  //   )
-                                  // }
                                 />
                                 {tripErrors.destination && (
                                   <p className="text-red-500 text-xs">
@@ -1156,7 +1163,7 @@ export default function Header() {
                                     Start Date
                                   </label>
                                   <TripDatePicker
-                                    date={formData.start_date}
+                                    date={formData.start_date} // month-date-year
                                     setDate={(date) =>
                                       onTripDateChange("start_date", date)
                                     }

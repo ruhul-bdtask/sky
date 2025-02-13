@@ -1,66 +1,54 @@
 import { fetchAirportsData } from "@/utils/api";
 import Image from "next/image";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ImSpinner6 } from "react-icons/im";
 
 const SearchDestination = ({ onSelectDestination, currentInput }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchQuery, setSearchQuery] = useState(currentInput || "");
-  const [isLoading, setIsLoading] = useState(false); // Loading state
-  const [noData, setNoData] = useState(false); // No data state
+  const [isLoading, setIsLoading] = useState(false);
+  const [noData, setNoData] = useState(false);
   const inputRef = useRef();
+  const debounceRef = useRef(null);
 
-  // Debounce function to optimize filtering
-  const debounce = (func, delay) => {
-    let timeout;
-    return (...args) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), delay);
-    };
-  };
-
-  // Fetch Data
   const fetchData = async (query) => {
     if (!query?.trim()) {
-      setFilteredData([]); // Clear results when query is empty
+      setFilteredData([]);
       setNoData(false);
       setIsLoading(false);
       return;
     }
-
-    setIsLoading(true); // Show loading spinner
+    setIsLoading(true);
     try {
       const data = await fetchAirportsData();
-
-      // Filter based on search query
       const filtered = data.filter((destination) =>
         destination.label.toLowerCase().includes(query.toLowerCase())
       );
 
       setData(data);
       setFilteredData(filtered);
-      setNoData(filtered.length === 0); // Set no data state
+      setNoData(filtered.length === 0);
     } catch (error) {
       console.error("Failed to fetch destinations:", error);
     } finally {
-      setIsLoading(false); // Hide loading spinner
+      setIsLoading(false);
     }
   };
 
-  const debouncedFetchData = debounce(fetchData, 500);
+  const debouncedFetchData = useCallback((query) => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchData(query), 500);
+  }, []);
 
-  // Fetch data when search query changes
   useEffect(() => {
     debouncedFetchData(searchQuery);
-  }, [searchQuery]);
+  }, [searchQuery, debouncedFetchData]);
 
-  // Autofocus on input when the component is rendered
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    inputRef.current?.focus();
   }, []);
+
   return (
     <div className="max-w-full mx-auto bg-white shadow-md absolute top-1 w-full z-10">
       <div className="pb-3 ">

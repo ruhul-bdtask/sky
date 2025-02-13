@@ -4,8 +4,8 @@ const LatestBlogSkeleton = () => {
   return (
     <div className="lg:col-span-1">
       <Skeleton width={280} height={40} className="mb-4" />
-      <div className="  overflow-hidden">
-        <Skeleton width={580} height={300} />
+      <div className="overflow-hidden">
+        <Skeleton width={580} height={420} />
         <div className="py-4">
           <Skeleton width={280} />
 

@@ -6,6 +6,7 @@ import { useFetchBlogs } from "@/hooks/useFetchBlogs";
 import Image from "next/image";
 import { useParams, usePathname } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
+import BlackBogSkeleton from "@/skeletons/BlackBogSkeleton";
 
 export default function BlackBlog({ category }) {
   const { blogType } = useParams();
@@ -17,12 +18,7 @@ export default function BlackBlog({ category }) {
     (category) => category?.slug === blogType
   );
 
-  if (isLoading)
-    return (
-      <div className="w-screen ">
-        <Skeleton className=" h-72" />
-      </div>
-    );
+  if (isLoading) return <BlackBogSkeleton />;
   // if (!isLoading && !foundCategory)
   //   return (
   //     <div className="p-10 text-center text-xl font-semibold bg-slate-100">
