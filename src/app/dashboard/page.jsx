@@ -14,7 +14,14 @@ export default function Page() {
   const router = useRouter();
   const authToken = Cookies.get("auth-token");
 
-  const { setUserData, setToken, token } = useAirlineStore();
+  const {
+    setUserData,
+    setToken,
+    token,
+    savedTrips,
+    setSavedTrips,
+    setSelectedSavedTrip,
+  } = useAirlineStore();
 
   // useEffect(() => {
   //   const checkAuth = () => {
@@ -41,6 +48,7 @@ export default function Page() {
       if (!authToken) {
         Cookies.remove("auth-token");
         setToken(null);
+
         router.push("/login");
         return;
       }
@@ -52,6 +60,10 @@ export default function Page() {
         if (decodedToken.exp && decodedToken.exp < currentTime) {
           Cookies.remove("auth-token");
           setToken(null);
+          if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+            setSavedTrips([]);
+            setSelectedSavedTrip([]);
+          }
           router.push("/login");
         } else {
           setUser(decodedToken);
@@ -59,6 +71,10 @@ export default function Page() {
       } catch (error) {
         Cookies.remove("auth-token");
         setToken(null);
+        if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+          setSavedTrips([]);
+          setSelectedSavedTrip([]);
+        }
         router.push("/login");
       } finally {
         setIsLoading(false);

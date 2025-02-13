@@ -38,7 +38,7 @@ export function Snowfall({ snowflakeCount = 50, enabled = true }) {
       {snowflakes.map((i) => (
         <Snowflake
           key={i}
-          size={12 + Math.random() * 20}
+          size={12 + Math.random() * 10}
           style={{
             animationDelay: `${Math.random() * 8}s`,
             willChange: 'transform', // Optimize performance

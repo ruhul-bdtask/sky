@@ -21,7 +21,8 @@ const TicketCopy = ({ searchParams, authToken }) => {
   }, [printFn]);
 
   const router = useRouter();
-  const { token, setToken } = useAirlineStore();
+  const { token, setToken, savedTrips, setSavedTrips, setSelectedSavedTrip } =
+    useAirlineStore();
   const [hasError, setHasError] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +36,10 @@ const TicketCopy = ({ searchParams, authToken }) => {
       if (!authToken) {
         Cookies.remove("auth-token");
         setToken(null);
+        if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+          setSavedTrips([]);
+          setSelectedSavedTrip([]);
+        }
         router.push("/login");
         return;
       }

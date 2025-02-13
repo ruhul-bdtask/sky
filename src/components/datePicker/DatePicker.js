@@ -24,9 +24,6 @@ export default function DatePicker({
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const [activeButton, setActiveButton] = React.useState(null); // 'from' or 'to'
 
-
-  
-
   const handlePrevFromDate = (e) => {
     e.stopPropagation();
     if (roundDate?.from) {
@@ -72,7 +69,7 @@ export default function DatePicker({
     setActiveButton("from");
     setIsPopoverOpen(true);
     setRoundDate((prev) => ({
-      ...prev,
+      to: "",
       from: "",
     }));
   };
@@ -134,7 +131,9 @@ export default function DatePicker({
                 <div className="absolute left-3 text-gray-400">
                   <Calender />
                 </div>
-                {roundDate.to ? formatLongDataToShort(roundDate.to) : ""}
+                {roundDate.to
+                  ? formatLongDataToShort(roundDate.to)
+                  : "Select date "}
                 <div className="flex">
                   <LuChevronLeft
                     size={20}

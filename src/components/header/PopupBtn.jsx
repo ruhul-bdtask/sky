@@ -3,7 +3,7 @@ import { HiDotsHorizontal } from "react-icons/hi";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
 
-const PopupBtn = ({ flight, isShowPopupBtn, setIsShowPopupBtn }) => {
+const PopupBtn = ({ flight, isShowPopupBtn, setIsShowPopupBtn,handleRedirect }) => {
   const { token, savedTrips, selectedSavedTrip, setSavedTrips } =
     useAirlineStore();
 
@@ -108,7 +108,10 @@ const PopupBtn = ({ flight, isShowPopupBtn, setIsShowPopupBtn }) => {
           className="rounded-md border text-center absolute top-6 right-0 bg-white shadow-md"
           onClick={(e) => e.stopPropagation()}
         >
-          <button className="block p-2 border-b w-full hover:text-[#0C7C99] transition-all">
+          <button
+            onClick={() => handleRedirect(flight?.flight_data)}
+            className="block p-2 border-b w-full hover:text-[#0C7C99] transition-all"
+          >
             Search
           </button>
           {/* {token && ( */}

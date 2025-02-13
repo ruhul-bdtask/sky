@@ -26,7 +26,14 @@ import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 
 export default function TicketInvoice({ searchParams, authToken }) {
   const invoiceRef = useRef(null);
-  const { token, setToken, userData } = useAirlineStore();
+  const {
+    token,
+    setToken,
+    userData,
+    savedTrips,
+    setSavedTrips,
+    setSelectedSavedTrip,
+  } = useAirlineStore();
   const router = useRouter();
   const [loading, setLoading] = useState();
   const printFn = useReactToPrint({
@@ -45,6 +52,10 @@ export default function TicketInvoice({ searchParams, authToken }) {
       if (!authToken) {
         Cookies.remove("auth-token");
         setToken(null);
+        if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+          setSavedTrips([]);
+          setSelectedSavedTrip([]);
+        }
         router.push("/login");
         return;
       }
