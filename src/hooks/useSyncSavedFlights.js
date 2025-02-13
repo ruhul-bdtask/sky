@@ -40,7 +40,6 @@ const useSyncSavedFlights = () => {
   const syncSavedFlights = async (token) => {
     try {
       if (savedTrips.length > 0) {
-        console.log("post called");
         // post existing local saved flights to the server
         const response = await fetchData(
           "/gds/save-bulk-trips",
@@ -49,7 +48,6 @@ const useSyncSavedFlights = () => {
           token
         );
         if (response.success) {
-          console.log("get called");
           const response = await fetchData(
             "/gds/get-saved-trips",
             "GET",
@@ -60,11 +58,9 @@ const useSyncSavedFlights = () => {
             setSavedTrips(response.data);
           }
         } else {
-          console.log(response);
           throw new Error(response.errors[0]);
         }
       } else {
-        console.log("get called only");
         const response = await fetchData(
           "/gds/get-saved-trips",
           "GET",
@@ -78,7 +74,6 @@ const useSyncSavedFlights = () => {
         }
       }
     } catch (err) {
-      console.log(err.message);
       toast.error(err.message);
     }
   };

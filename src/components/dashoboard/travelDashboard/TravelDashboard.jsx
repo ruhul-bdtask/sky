@@ -19,8 +19,13 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import { fetchData } from "@/utils/api";
+import Link from "next/link";
 
-export default function TravelDashboard({ userData, userDataLoading }) {
+export default function TravelDashboard({
+  userData,
+  userDataLoading,
+  loginDetails,
+}) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isOpen, setIsOpen] = useState(false);
   const [base64, setBase64] = useState("");
@@ -62,6 +67,8 @@ export default function TravelDashboard({ userData, userDataLoading }) {
     }
   };
 
+  const { lastLogin, expiration } = loginDetails;
+
   const tabContent = {
     dashboard: (
       <>
@@ -83,9 +90,12 @@ export default function TravelDashboard({ userData, userDataLoading }) {
                 <p className="text-[14px] font-semibold text-black mb-4">
                   Kick your trip into gear. Get started!
                 </p>
-                <button className="bg-[#363F45] text-white text-[14px] font-semibold px-4 py-2 rounded">
+                <Link
+                  href={"/trips"}
+                  className="bg-[#363F45] text-white text-[14px] font-semibold px-4 py-2 rounded"
+                >
                   View Trips
-                </button>
+                </Link>
               </div>
               <Image
                 alt="image"
@@ -147,7 +157,7 @@ export default function TravelDashboard({ userData, userDataLoading }) {
       <div className="max-w-[1012px] mx-auto py-8 ">
         <div className="">
           <header className="flex justify-between flex-col-reverse md:flex-row gap-7 md:gap-0">
-            <div className="flex justify-between items-end gap-5 md:gap-20 flex-wrap col-span-7">
+            <div className="flex justify-between items-end gap-5 md:gap-12 flex-wrap col-span-7">
               <div>
                 <h1 className="text-[25px] md:text-[40px] font-bold mb-0 md:mb-2">
                   Welcome
@@ -172,6 +182,14 @@ export default function TravelDashboard({ userData, userDataLoading }) {
                   <span className="text-[12px] md:text-[16px] font-semibold text-black">
                     {userData?.data?.home_airport}
                   </span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] md:text-[14px] font-semibold text-black">
+                  Last login: {lastLogin}
+                </p>
+                <p className="text-[10px] md:text-[14px] font-semibold text-black">
+                  Token expiration: {expiration}
                 </p>
               </div>
             </div>

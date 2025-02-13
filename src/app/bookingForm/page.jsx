@@ -115,7 +115,6 @@ export default function BookingForm() {
   }, {});
 
   const updatePassengerData = (index, field, value) => {
-    console.log(index, field, value);
     setPassengerData((prevData) =>
       prevData.map((passenger, i) =>
         i === index
@@ -303,7 +302,6 @@ export default function BookingForm() {
           refetchRegister();
         } else {
           refetchBookingData();
-          console.log(PassengerInformation);
         }
       }
     }

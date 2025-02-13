@@ -84,6 +84,14 @@ export default function Page() {
     checkAuth();
   }, [router, token]);
 
+  const lastLogin = new Date(user?.iat * 1000).toLocaleString();
+  const expiration = new Date(user?.exp * 1000).toLocaleString();
+
+  const loginDetails = {
+    lastLogin,
+    expiration,
+  };
+
   const userPayload = {
     document_type: "NID",
   };
@@ -113,7 +121,11 @@ export default function Page() {
 
   return (
     <div>
-      <TravelDashboard userData={userData} userDataLoading={userDataLoading} />
+      <TravelDashboard
+        userData={userData}
+        userDataLoading={userDataLoading}
+        loginDetails={loginDetails}
+      />
       <div className="leading-10 text-[14px] max-w-[1300px] mx-auto py-8">
         <p className="text-[#0B7C9E] hover:underline cursor-pointer">
           Top International Flight Routes.

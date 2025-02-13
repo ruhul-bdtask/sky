@@ -73,7 +73,6 @@ export default function Page() {
     [...allFlights]
   );
   // const mergedArray = allPnrData?.data.concat(allFlights);
-  console.log(mergedArray);
 
   useEffect(() => {
     if (token) {
