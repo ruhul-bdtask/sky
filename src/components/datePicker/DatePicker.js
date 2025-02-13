@@ -164,7 +164,6 @@ export default function DatePicker({
             }
             selected={roundDate}
             onSelect={(date) => {
-              console.log("activeButton", activeButton);
               if (activeButton === "from") {
                 // Directly set the from date without affecting the to date
                 setRoundDate((prev) => ({

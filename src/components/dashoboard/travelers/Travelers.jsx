@@ -3,7 +3,6 @@ import { formatShortDate } from "@/lib/formatShortDate";
 import React from "react";
 
 export default function Travelers({ userData, userDataLoading }) {
-  console.log(userData);
   return (
     <section>
       <h2 className="text-[24px] font-bold text-black mb-5">Travelers</h2>
