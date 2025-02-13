@@ -1,0 +1,2154 @@
+import Image from "next/image";
+import Link from "next/link";
+import React, { useEffect, useRef, useState } from "react";
+import logo from "@/public/images/logo.png";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import travelBg from "@/public/images/wishlist-travel-2.png";
+import { ArrowLeftRightIcon } from "lucide-react";
+import Airplane from "@/public/icons/Airplane";
+import SearchIcon from "@/public/icons/SearchIcon";
+import useAirlineStore from "../../../stores/airlineStore";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import airportsData from "../../../public/utils/airports.json";
+import moment from "moment";
+import { FaTimes } from "react-icons/fa";
+import DatePickerOneWay from "@/components/datePicker/DatePickerOneWay";
+import DatePicker from "@/components/datePicker/DatePicker";
+import formatLabel from "@/lib/formatLabel";
+import { Checkbox } from "../ui/checkbox";
+import UserAvatar from "@/public/icons/UserAvatar";
+
+const debounce = (func, delay) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+};
+
+export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
+  const [isPassengerOpen, setIsPassengerOpen] = useState(false);
+
+  const [isOpenDestination, setIsOpenDestination] = useState(false);
+  const [isOpenArrival, setIsOpenArrival] = useState(false);
+  const [isWayOpen, setIsWayOpen] = useState(false);
+  const [isClassOpen, setIsClassOpen] = useState(false);
+  const [originalDate, setOriginalDate] = useState();
+  const [isOpenClassPassenger, setIsOpenClassPassenger] = useState(false);
+  const router = useRouter();
+
+  const {
+    token,
+    setSearchData,
+    setOriginDestinationInformation,
+    setSelectedFlight,
+    setPassengerInformation,
+    setContactInformation,
+    setRecentSearchData,
+    recentSearchData,
+    userData,
+    travelPlanningDate,
+    originQuery,
+    destinationQuery,
+    searchData,
+    setOriginQuery,
+    setDestinationQuery,
+    setTravelPlanningDate,
+    originAirportName,
+    destinationAirportName,
+    setDestinationAirportName,
+    setOriginAirportName,
+  } = useAirlineStore();
+  const { origin, destination, journeyDate, tripType, returnDate } = searchData;
+
+  const [selectedWay, setSelectedWay] = useState("one_way");
+  const [selectedClass, setSelectedClass] = useState("Y");
+  const [searchQueryDestination, setSearchQueryDestination] = useState();
+  const [searchQueryOrigin, setSearchQueryOrigin] = useState();
+  const [originAirport, setOriginAirport] = useState("");
+  const [destinationAirport, setDestinationAirport] = useState("");
+
+  useEffect(() => {
+    if (tripType && searchData?.class) {
+      setSelectedWay(tripType);
+      setSelectedClass(searchData?.class);
+    }
+  }, [searchData]);
+
+  const [cities, setCities] = useState([
+    {
+      id: 1,
+      searchQueryOrigin: "",
+      searchQueryDestination: "",
+      departureDate: null,
+      isOpenOrigin: false,
+      isOpenDestination: false,
+    },
+    {
+      id: 2,
+      searchQueryOrigin: "",
+      searchQueryDestination: "",
+      departureDate: null,
+      isOpenOrigin: false,
+      isOpenDestination: false,
+    },
+    {
+      id: 3,
+      searchQueryOrigin: "",
+      searchQueryDestination: "",
+      departureDate: null,
+      isOpenOrigin: false,
+      isOpenDestination: false,
+    },
+  ]);
+
+  const transformedData = cities.map((item, index) => ({
+    DepartureDateTime: item.departureDate,
+    OriginLocation: {
+      LocationCode: item.searchQueryOrigin,
+      LocationType: "A",
+    },
+    DestinationLocation: {
+      LocationCode: item.searchQueryDestination,
+      LocationType: "A",
+    },
+    RPH: 0,
+  }));
+
+  const [roundDate, setRoundDate] = useState(() => {
+    const twoDaysAhead = new Date();
+    twoDaysAhead.setDate(twoDaysAhead.getDate() + 2);
+
+    const fourDaysAhead = new Date(twoDaysAhead);
+    fourDaysAhead.setDate(fourDaysAhead.getDate() + 2);
+
+    return {
+      from: twoDaysAhead,
+      to: fourDaysAhead,
+    };
+  });
+
+  const [oneWayDate, setOneWayDate] = useState(() => {
+    const twoDaysAhead = new Date();
+    twoDaysAhead.setDate(twoDaysAhead.getDate() + 2);
+    return twoDaysAhead;
+  });
+
+  useEffect(() => {
+    if (origin && destination && journeyDate !== "") {
+      setOneWayDate(new Date(journeyDate));
+    }
+    if (origin && destination && journeyDate && returnDate !== "") {
+      setRoundDate({
+        from: new Date(journeyDate),
+        to: new Date(returnDate),
+      });
+    }
+    setSearchQueryOrigin(origin !== "" ? origin : "DAC");
+    setSearchQueryDestination(destination !== "" ? destination : "CXB");
+  }, [origin, destination, journeyDate]);
+
+  const handleAddCity = () => {
+    setCities([
+      ...cities,
+      {
+        id: cities.length + 1,
+        searchQueryOrigin: "",
+        searchQueryDestination: "",
+        departureDate: null,
+      },
+    ]);
+  };
+
+  const updateCityData = (id, field, value) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === id ? { ...city, [field]: value } : city
+      )
+    );
+  };
+  const handleDeleteCity = () => {
+    if (cities.length > 1) {
+      setCities(cities.slice(0, -1));
+    }
+  };
+  const toggleField = (id, field) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === id ? { ...city, [field]: !city[field] } : city
+      )
+    );
+  };
+
+  // const filteredAirportsArrivalMulti = cities.map((city) =>
+  //   airportsData.filter(
+  //     (airport) =>
+  //       (airport.name
+  //         .toLowerCase()
+  //         .includes(city.searchQueryDestination.toLowerCase()) ||
+  //         airport.value
+  //           .toLowerCase()
+  //           .includes(city.searchQueryDestination.toLowerCase())) &&
+  //       airport.value !== city.searchQueryOrigin
+  //   )
+  // );
+
+  // const filteredAirportsDestinationMulti = cities.map((city) =>
+  //   airportsData.filter(
+  //     (airport) =>
+  //       (airport.name
+  //         .toLowerCase()
+  //         .includes(city.searchQueryOrigin.toLowerCase()) ||
+  //         airport.value
+  //           .toLowerCase()
+  //           .includes(city.searchQueryOrigin.toLowerCase())) &&
+  //       airport.value !== city.searchQueryDestination
+  //   )
+  // );
+
+  const [filteredAirportsArrivalMulti, setFilteredAirportsArrivalMulti] =
+    useState([]);
+
+  useEffect(() => {
+    const debouncedFilter = debounce(() => {
+      const updatedArrivalMultiCityAirports = cities.map((city) =>
+        city.searchQueryDestination.length >= 2
+          ? airportsData
+              .filter(
+                (airport) =>
+                  (airport.name
+                    .toLowerCase()
+                    .includes(city.searchQueryDestination.toLowerCase()) ||
+                    airport.value
+                      .toLowerCase()
+                      .includes(city.searchQueryDestination.toLowerCase())) &&
+                  airport.value !== city.searchQueryOrigin
+              )
+              .sort((a, b) => {
+                const aMatchesValue =
+                  a.value.toLowerCase() ===
+                  city.searchQueryDestination.toLowerCase();
+                const bMatchesValue =
+                  b.value.toLowerCase() ===
+                  city.searchQueryDestination.toLowerCase();
+
+                if (aMatchesValue && !bMatchesValue) return -1;
+                if (!aMatchesValue && bMatchesValue) return 1;
+                return 0;
+              })
+          : []
+      );
+
+      setFilteredAirportsArrivalMulti(updatedArrivalMultiCityAirports);
+    }, 300);
+
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [cities, airportsData]);
+
+  const [
+    filteredAirportsDestinationMulti,
+    setFilteredAirportsDestinationMulti,
+  ] = useState([]);
+
+  useEffect(() => {
+    const debouncedFilter = debounce(() => {
+      const updatedMultiCityAirports = cities?.map((city) =>
+        city.searchQueryOrigin.length >= 2
+          ? airportsData
+              .filter(
+                (airport) =>
+                  airport.name
+                    .toLowerCase()
+                    .includes(city.searchQueryOrigin.toLowerCase()) ||
+                  airport.value
+                    .toLowerCase()
+                    .includes(city.searchQueryOrigin.toLowerCase())
+              )
+              .sort((a, b) => {
+                const aMatchesValue =
+                  a.value.toLowerCase() ===
+                  city.searchQueryOrigin.toLowerCase();
+                const bMatchesValue =
+                  b.value.toLowerCase() ===
+                  city.searchQueryOrigin.toLowerCase();
+
+                if (aMatchesValue && !bMatchesValue) return -1;
+                if (!aMatchesValue && bMatchesValue) return 1;
+                return 0;
+              })
+          : []
+      );
+
+      setFilteredAirportsDestinationMulti(updatedMultiCityAirports);
+    }, 300);
+
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [cities, airportsData]);
+
+  const [ways, setWays] = useState([
+    { name: "One-way", price: 50, shortCode: "one_way" },
+    { name: "Return", price: 90, shortCode: "return" },
+    { name: "Multi-city", price: 150, shortCode: "multi_city" },
+  ]);
+  const [categories, setCategories] = useState([
+    { name: "Adults", ageRange: "18-64", count: 1 },
+    { name: "Children", ageRange: "5-11", count: 0 },
+    { name: "Kids", ageRange: "2-5", count: 0 },
+    { name: "Infants on lap", ageRange: "under 2", count: 0 },
+  ]);
+  const [classes, setClasses] = useState([
+    { name: "Economy", price: 50, shortCode: "Y" },
+    { name: "Premium Economy", price: 70, shortCode: "P" },
+    { name: "Business", price: 100, shortCode: "C" },
+    { name: "First Class", price: 150, shortCode: "F" },
+  ]);
+
+  const [filteredAirportsDestination, setFilteredAirportsDestination] =
+    useState([]);
+
+  const airOriginData = airportsData
+    .filter(
+      (airport) =>
+        airport.value
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.label
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.name.toLowerCase().includes(searchQueryOrigin?.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Check if the value matches the searchQueryOrigin
+      const aMatchesValue =
+        a.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
+      const bMatchesValue =
+        b.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
+
+      // Objects with matching value should come first
+      if (aMatchesValue && !bMatchesValue) return -1;
+      if (!aMatchesValue && bMatchesValue) return 1;
+      return 0; // Keep the same order for other cases
+    });
+
+  useEffect(() => {
+    const debouncedFilter = debounce(() => {
+      if (searchQueryOrigin?.length >= 2) {
+        setFilteredAirportsDestination(airOriginData);
+      } else {
+        setFilteredAirportsDestination([]);
+      }
+    }, 300);
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [searchQueryOrigin, airportsData]);
+
+  const [filteredAirportsArrival, setFilteredAirportsArrival] = useState([]);
+
+  const airDestinationData = airportsData
+    .filter(
+      (airport) =>
+        airport.value
+          .toLowerCase()
+          .includes(searchQueryDestination?.toLowerCase()) ||
+        airport.label
+          .toLowerCase()
+          .includes(searchQueryDestination?.toLowerCase()) ||
+        airport.name
+          .toLowerCase()
+          .includes(searchQueryDestination?.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Check if the value matches the searchQueryDestination
+      const aMatchesValue =
+        a.value.toLowerCase() === searchQueryDestination?.toLowerCase();
+      const bMatchesValue =
+        b.value.toLowerCase() === searchQueryDestination?.toLowerCase();
+
+      // Objects with matching value should come first
+      if (aMatchesValue && !bMatchesValue) return -1;
+      if (!aMatchesValue && bMatchesValue) return 1;
+      return 0; // Keep the same order for other cases
+    });
+  useEffect(() => {
+    const debouncedFilter = debounce(() => {
+      if (searchQueryDestination?.length >= 2) {
+        setFilteredAirportsArrival(airDestinationData);
+      } else {
+        setFilteredAirportsArrival([]);
+      }
+    }, 300);
+
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [searchQueryDestination, airportsData]);
+
+  const generatePassengersFromCategories = (categories) => {
+    const passengers = [];
+
+    const adults = categories.find((cat) => cat.name === "Adults");
+    if (adults && adults.count > 0) {
+      passengers.push({ type: "ADT", quantity: adults.count, age: "18" });
+    }
+
+    const children = categories.find((cat) => cat.name === "Children");
+    if (children && children.count > 0) {
+      passengers.push({ type: "C06", quantity: children.count, age: "6" });
+    }
+    const kids = categories.find((kid) => kid.name === "Kids");
+    if (kids && kids.count > 0) {
+      passengers.push({ type: "C04", quantity: kids.count, age: "4" });
+    }
+
+    const infants = categories.find((cat) => cat.name === "Infants on lap");
+    if (infants && infants.count > 0) {
+      passengers.push({ type: "INF", quantity: infants.count, age: "1" });
+    }
+
+    return passengers;
+  };
+  const passengers = generatePassengersFromCategories(categories);
+
+  const dropdownRef = useRef(null);
+  const dropdownRefDestination = useRef(null);
+  const dropdownRefArrival = useRef(null);
+
+  const totalPassengers = categories?.reduce(
+    (sum, category) => sum + category.count,
+    0
+  );
+
+  const updateCount = (index, increment) => {
+    setCategories((prevCategories) =>
+      prevCategories.map((category, i) =>
+        i === index
+          ? { ...category, count: Math.max(0, category.count + increment) }
+          : category
+      )
+    );
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsPassengerOpen(false);
+      }
+
+      if (
+        dropdownRefDestination.current &&
+        !dropdownRefDestination.current.contains(event.target)
+      ) {
+        setIsOpenDestination(false);
+      }
+      if (
+        dropdownRefArrival.current &&
+        !dropdownRefArrival.current.contains(event.target)
+      ) {
+        setIsOpenArrival(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const dateToUse = selectedWay === "one_way" ? oneWayDate : roundDate?.from;
+    const date = new Date(dateToUse);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const formattedDateTimeOrigin = `${year}-${month}-${day}T00:00:00`;
+
+    setOriginalDate(formattedDateTimeOrigin);
+  }, [oneWayDate, roundDate, selectedWay]);
+
+  const [originalArrivalData, setOriginalArrivalDate] = useState();
+
+  useEffect(() => {
+    const dateToUse = selectedWay === "one_way" ? "" : roundDate?.to;
+    const date = new Date(dateToUse);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const formattedDateTimeOrigin = `${year}-${month}-${day}T00:00:00`;
+
+    setOriginalArrivalDate(formattedDateTimeOrigin);
+  }, [oneWayDate, roundDate, selectedWay]);
+
+  const handleSubmitSearch = (e) => {
+    e.preventDefault();
+    setSelectedFlight({});
+    setPassengerInformation([]);
+    setContactInformation({});
+    setOriginQuery("");
+    setDestinationQuery("");
+    setTravelPlanningDate("");
+
+    const searchData = {
+      origin: searchQueryOrigin,
+      destination: searchQueryDestination,
+      tripType: selectedWay,
+      class: selectedClass,
+      passengers: passengers,
+      journeyDate: originalDate,
+      returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+    };
+
+    setSearchData(searchData);
+
+    const originDestinationInfo = [
+      {
+        DepartureDateTime: originalDate,
+        OriginLocation: {
+          LocationCode: searchQueryOrigin,
+          LocationType: "A",
+        },
+        DestinationLocation: {
+          LocationCode: searchQueryDestination,
+          LocationType: "A",
+        },
+        RPH: "0",
+      },
+    ];
+
+    if (selectedWay === "return" && roundDate?.to) {
+      originDestinationInfo.push({
+        DepartureDateTime: originalArrivalData,
+        OriginLocation: {
+          LocationCode: searchQueryDestination,
+          LocationType: "A",
+        },
+        DestinationLocation: {
+          LocationCode: searchQueryOrigin,
+          LocationType: "A",
+        },
+        RPH: "1",
+      });
+    }
+
+    if (selectedWay !== "multi_city") {
+      const recentSearch = {
+        origin: searchQueryOrigin,
+        destination: searchQueryDestination,
+        tripType: selectedWay,
+        class: selectedClass,
+        passengers: passengers,
+        journeyDate: originalDate,
+        returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+        originAirport: originAirport,
+        destinationAirport: destinationAirport,
+      };
+
+      const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
+        0,
+        5
+      );
+      setRecentSearchData(updatedRecentSearches);
+    }
+
+    setOriginDestinationInformation(originDestinationInfo);
+
+    // const updatedRecentSearches = [searchData, ...recentSearchData].slice(0, 5);
+    // setRecentSearchData(updatedRecentSearches);
+
+    if (selectedWay === "multi_city") {
+      if (transformedData.length < 2) {
+        toast.error("You must select at least 2 cities.");
+        setError("City selection is too few.");
+        setLoading(false);
+        return;
+      }
+
+      const invalidTransformedData = transformedData.find(
+        (item) =>
+          !item.DepartureDateTime ||
+          !item.OriginLocation?.LocationCode ||
+          !item.DestinationLocation?.LocationCode
+      );
+
+      if (invalidTransformedData) {
+        toast.error("One or more city data entries are invalid.");
+        return;
+      }
+    }
+
+    if (!originalDate) {
+      toast.error("Please select a departure date.");
+
+      return;
+    }
+
+    if (!searchQueryOrigin) {
+      toast.error("Please select a departure location.");
+
+      return;
+    }
+
+    if (!searchQueryDestination) {
+      toast.error("Please select a origin location.");
+
+      return;
+    }
+
+    if (selectedWay === "return" && !roundDate.to) {
+      toast.error("Please select a return date.");
+
+      return;
+    }
+
+    if (selectedWay === "multi_city") {
+      if (transformedData.length < 2) {
+        toast.error("You must select at least 2 cities.");
+
+        return;
+      }
+
+      const invalidTransformedData = transformedData.find(
+        (item) =>
+          !item.DepartureDateTime ||
+          !item.OriginLocation?.LocationCode ||
+          !item.DestinationLocation?.LocationCode
+      );
+
+      if (invalidTransformedData) {
+        toast.error("One or more city data entries are invalid.");
+
+        return;
+      }
+    }
+    setDestinationAirportName(destinationAirport);
+    setOriginAirportName(originAirport);
+    setOriginQuery(searchQueryOrigin);
+    setDestinationQuery(searchQueryDestination);
+
+    const queryString = new URLSearchParams({
+      search: JSON.stringify(searchData),
+      originDestinationInfo:
+        selectedWay == "multi_city"
+          ? JSON.stringify(transformedData)
+          : JSON.stringify(originDestinationInfo),
+    }).toString();
+
+    // router.push(`/search-result?${queryString}`);
+    window.location.href = `/search-result?${queryString}`;
+  };
+
+  const handleSwap = () => {
+    const tempLocation = originAirport;
+    const temp = searchQueryOrigin;
+    setSearchQueryOrigin(searchQueryDestination);
+    setOriginAirport(destinationAirport);
+    setDestinationAirport(tempLocation);
+    setSearchQueryDestination(temp);
+  };
+
+  useEffect(() => {
+    if (originAirportName && destinationAirportName) {
+      setOriginAirport(originAirportName);
+
+      setDestinationAirport(destinationAirportName);
+    } else {
+      setOriginAirport("Dhaka (DAC)");
+      setDestinationAirport("Cox's Bazar (CXB)");
+    }
+  }, [originAirportName, destinationAirportName]);
+  const handleClear = () => {
+    setSearchQueryOrigin("");
+    setOriginAirport("");
+  };
+
+  const handleClearArrival = () => {
+    setSearchQueryDestination("");
+    setDestinationAirport("");
+  };
+  useEffect(() => {
+    if (isModalOpen) {
+      document.querySelector("body").style.overflow = "hidden";
+    } else {
+      document.querySelector("body").style.overflow = "auto";
+    }
+  }, [isModalOpen, setIsModalOpen]);
+
+  const toggleFieldClick = (id, field) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === id ? { ...city, [field]: !city[field] } : city
+      )
+    );
+  };
+
+  const handleClearMulti = (cityId) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === cityId
+          ? {
+              ...city,
+              searchQueryOrigin: "",
+              originAirport: "",
+            }
+          : city
+      )
+    );
+  };
+
+  const handleClearMultiArrival = (cityId) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === cityId
+          ? {
+              ...city,
+              searchQueryDestination: "",
+              destinationAirport: "",
+            }
+          : city
+      )
+    );
+  };
+
+  return (
+    <div>
+      <div
+        className={`${
+          isModalOpen ? "block" : "hidden"
+        } bg-black bg-opacity-70 w-full fixed top-0 left-0 right-0 h-screen z-[99999] transition-all duration-500`}
+      >
+        <div
+          className={`${
+            isModalOpen
+              ? "translate-y-0 opacity-100"
+              : "-translate-y-full opacity-0"
+          } flex flex-col h-full transform transition-all duration-1000 ease-in-out`}
+        >
+          <div className="p-8 bg-[#ffffff] min-h-[320px] shadow-md ">
+            <Link href={"/"} onClick={() => setIsModalOpen(false)}>
+              <Image className="mx-4 md:mx-0 " alt="logo" src={logo}></Image>
+            </Link>
+
+            <main
+              className={`container_section_home mx-auto  max-w-7xl h-full`}
+            >
+              <div className=" mx-auto  p-5 rounded-lg">
+                <form className="" onSubmit={handleSubmitSearch}>
+                  <div className="flex flex-wrap gap-4 mb-4">
+                    <div className="w-[300px] text-center flex justify-between items-center py-2 text-sm  text-gray-700 cursor-pointer gap-2">
+                      <span
+                        className={`${
+                          selectedWay == "one_way" && "bg-gray-200"
+                        } w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300`}
+                        onClick={() => setSelectedWay("one_way")}
+                      >
+                        One way
+                      </span>
+                      <span
+                        className={`${
+                          selectedWay == "return" && "bg-gray-200"
+                        } w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300`}
+                        onClick={() => setSelectedWay("return")}
+                      >
+                        Round-trip
+                      </span>
+                      <span
+                        className={`${
+                          selectedWay == "multi_city" && "bg-gray-200"
+                        } w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300`}
+                        onClick={() => setSelectedWay("multi_city")}
+                      >
+                        Multi city
+                      </span>
+                    </div>
+                  </div>
+                  {selectedWay == "multi_city" ? (
+                    <>
+                      {cities.map((row, index) => (
+                        <div
+                          key={row.id}
+                          className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2 items-center"
+                        >
+                          <div
+                            className="relative"
+                            id={`origin-dropdown-${index}`}
+                          >
+                            <div
+                              onClick={() =>
+                                toggleField(row.id, "isOpenOrigin")
+                              }
+                            >
+                              {/* <p
+                          className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
+                            row?.originAirport == "" ||
+                            row?.originAirport == undefined ||
+                            row.searchQueryOrigin == "" ||
+                            row.searchQueryOrigin == undefined
+                              ? ""
+                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                          }`}
+                        >
+                          {row?.originAirport !== "" ? row?.originAirport : ""}
+                          <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                            <FaTimes onClick={() => handleClearMulti(row.id)} />
+                          </span>
+                        </p> */}
+                              <p
+                                className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                                  row?.originAirport
+                                    ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                    : ""
+                                }`}
+                              >
+                                {row?.originAirport && (
+                                  <>
+                                    <span className="px-1.5 py-0.5 truncate">
+                                      {row?.originAirport}
+                                    </span>
+                                    <span
+                                      className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                      onMouseEnter={(e) =>
+                                        e.currentTarget.parentElement.classList.replace(
+                                          "hover:border-black",
+                                          "border-white"
+                                        )
+                                      }
+                                      onMouseLeave={(e) =>
+                                        e.currentTarget.parentElement.classList.replace(
+                                          "border-white",
+                                          "hover:border-black"
+                                        )
+                                      }
+                                    >
+                                      <FaTimes
+                                        onClick={() => handleClearMulti(row.id)}
+                                      />
+                                    </span>
+                                  </>
+                                )}
+                              </p>
+                              <input
+                                value={row.searchQueryOrigin}
+                                type="text"
+                                onChange={(e) =>
+                                  updateCityData(
+                                    row.id,
+                                    "searchQueryOrigin",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="From ?"
+                                className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                              />
+
+                              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                                <Airplane />
+                              </div>
+                              {/* <input
+                          value={row.searchQueryOrigin}
+                          type="text"
+                          onChange={(e) =>
+                            updateCityData(
+                              row.id,
+                              "searchQueryOrigin",
+                              e.target.value
+                            )
+                          }
+                          placeholder="From ?"
+                          className="w-full pl-10 pr-4 py-4  focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                        />
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                          <Airplane />
+                        </div> */}
+                            </div>
+                            {row?.isOpenOrigin ? (
+                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                                <div className="p-6 ">
+                                  <ul className="space-y-4">
+                                    {filteredAirportsDestinationMulti[
+                                      row.id - 1
+                                    ].map((destination, index) => (
+                                      <li
+                                        key={index}
+                                        className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
+                                        onClick={() => {
+                                          toggleFieldClick(
+                                            row.id,
+                                            "isOpenOrigin"
+                                          ),
+                                            updateCityData(
+                                              row.id,
+                                              "searchQueryOrigin",
+                                              destination.value
+                                            );
+
+                                          updateCityData(
+                                            row.id,
+                                            "originAirport",
+                                            destination?.label
+                                          );
+                                        }}
+                                      >
+                                        <img
+                                          src={destination.img}
+                                          alt=""
+                                          className="w-[60px] h-[60px]"
+                                        />
+                                        <div className="flex-grow">
+                                          <div className="flex items-center gap-3">
+                                            <p className="font-semibold text-[16px]">
+                                              {destination.label.replace(
+                                                /\s\([^)]*\)/,
+                                                ""
+                                              )}
+                                            </p>
+                                            <span className="text-[14px]">
+                                              {destination.value}
+                                            </span>
+                                          </div>
+                                          <p className="text-sm text-gray-500">
+                                            {destination.name}
+                                          </p>
+                                        </div>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                          </div>
+
+                          <div
+                            className="relative"
+                            id={`arrival-dropdown-${index}`}
+                          >
+                            <div
+                              onClick={() =>
+                                toggleField(row.id, "isOpenDestination")
+                              }
+                            >
+                              <p
+                                className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                                  row?.destinationAirport
+                                    ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                    : ""
+                                }`}
+                              >
+                                {row?.destinationAirport && (
+                                  <>
+                                    <span className="px-1.5 py-0.5 truncate">
+                                      {row?.destinationAirport}
+                                    </span>
+                                    <span
+                                      className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                      onMouseEnter={(e) =>
+                                        e.currentTarget.parentElement.classList.replace(
+                                          "hover:border-black",
+                                          "border-white"
+                                        )
+                                      }
+                                      onMouseLeave={(e) =>
+                                        e.currentTarget.parentElement.classList.replace(
+                                          "border-white",
+                                          "hover:border-black"
+                                        )
+                                      }
+                                    >
+                                      <FaTimes
+                                        onClick={() =>
+                                          handleClearMultiArrival(row.id)
+                                        }
+                                      />
+                                    </span>
+                                  </>
+                                )}
+                              </p>
+                              <input
+                                value={row.searchQueryDestination}
+                                type="text"
+                                onChange={(e) =>
+                                  updateCityData(
+                                    row.id,
+                                    "searchQueryDestination",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="To ?"
+                                className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                              />
+
+                              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                                <Airplane />
+                              </div>
+                            </div>
+                            {row?.isOpenDestination ? (
+                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                                <div className="p-6 ">
+                                  <ul className="space-y-4">
+                                    {filteredAirportsArrivalMulti[
+                                      row.id - 1
+                                    ].map((arrival, index) => (
+                                      <li
+                                        key={index}
+                                        className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
+                                        onClick={() => {
+                                          toggleFieldClick(
+                                            row.id,
+                                            "isOpenDestination"
+                                          ),
+                                            updateCityData(
+                                              row.id,
+                                              "searchQueryDestination",
+                                              arrival.value
+                                            );
+
+                                          updateCityData(
+                                            row.id,
+                                            "destinationAirport",
+                                            arrival.label
+                                          );
+                                        }}
+                                      >
+                                        <img
+                                          src={arrival.img}
+                                          alt=""
+                                          className="w-[60px] h-[60px]"
+                                        />
+                                        <div className="flex-grow">
+                                          <div className="flex items-center gap-3">
+                                            <p className="font-semibold text-[16px]">
+                                              {arrival.label.replace(
+                                                /\s\([^)]*\)/,
+                                                ""
+                                              )}
+                                            </p>
+                                            <span className="text-[14px]">
+                                              {arrival.value}
+                                            </span>
+                                          </div>
+                                          <p className="text-sm text-gray-500">
+                                            {arrival.name}
+                                          </p>
+                                        </div>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                          </div>
+
+                          <div className="col-span-2 flex gap-2 justify-between">
+                            <DatePickerOneWay
+                              className="w-[95%]"
+                              originalDate={row.departureDate}
+                              oneWayDate={row.departureDate}
+                              setOneWayDate={(date) =>
+                                updateCityData(row.id, "departureDate", date)
+                              }
+                            />
+
+                            <div className="flex items-center">
+                              {index !== 0 && (
+                                <div className="flex items-center overflow-hidden">
+                                  <button
+                                    type="button"
+                                    onClick={handleDeleteCity}
+                                  >
+                                    <FaTimes size={20} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex justify-between items-center w-[97.5%]">
+                        <button
+                          type="button"
+                          className="text-blue-600 font-semibold"
+                          onClick={handleAddCity}
+                        >
+                          + Add another flight
+                        </button>
+                        {/* <button type="button" className="text-gray-500">
+                          clear all
+                        </button> */}
+
+                        <button
+                          className="rounded-[10px] bg-[#FC660F] w-[54px] h-[50px] hover:bg-[#d67136]"
+                          type="submit"
+                        >
+                          <div className="flex justify-center items-center w-full">
+                            <SearchIcon />
+                          </div>
+                        </button>
+                      </div>
+                      {/* <p className="text-gray-500 text-sm text-right mt-2">
+                  Direct flights only
+                </p> */}
+                    </>
+                  ) : selectedWay == "one_way" ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-5  gap-2 relative">
+                        <div className="col-span-2 flex gap-1 ">
+                          <div
+                            className="relative  w-full"
+                            ref={dropdownRefDestination}
+                          >
+                            <div onClick={() => setIsOpenDestination(true)}>
+                              <p
+                                className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                                  originAirport
+                                    ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                    : ""
+                                }`}
+                              >
+                                {originAirport && (
+                                  <>
+                                    <span className="px-1.5 py-0.5 truncate">
+                                      {originAirport}
+                                    </span>
+                                    <span
+                                      className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                      onMouseEnter={(e) =>
+                                        e.currentTarget.parentElement.classList.replace(
+                                          "hover:border-black",
+                                          "border-white"
+                                        )
+                                      }
+                                      onMouseLeave={(e) =>
+                                        e.currentTarget.parentElement.classList.replace(
+                                          "border-white",
+                                          "hover:border-black"
+                                        )
+                                      }
+                                    >
+                                      <FaTimes onClick={handleClear} />
+                                    </span>
+                                  </>
+                                )}
+                              </p>
+                              <input
+                                value={searchQueryOrigin}
+                                type="text"
+                                onChange={(e) =>
+                                  setSearchQueryOrigin(e.target.value)
+                                }
+                                placeholder="From ?"
+                                className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                              />
+
+                              {!originAirport && (
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                                  <Airplane />
+                                </div>
+                              )}
+                            </div>
+                            {isOpenDestination ? (
+                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                                <div className="p-6 max-h-[300px] overflow-y-auto">
+                                  <ul className="space-y-4">
+                                    {filteredAirportsDestination.map(
+                                      (destination, index) => (
+                                        <li
+                                          key={index}
+                                          className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-lg"
+                                          onClick={() => {
+                                            setSearchQueryOrigin(
+                                              destination.value
+                                            );
+                                            setOriginAirport(destination.label);
+                                            setIsOpenDestination(false);
+                                          }}
+                                        >
+                                          <img
+                                            src={destination.img}
+                                            alt=""
+                                            className="w-[60px] h-[60px]"
+                                          />
+                                          <div className="flex-grow">
+                                            <div className="flex items-center gap-3">
+                                              <p className="font-semibold text-[16px]">
+                                                {destination.label.replace(
+                                                  /\s\([^)]*\)/,
+                                                  ""
+                                                )}
+                                              </p>
+                                              <span className="text-[14px]">
+                                                {destination.value}
+                                              </span>
+                                            </div>
+                                            <p className="text-sm text-gray-500">
+                                              {destination.name}
+                                            </p>
+                                          </div>
+                                          <Checkbox className="bg-white rounded-[4px] shadow-none border border-gray-400" />
+                                        </li>
+                                      )
+                                    )}
+                                  </ul>
+                                </div>
+                                {recentSearchData?.length > 0 ? (
+                                  <div className="p-8">
+                                    <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                      Recent Searches
+                                      <button
+                                        onClick={() => setRecentSearchData([])}
+                                        className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
+                                      >
+                                        Clear
+                                      </button>
+                                    </h3>
+                                    <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                      {recentSearchData?.map(
+                                        (recent, index) => (
+                                          <li
+                                            onClick={() =>
+                                              handleSubmitRecentSearch(recent)
+                                            }
+                                            key={index}
+                                            className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                          >
+                                            <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                              <Airplane />
+                                            </div>
+                                            <div>
+                                              <p className="font-semibold">
+                                                {recent?.origin} -{" "}
+                                                {recent?.destination}
+                                              </p>
+                                              <p className="text-sm text-gray-500">
+                                                {moment(
+                                                  recent?.journeyDate
+                                                ).format("MMMM Do, YYYY")}
+
+                                                {recent?.tripType == "return" &&
+                                                  ` - ${moment(
+                                                    recent?.returnDate
+                                                  ).format("MMMM Do, YYYY")}`}
+                                              </p>
+                                            </div>
+                                          </li>
+                                        )
+                                      )}
+                                    </ul>
+                                  </div>
+                                ) : (
+                                  ""
+                                )}
+                                {!token && (
+                                  <div className="px-8 pb-8 ">
+                                    <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                      <Link
+                                        href={"/login"}
+                                        // onClick={() =>
+                                        //   handleSubmitRecentSearch(recent)
+                                        // }
+
+                                        className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                      >
+                                        <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                          <UserAvatar />
+                                        </div>
+                                        <div>
+                                          <p className="font-semibold text-[#FC660F]">
+                                            {/* {recent?.origin} - {recent?.destination} */}
+                                            Sign In / Sign Up
+                                          </p>
+                                          <p className="text-sm text-gray-500">
+                                            Access your searches on any device
+                                          </p>
+                                        </div>
+                                      </Link>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleSwap}
+                            className="py-3 px-4 bg-gray-100 rounded-md"
+                          >
+                            <ArrowLeftRightIcon
+                              size={25}
+                              className="text-gray-600"
+                            />
+                          </button>
+                          <div
+                            className="relative  w-full"
+                            ref={dropdownRefArrival}
+                          >
+                            <div onClick={() => setIsOpenArrival(true)}>
+                              <p
+                                className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                                  destinationAirport
+                                    ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                    : ""
+                                }`}
+                              >
+                                {destinationAirport && (
+                                  <>
+                                    <span className="px-1.5 py-0.5 truncate">
+                                      {destinationAirport}
+                                    </span>
+                                    <span
+                                      className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                      onMouseEnter={(e) =>
+                                        e.currentTarget.parentElement.classList.replace(
+                                          "hover:border-black",
+                                          "border-white"
+                                        )
+                                      }
+                                      onMouseLeave={(e) =>
+                                        e.currentTarget.parentElement.classList.replace(
+                                          "border-white",
+                                          "hover:border-black"
+                                        )
+                                      }
+                                    >
+                                      <FaTimes onClick={handleClearArrival} />
+                                    </span>
+                                  </>
+                                )}
+                              </p>
+                              <input
+                                value={searchQueryDestination}
+                                type="text"
+                                onChange={(e) =>
+                                  setSearchQueryDestination(e.target.value)
+                                }
+                                placeholder="To ?"
+                                className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                              />
+                              {!destinationAirport && (
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                                  <Airplane />
+                                </div>
+                              )}
+                            </div>
+                            {isOpenArrival ? (
+                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10">
+                                <div className="p-6 max-h-[300px] overflow-y-auto">
+                                  <ul className="space-y-4">
+                                    {filteredAirportsArrival.map(
+                                      (arrival, index) => (
+                                        <li
+                                          key={index}
+                                          className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-lg"
+                                          onClick={() => {
+                                            setSearchQueryDestination(
+                                              arrival.value
+                                            );
+                                            setDestinationAirport(
+                                              arrival.label
+                                            );
+                                            setIsOpenArrival(false);
+                                          }}
+                                        >
+                                          <img
+                                            src={arrival.img}
+                                            alt=""
+                                            className="w-[60px] h-[60px]"
+                                          />
+                                          <div className="flex-grow">
+                                            <div className="flex items-center gap-3 ">
+                                              <p className="font-semibold text-[16px]">
+                                                {arrival.label.replace(
+                                                  /\s\([^)]*\)/,
+                                                  ""
+                                                )}
+                                              </p>
+                                              <span className="text-[14px]">
+                                                {arrival.value}
+                                              </span>
+                                            </div>
+                                            <p className="text-sm text-gray-500">
+                                              {arrival.name}
+                                            </p>
+                                          </div>
+                                          <Checkbox className="bg-white rounded-[4px] shadow-none border border-gray-400" />
+                                        </li>
+                                      )
+                                    )}
+                                  </ul>
+                                </div>
+                                {recentSearchData?.length > 0 ? (
+                                  <div className="p-8">
+                                    <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                      Recent Searches
+                                      <button
+                                        onClick={() => setRecentSearchData([])}
+                                        className="text-[#4A8DBB] hover:text-[#3b7aa3]"
+                                      >
+                                        Clear
+                                      </button>
+                                    </h3>
+                                    <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                      {recentSearchData?.map(
+                                        (recent, index) => (
+                                          <li
+                                            onClick={() =>
+                                              handleSubmitRecentSearch(recent)
+                                            }
+                                            key={index}
+                                            className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                          >
+                                            <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                              <Airplane />
+                                            </div>
+                                            <div>
+                                              <p className="font-semibold">
+                                                {recent?.origin} -{" "}
+                                                {recent?.destination}
+                                              </p>
+                                              <p className="text-sm text-gray-500">
+                                                {moment(
+                                                  recent?.journeyDate
+                                                ).format("MMMM Do, YYYY")}
+                                                {recent?.tripType == "return" &&
+                                                  ` - ${moment(
+                                                    recent?.returnDate
+                                                  ).format("MMMM Do, YYYY")}`}
+                                              </p>
+                                            </div>
+                                          </li>
+                                        )
+                                      )}
+                                    </ul>
+                                  </div>
+                                ) : (
+                                  ""
+                                )}
+                                {!token && (
+                                  <div className="px-8 pb-8 ">
+                                    <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                      <Link
+                                        href={"/login"}
+                                        // onClick={() =>
+                                        //   handleSubmitRecentSearch(recent)
+                                        // }
+
+                                        className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                      >
+                                        <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                          <UserAvatar />
+                                        </div>
+                                        <div>
+                                          <p className="font-semibold text-[#FC660F]">
+                                            {/* {recent?.origin} - {recent?.destination} */}
+                                            Sign In / Sign Up
+                                          </p>
+                                          <p className="text-sm text-gray-500">
+                                            Access your searches on any device
+                                          </p>
+                                        </div>
+                                      </Link>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="col-span-3 grid grid-cols-7 gap-2">
+                          <DatePickerOneWay
+                            originalDate={originalDate}
+                            className={"w-full col-span-4"}
+                            setOneWayDate={setOneWayDate}
+                            oneWayDate={oneWayDate}
+                          />
+                          <div className="col-span-2">
+                            <div className="relative" ref={dropdownRef}>
+                              <div
+                                onClick={() =>
+                                  setIsOpenClassPassenger(!isOpenClassPassenger)
+                                }
+                              >
+                                <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+                                  {totalPassengers}{" "}
+                                  {totalPassengers !== 1
+                                    ? "Travelers"
+                                    : "Adult"}
+                                  ,{" "}
+                                  {selectedClass == "Y"
+                                    ? "Economy"
+                                    : selectedClass == "P"
+                                    ? "Premium Economy"
+                                    : selectedClass == "C"
+                                    ? "Business"
+                                    : "First class"}
+                                </div>
+                              </div>
+                              {isOpenClassPassenger ? (
+                                <div className="absolute w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
+                                  <div className=" ">
+                                    <div className="py-5 px-3">
+                                      {categories.map((category, index) => (
+                                        <div
+                                          key={category.name}
+                                          className="px-4 py-2 flex items-center justify-between"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <p className="text-sm  text-gray-900">
+                                              {category.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              {category.ageRange}
+                                            </p>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                updateCount(index, -1)
+                                              }
+                                              disabled={
+                                                category?.name == "Adults"
+                                                  ? category.count === 1
+                                                  : category.count === 0
+                                              }
+                                              className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
+                                              aria-label={`Decrease ${category.name}`}
+                                            >
+                                              <svg
+                                                className="w-3 h-3"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M20 12H4"
+                                                />
+                                              </svg>
+                                            </button>
+                                            <span className="text-gray-900 w-8 text-center">
+                                              {category.count}
+                                            </span>
+                                            <button
+                                              onClick={() =>
+                                                updateCount(index, 1)
+                                              }
+                                              type="button"
+                                              disabled={totalPassengers === 7}
+                                              className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                              aria-label={`Increase ${category.name}`}
+                                            >
+                                              <svg
+                                                className="w-5 h-5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                                />
+                                              </svg>
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2 w-full flex-wrap p-4">
+                                    {classes?.map((cls, index) => (
+                                      <div
+                                        key={index}
+                                        onClick={() =>
+                                          setSelectedClass(cls?.shortCode)
+                                        }
+                                        className={`px-2 py-2 border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300 ${
+                                          selectedClass == cls?.shortCode
+                                            ? "bg-[#F0F3F5]"
+                                            : ""
+                                        } cursor-pointer`}
+                                      >
+                                        <span className="">{cls?.name}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                          </div>
+
+                          {/* <Link href={"/search-result"}> */}
+                          <button
+                            className="rounded-[10px] bg-[#FC660F] w-[130px] h-full hover:bg-[#d67136] col-span-1"
+                            type="submit"
+                          >
+                            <div className="flex justify-center items-center w-full gap-1">
+                              <SearchIcon />
+                              <p className="text-white font-bold">Update</p>
+                            </div>
+                          </button>
+                          {/* </Link> */}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-5  gap-2 relative">
+                          <div className="col-span-2 flex gap-1 ">
+                            <div
+                              className="relative  w-full"
+                              ref={dropdownRefDestination}
+                            >
+                              <div onClick={() => setIsOpenDestination(true)}>
+                                <p
+                                  className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                                    originAirport
+                                      ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                      : ""
+                                  }`}
+                                >
+                                  {originAirport && (
+                                    <>
+                                      <span className="px-1.5 py-0.5 truncate">
+                                        {originAirport}
+                                      </span>
+                                      <span
+                                        className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                        onMouseEnter={(e) =>
+                                          e.currentTarget.parentElement.classList.replace(
+                                            "hover:border-black",
+                                            "border-white"
+                                          )
+                                        }
+                                        onMouseLeave={(e) =>
+                                          e.currentTarget.parentElement.classList.replace(
+                                            "border-white",
+                                            "hover:border-black"
+                                          )
+                                        }
+                                      >
+                                        <FaTimes onClick={handleClear} />
+                                      </span>
+                                    </>
+                                  )}
+                                </p>
+                                <input
+                                  value={searchQueryOrigin}
+                                  type="text"
+                                  onChange={(e) =>
+                                    setSearchQueryOrigin(e.target.value)
+                                  }
+                                  placeholder="From ?"
+                                  className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                                />
+
+                                {!originAirport && (
+                                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                                    <Airplane />
+                                  </div>
+                                )}
+                              </div>
+                              {isOpenDestination ? (
+                                <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                                  <div className="p-6 max-h-[300px] overflow-y-auto">
+                                    <ul className="space-y-4">
+                                      {filteredAirportsDestination.map(
+                                        (destination, index) => (
+                                          <li
+                                            key={index}
+                                            className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
+                                            onClick={() => {
+                                              setSearchQueryOrigin(
+                                                destination.value
+                                              );
+                                              setOriginAirport(
+                                                destination.label
+                                              );
+                                              setIsOpenDestination(false);
+                                            }}
+                                          >
+                                            {" "}
+                                            <img
+                                              src={destination.img}
+                                              alt=""
+                                              className="w-[60px] h-[60px]"
+                                            />
+                                            <div className="flex-grow">
+                                              <p className="font-semibold">
+                                                {destination.name},{" "}
+                                                {destination.value}
+                                              </p>
+                                              <p className="text-sm text-gray-500">
+                                                {destination.label}
+                                              </p>
+                                            </div>
+                                            <Checkbox className="bg-white rounded-[4px] shadow-none border border-gray-400" />
+                                          </li>
+                                        )
+                                      )}
+                                    </ul>
+                                  </div>
+                                  {recentSearchData?.length > 0 ? (
+                                    <div className="p-8 ">
+                                      <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                        Recent Searches
+                                        <button
+                                          onClick={() =>
+                                            setRecentSearchData([])
+                                          }
+                                          className="text-[#4A8DBB] hover:text-[#3b7aa3]"
+                                        >
+                                          Clear
+                                        </button>
+                                      </h3>
+                                      <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                        {recentSearchData?.map(
+                                          (recent, index) => (
+                                            <li
+                                              onClick={() =>
+                                                handleSubmitRecentSearch(recent)
+                                              }
+                                              key={index}
+                                              className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                            >
+                                              <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                                <Airplane />
+                                              </div>
+                                              <div>
+                                                <p className="font-semibold">
+                                                  {recent?.origin} -{" "}
+                                                  {recent?.destination}
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                  {moment(
+                                                    recent?.journeyDate
+                                                  ).format("MMMM Do, YYYY")}
+                                                  {recent?.tripType ==
+                                                    "return" &&
+                                                    ` - ${moment(
+                                                      recent?.returnDate
+                                                    ).format("MMMM Do, YYYY")}`}
+                                                </p>
+                                              </div>
+                                            </li>
+                                          )
+                                        )}
+                                      </ul>
+                                    </div>
+                                  ) : (
+                                    ""
+                                  )}
+                                  {!token && (
+                                    <div className="px-8 pb-8 ">
+                                      <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                        <Link
+                                          href={"/login"}
+                                          // onClick={() =>
+                                          //   handleSubmitRecentSearch(recent)
+                                          // }
+
+                                          className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                        >
+                                          <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                            <UserAvatar />
+                                          </div>
+                                          <div>
+                                            <p className="font-semibold text-[#FC660F]">
+                                              {/* {recent?.origin} - {recent?.destination} */}
+                                              Sign In / Sign Up
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                              Access your searches on any device
+                                            </p>
+                                          </div>
+                                        </Link>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                            <button
+                              onClick={handleSwap}
+                              type="button"
+                              className="py-3 px-4 bg-gray-100 rounded-md"
+                            >
+                              <ArrowLeftRightIcon
+                                size={25}
+                                className="text-gray-600"
+                              />
+                            </button>
+                            <div
+                              className="relative  w-full"
+                              ref={dropdownRefArrival}
+                            >
+                              <div onClick={() => setIsOpenArrival(true)}>
+                                <p
+                                  className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                                    destinationAirport
+                                      ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                      : ""
+                                  }`}
+                                >
+                                  {destinationAirport && (
+                                    <>
+                                      <span className="px-2 py-0.5 truncate">
+                                        {destinationAirport}
+                                      </span>
+                                      <span
+                                        className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                        onMouseEnter={(e) =>
+                                          e.currentTarget.parentElement.classList.replace(
+                                            "hover:border-black",
+                                            "border-white"
+                                          )
+                                        }
+                                        onMouseLeave={(e) =>
+                                          e.currentTarget.parentElement.classList.replace(
+                                            "border-white",
+                                            "hover:border-black"
+                                          )
+                                        }
+                                      >
+                                        <FaTimes onClick={handleClearArrival} />
+                                      </span>
+                                    </>
+                                  )}
+                                </p>
+                                <input
+                                  value={searchQueryDestination}
+                                  type="text"
+                                  onChange={(e) =>
+                                    setSearchQueryDestination(e.target.value)
+                                  }
+                                  placeholder="To ?"
+                                  className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                                />
+                                {!destinationAirport && (
+                                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                                    <Airplane />
+                                  </div>
+                                )}
+                              </div>
+                              {isOpenArrival ? (
+                                <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                                  <div className="p-6 ">
+                                    <ul className="space-y-4">
+                                      {filteredAirportsArrival.map(
+                                        (arrival, index) => (
+                                          <li
+                                            key={index}
+                                            className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
+                                            onClick={() => {
+                                              setSearchQueryDestination(
+                                                arrival.value
+                                              );
+                                              setDestinationAirport(
+                                                arrival.label
+                                              );
+                                              setIsOpenArrival(false);
+                                            }}
+                                          >
+                                            <img
+                                              src={arrival.img}
+                                              alt=""
+                                              className="w-[60px] h-[60px]"
+                                            />
+                                            <div className="flex-grow">
+                                              <p className="font-semibold">
+                                                {arrival.name}, {arrival.value}
+                                              </p>
+                                              <p className="text-sm text-gray-500">
+                                                {arrival.label}
+                                              </p>
+                                            </div>
+                                            <Checkbox className="bg-white rounded-[4px] shadow-none border border-gray-400" />
+                                          </li>
+                                        )
+                                      )}
+                                    </ul>
+
+                                    {recentSearchData?.length > 0 ? (
+                                      <div className="mt-8">
+                                        <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                          Recent Searches
+                                          <button
+                                            onClick={() =>
+                                              setRecentSearchData([])
+                                            }
+                                            className="text-[#4A8DBB] hover:text-[#3b7aa3]"
+                                          >
+                                            Clear
+                                          </button>
+                                        </h3>
+                                        <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                          {recentSearchData?.map(
+                                            (recent, index) => (
+                                              <li
+                                                onClick={() =>
+                                                  handleSubmitRecentSearch(
+                                                    recent
+                                                  )
+                                                }
+                                                key={index}
+                                                className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                              >
+                                                <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                                  <Airplane />
+                                                </div>
+                                                <div>
+                                                  <p className="font-semibold">
+                                                    {recent?.origin} -{" "}
+                                                    {recent?.destination}
+                                                  </p>
+                                                  <p className="text-sm text-gray-500">
+                                                    {moment(
+                                                      recent?.journeyDate
+                                                    ).format("MMMM Do, YYYY")}
+                                                    {recent?.tripType ==
+                                                      "return" &&
+                                                      ` - ${moment(
+                                                        recent?.returnDate
+                                                      ).format(
+                                                        "MMMM Do, YYYY"
+                                                      )}`}
+                                                  </p>
+                                                </div>
+                                              </li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
+                                    ) : (
+                                      ""
+                                    )}
+                                    {!token && (
+                                      <div className="px-8 pb-8 ">
+                                        <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                          <Link
+                                            href={"/login"}
+                                            // onClick={() =>
+                                            //   handleSubmitRecentSearch(recent)
+                                            // }
+
+                                            className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                          >
+                                            <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                              <UserAvatar />
+                                            </div>
+                                            <div>
+                                              <p className="font-semibold text-[#FC660F]">
+                                                {/* {recent?.origin} - {recent?.destination} */}
+                                                Sign In / Sign Up
+                                              </p>
+                                              <p className="text-sm text-gray-500">
+                                                Access your searches on any
+                                                device
+                                              </p>
+                                            </div>
+                                          </Link>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="col-span-3 flex gap-2 justify-between">
+                            <div>
+                              <DatePicker
+                                setRoundDate={setRoundDate}
+                                roundDate={roundDate}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 w-full">
+                              <div className="col-span-2">
+                                <div className="relative" ref={dropdownRef}>
+                                  <div
+                                    onClick={() =>
+                                      setIsOpenClassPassenger(
+                                        !isOpenClassPassenger
+                                      )
+                                    }
+                                  >
+                                    <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+                                      {totalPassengers}{" "}
+                                      {totalPassengers !== 1
+                                        ? "Travelers"
+                                        : "Adult"}
+                                      ,{" "}
+                                      {selectedClass == "Y"
+                                        ? "Economy"
+                                        : selectedClass == "P"
+                                        ? "Premium Economy"
+                                        : selectedClass == "C"
+                                        ? "Business"
+                                        : "First class"}
+                                    </div>
+                                  </div>
+                                  {isOpenClassPassenger ? (
+                                    <div className="absolute w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
+                                      <div className=" ">
+                                        <div className="py-5 px-3">
+                                          {categories.map((category, index) => (
+                                            <div
+                                              key={category.name}
+                                              className="px-4 py-2 flex items-center justify-between"
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <p className="text-sm  text-gray-900">
+                                                  {category.name}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                  {category.ageRange}
+                                                </p>
+                                              </div>
+                                              <div className="flex items-center space-x-2">
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    updateCount(index, -1)
+                                                  }
+                                                  disabled={
+                                                    category?.name == "Adults"
+                                                      ? category.count === 1
+                                                      : category.count === 0
+                                                  }
+                                                  className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
+                                                  aria-label={`Decrease ${category.name}`}
+                                                >
+                                                  <svg
+                                                    className="w-3 h-3"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                  >
+                                                    <path
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M20 12H4"
+                                                    />
+                                                  </svg>
+                                                </button>
+                                                <span className="text-gray-900 w-8 text-center">
+                                                  {category.count}
+                                                </span>
+                                                <button
+                                                  onClick={() =>
+                                                    updateCount(index, 1)
+                                                  }
+                                                  type="button"
+                                                  disabled={
+                                                    totalPassengers === 7
+                                                  }
+                                                  className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                                  aria-label={`Increase ${category.name}`}
+                                                >
+                                                  <svg
+                                                    className="w-5 h-5"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                  >
+                                                    <path
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                                    />
+                                                  </svg>
+                                                </button>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-2 w-full flex-wrap p-4">
+                                        {classes?.map((cls, index) => (
+                                          <div
+                                            key={index}
+                                            onClick={() =>
+                                              setSelectedClass(cls?.shortCode)
+                                            }
+                                            className={`px-2 py-2 border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300 ${
+                                              selectedClass == cls?.shortCode
+                                                ? "bg-[#F0F3F5]"
+                                                : ""
+                                            } cursor-pointer`}
+                                          >
+                                            <span className="">
+                                              {cls?.name}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    ""
+                                  )}
+                                </div>
+                              </div>
+
+                              <button
+                                className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
+                                type="submit"
+                              >
+                                <div className="flex justify-center items-center w-full">
+                                  <SearchIcon />
+                                </div>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    </>
+                  )}
+                </form>
+              </div>
+            </main>
+          </div>
+          k
+          <div
+            className="flex-grow w-full h-fit"
+            onClick={() => setIsModalOpen(false)}
+          ></div>
+        </div>
+      </div>
+    </div>
+  );
+}

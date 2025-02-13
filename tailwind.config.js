@@ -29,6 +29,9 @@ module.exports = {
         "4xl": "1700px",
         // => @media (min-width: 1600px) { ... }
       },
+      backgroundImage: {
+        travelBg: "url('../public/images/travelBg.jpg')",
+      },
       keyframes: {
         "slide-in-right": {
           "0%": { transform: "translateX(100%)" },
@@ -47,6 +50,13 @@ module.exports = {
       boxShadow: {
         custom_shadow: "rgba(0, 0, 0, 0.15) 0px 5px 15px 0px",
       },
+    },
+  },
+  variants: {
+    extend: {
+      transform: ["responsive", "hover", "focus"],
+      translate: ["responsive", "hover", "focus"],
+      opacity: ["responsive", "hover", "focus"],
     },
   },
   plugins: [require("tailwindcss-animate")],

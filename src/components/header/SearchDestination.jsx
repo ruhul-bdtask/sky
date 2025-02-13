@@ -1,0 +1,99 @@
+import { fetchAirportsData } from "@/utils/api";
+import Image from "next/image";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ImSpinner6 } from "react-icons/im";
+
+const SearchDestination = ({ onSelectDestination, currentInput }) => {
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(currentInput || "");
+  const [isLoading, setIsLoading] = useState(false);
+  const [noData, setNoData] = useState(false);
+  const inputRef = useRef();
+  const debounceRef = useRef(null);
+
+  const fetchData = async (query) => {
+    if (!query?.trim()) {
+      setFilteredData([]);
+      setNoData(false);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const data = await fetchAirportsData();
+      const filtered = data.filter((destination) =>
+        destination.label.toLowerCase().includes(query.toLowerCase())
+      );
+
+      setData(data);
+      setFilteredData(filtered);
+      setNoData(filtered.length === 0);
+    } catch (error) {
+      console.error("Failed to fetch destinations:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const debouncedFetchData = useCallback((query) => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchData(query), 500);
+  }, []);
+
+  useEffect(() => {
+    debouncedFetchData(searchQuery);
+  }, [searchQuery, debouncedFetchData]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  return (
+    <div className="max-w-full mx-auto bg-white shadow-md absolute top-1 w-full z-10">
+      <div className="pb-3 ">
+        <input
+          ref={inputRef}
+          type="text"
+          className="rounded w-full p-3 focus:outline-none"
+          placeholder="Search destination..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Search destination"
+        />
+        <ul className="max-h-[500px] overflow-y-auto">
+          {isLoading ? (
+            <div className="flex justify-center items-center">
+              <ImSpinner6 className="animate-spin" size={20} />
+            </div>
+          ) : noData ? (
+            <p className="text-gray-500 text-center">No destinations found.</p>
+          ) : (
+            filteredData.map((destination, index) => (
+              <li
+                key={index}
+                className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 border-t"
+                onClick={() =>
+                  onSelectDestination(destination.label.split(",")[0])
+                }
+              >
+                <Image
+                  src={destination.img || "/default-image.png"} // Fallback image
+                  alt={destination.label || "Destination"}
+                  height={40}
+                  width={40}
+                />
+                <div className="flex-grow">
+                  <p className="font-semibold">{destination.label}</p>
+                  <p className="text-sm text-gray-500">{destination.name}</p>
+                </div>
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default SearchDestination;

@@ -1,0 +1,182 @@
+/* .invoice-wrap {
+  background: #fff;
+  padding: 60px;
+  margin-right: auto;
+  margin-left: auto;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #000;
+  position: relative;
+}
+
+.invoice-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  border-width: 0;
+  border-top: 8px solid;
+  -o-border-ige: -o-linear-gradient(
+      left,
+      #575a7b,
+      #575a7b 20%,
+      #f9655b 20%,
+      #f9655b 40%,
+      #f5c070 40%,
+      #f5c070 60%,
+      #6658ea 60%,
+      #6658ea 80%,
+      #fcc 80%
+    )
+    1;
+  border-image: -webkit-gradient(
+      linear,
+      left top,
+      right top,
+      from(#575a7b),
+      color-stop(20%, #575a7b),
+      color-stop(20%, #f9655b),
+      color-stop(40%, #f9655b),
+      color-stop(40%, #f5c070),
+      color-stop(60%, #f5c070),
+      color-stop(60%, #6658ea),
+      color-stop(80%, #6658ea),
+      color-stop(80%, #fcc)
+    )
+    1;
+  border-image: linear-gradient(
+      to right,
+      #575a7b,
+      #575a7b 20%,
+      #f9655b 20%,
+      #f9655b 40%,
+      #f5c070 40%,
+      #f5c070 60%,
+      #6658ea 60%,
+      #6658ea 80%,
+      #fcc 80%
+    )
+    1;
+}
+
+.invoice-logo {
+  height: 60px;
+}
+
+.slogo {
+  margin-bottom: 1.5rem !important;
+}
+
+::after,
+::before {
+  box-sizing: border-box;
+}
+
+@media print {
+} */
+
+.invoice-wrap {
+  background: #fff;
+  padding: 60px;
+  margin-right: auto;
+  margin-left: auto;
+  font-size: 14px;
+  color: #000;
+  position: relative;
+}
+
+.invoice-wrap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  border-width: 0;
+  border-top: 8px solid;
+  -o-border-image: -o-linear-gradient(
+      left,
+      #575a7b,
+      #575a7b 20%,
+      #f9655b 20%,
+      #f9655b 40%,
+      #f5c070 40%,
+      #f5c070 60%,
+      #6658ea 60%,
+      #6658ea 80%,
+      #fcc 80%
+    )
+    1;
+  border-image: -webkit-gradient(
+      linear,
+      left top,
+      right top,
+      from(#575a7b),
+      color-stop(20%, #575a7b),
+      color-stop(20%, #f9655b),
+      color-stop(40%, #f9655b),
+      color-stop(40%, #f5c070),
+      color-stop(60%, #f5c070),
+      color-stop(60%, #6658ea),
+      color-stop(80%, #6658ea),
+      color-stop(80%, #fcc)
+    )
+    1;
+  border-image: linear-gradient(
+      to right,
+      #575a7b,
+      #575a7b 20%,
+      #f9655b 20%,
+      #f9655b 40%,
+      #f5c070 40%,
+      #f5c070 60%,
+      #6658ea 60%,
+      #6658ea 80%,
+      #fcc 80%
+    )
+    1;
+}
+
+h4 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.invoice-logo {
+  height: 40px;
+  margin-bottom: 10px;
+}
+
+/* .border,
+  .border-top,
+  .border-right,
+  .border-bottom,
+  .border-left {
+    border-color: #707070 !important;
+  } */
+
+*,
+::after,
+::before {
+  box-sizing: border-box;
+}
+
+@media only screen and (max-width: 675px) {
+  .wrapper_ {
+    overflow: scroll;
+  }
+
+  .invoice-wrap {
+    min-width: 650px;
+  }
+}
+
+@media print {
+  .invoice-wrap {
+    width: 800px;
+    /* break-inside: avoid; */
+    display: table;
+  }
+}

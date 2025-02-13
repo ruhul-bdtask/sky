@@ -19,29 +19,29 @@ export default function Footer() {
         <div className="px-20 xl:px-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 ">
           <div>
             <h2 className="text-[14px] font-semibold mb-4">Company</h2>
-            <ul className="space-y-2 text-[14px]">
+            <ul className="space-y-2 text-[14px] ">
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   About
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Mobile
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   How we work
                 </Link>
               </li>
@@ -49,24 +49,24 @@ export default function Footer() {
           </div>
           <div>
             <h2 className="text-[14px] font-semibold mb-4">Contact</h2>
-            <ul className="space-y-2 text-[14px]">
+            <ul className="space-y-2 text-[14px] ">
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Help/FAQ
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Press
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Partners
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Advertise with us
                 </Link>
               </li>
@@ -74,24 +74,24 @@ export default function Footer() {
           </div>
           <div>
             <h2 className="text-[14px] font-semibold mb-4">More</h2>
-            <ul className="space-y-2 text-[14px]">
+            <ul className="space-y-2 text-[14px] ">
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Airline fees
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Airlines
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Low fare tips
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-gray-900">
+                <Link href="#" className="hover:text-gray-900 underline hover:no-underline">
                   Badges & Certificates
                 </Link>
               </li>
@@ -128,11 +128,23 @@ export default function Footer() {
             <div className="flex flex-wrap justify-between items-center">
               <div className="flex items-center space-x-4 flex-wrap">
                 <span className="text-sm">&copy;2024 TICKETING</span>
-                <Link href="#" className="text-sm hover:text-gray-900">
+                <Link
+                  href="#"
+                  className="text-sm hover:text-gray-900 underline hover:no-underline"
+                >
                   Privacy
                 </Link>
-                <Link href="#" className="text-sm hover:text-gray-900">
+                <Link
+                  href="#"
+                  className="text-sm hover:text-gray-900 underline hover:no-underline"
+                >
                   Terms & Conditions
+                </Link>
+                <Link
+                  href="#"
+                  className="text-sm hover:text-gray-900 underline hover:no-underline"
+                >
+                  Add choices
                 </Link>
               </div>
               <div className="flex space-x-6 mt-4 sm:mt-0">

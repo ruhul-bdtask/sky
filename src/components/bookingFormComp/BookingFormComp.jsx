@@ -4,6 +4,8 @@ import Datetime from "react-datetime";
 import moment from "moment";
 import useAirlineStore from "../../../stores/airlineStore";
 import { toast } from "react-toastify";
+import DatePicker from "react-date-picker";
+const countryOptions = require("../../../public/utils/countries.json");
 
 export default function BookingFormComp({
   index,
@@ -42,11 +44,17 @@ export default function BookingFormComp({
     { value: "nid", label: "Nid", shortCode: "n" },
   ];
 
-  const countryOptions = [
-    { value: "USA", label: "USA", shortCode: "US" },
-    { value: "India", label: "India", shortCode: "IN" },
-    { value: "China", label: "China", shortCode: "CN" },
+  const titles = [
+    { value: "Mr", label: "Mr", shortCode: "Mr" },
+    { value: "Mrs", label: "Mrs", shortCode: "Mrs" },
+    { value: "Miss", label: "Miss", shortCode: "Miss" },
   ];
+
+  // const countryOptions = [
+  //   { value: "USA", label: "USA", shortCode: "US" },
+  //   { value: "India", label: "India", shortCode: "IN" },
+  //   { value: "China", label: "China", shortCode: "CN" },
+  // ];
 
   const [isDetailed, setIsDetailed] = useState(false);
   const [tabIndex, setTabIndex] = useState();
@@ -93,7 +101,6 @@ export default function BookingFormComp({
 
   const handlePassengerInfo = (e, index) => {
     e.preventDefault();
-    console.log("Passenger information saved");
 
     const isValid = validatePassengers(passengerData);
     if (isValid) {
@@ -102,7 +109,45 @@ export default function BookingFormComp({
     }
   };
 
-  console.log(passenger, passengerData);
+  const getDateLimits = (passengerType) => {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+
+    switch (passengerType) {
+      case "ADT": // Adult (11-64 years old)
+        return {
+          maxDate: new Date(currentYear - 11, 11, 31), // Latest DOB: 11 years ago
+          minDate: new Date(currentYear - 99, 0, 1), // Earliest DOB: 99 years ago
+        };
+
+      case "C04": // Kids (2-5 years old)
+        return {
+          minDate: new Date(currentYear - 5, 0, 1), // Earliest DOB: 5 years ago
+          maxDate: new Date(currentYear - 2, 11, 31), // Latest DOB: 2 years ago
+        };
+
+      case "C06": // Children (5-11 years old)
+        return {
+          minDate: new Date(currentYear - 11, 0, 1), // Earliest DOB: 11 years ago
+          maxDate: new Date(currentYear - 5, 11, 31), // Latest DOB: 5 years ago
+        };
+
+      case "INF": // Infant (under 2 years old)
+        return {
+          minDate: new Date(currentYear - 2, 0, 1), // Earliest DOB: 2 years ago
+          maxDate: today, // Latest DOB: today (newborns)
+        };
+
+      default:
+        return {
+          minDate: new Date(1900, 0, 1),
+          maxDate: today,
+        };
+    }
+  };
+
+  const { minDate, maxDate } = getDateLimits(passenger.type);
+
   return (
     <div>
       <div className="py-6 px-4 md:px-16  shadow-custom_shadow">
@@ -114,7 +159,13 @@ export default function BookingFormComp({
         >
           {Object.keys(passengerInformation).length == 0 ? (
             <>
-              <span>Passenger {index + 1}</span> ({passenger?.pxn_type})
+              <span>Passenger {index + 1}</span> (
+              {passenger?.type == "C04"
+                ? "KID"
+                : passenger.type == "C06"
+                ? "CHILD"
+                : passenger?.type}
+              )
             </>
           ) : passengerInformation[index]?.firstName == "" ? (
             "Fill up this box also..."
@@ -132,6 +183,26 @@ export default function BookingFormComp({
           </p>
           <form onSubmit={handlePassengerInfo}>
             <div className="flex flex-col gap-4 mt-4 ">
+              <div className="w-[100px] ">
+                <Select
+                  styles={customStyles}
+                  options={titles}
+                  value={
+                    titles.find(
+                      (option) =>
+                        option.value ===
+                        passengerData[index][`pxn_title_${index + 1}`]
+                    ) || { label: "Mr.", value: "Mr." } // Default to "Mr."
+                  }
+                  onChange={(selected) =>
+                    updatePassengerData(
+                      index,
+                      `pxn_title_${index + 1}`,
+                      selected.value
+                    )
+                  }
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="text"
@@ -185,7 +256,7 @@ export default function BookingFormComp({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="w-full">
                   <label htmlFor="">Document Expiry</label>
-                  <Datetime
+                  {/* <Datetime
                     inputProps={{
                       className:
                         "border-2 border-gray-300 p-2.5 w-full rounded-[4px] focus:outline-none outline-none focus:outline-none focus:ring-0",
@@ -202,7 +273,26 @@ export default function BookingFormComp({
                     onChange={(date) =>
                       updatePassengerData(index, "doc_expire_date", date)
                     }
-                  />
+                  /> */}
+                  <div
+                    className="w-full border-2 border-gray-300 rounded-[4px] focus:outline-none" // Ensure border styles here
+                  >
+                    <DatePicker
+                      onChange={(date) => {
+                        updatePassengerData(index, "doc_expire_date", date); // Update passenger data
+                      }}
+                      value={
+                        passenger.doc_expire_date
+                          ? moment(passenger.doc_expire_date)
+                          : ""
+                      }
+                      minDate={new Date()} // Prevent selecting past dates
+                      format="dd-MM-yyyy"
+                      className="w-full p-3  focus:outline-none" // Ensure border styles here
+                      calendarClassName="rounded-md shadow-lg border-gray-200"
+                      clearIcon={null} // Removes the clear icon for a cleaner design
+                    />
+                  </div>
                 </div>
                 <div className="w-full">
                   <label htmlFor="">Nationality</label>
@@ -215,7 +305,7 @@ export default function BookingFormComp({
                       (option) => option.value === passenger.country
                     )}
                     onChange={(selected) =>
-                      updatePassengerData(index, "country", selected.shortCode)
+                      updatePassengerData(index, "country", selected.value)
                     }
                   />
                 </div>
@@ -223,7 +313,7 @@ export default function BookingFormComp({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="w-full">
                   <label htmlFor="">Date of birth</label>
-                  <Datetime
+                  {/* <Datetime
                     inputProps={{
                       className:
                         "border-2 border-gray-300 p-2.5 w-full rounded-[4px] focus:outline-none outline-none focus:outline-none focus:ring-0",
@@ -234,19 +324,52 @@ export default function BookingFormComp({
                     // isValidDate={valid}
                     value={passenger.dob ? moment(passenger.dob) : ""}
                     onChange={(date) => updatePassengerData(index, "dob", date)}
-                  />
+                  /> */}
+                  <div
+                    className="w-full border-2 border-gray-300 rounded-[4px] focus:outline-none" // Ensure border styles here
+                  >
+                    {/* <DatePicker
+                      onChange={(date) => {
+                        updatePassengerData(index, "dob", date); // Update passenger data
+                      }}
+                      value={passenger.dob ? moment(passenger.dob) : ""}
+                      maxDate={new Date()} // Prevent selecting past dates
+                      format="dd-MM-yyyy"
+                      className="w-full p-3  focus:outline-none" // Ensure border styles here
+                      calendarClassName="rounded-md shadow-lg border-gray-200"
+                      clearIcon={null} // Removes the clear icon for a cleaner design
+                    /> */}
+                    <DatePicker
+                      onChange={(date) =>
+                        updatePassengerData(index, "dob", date)
+                      }
+                      value={
+                        passenger.dob ? moment(passenger.dob).toDate() : ""
+                      }
+                      minDate={minDate}
+                      maxDate={maxDate}
+                      format="dd-MM-yyyy"
+                      className="w-full p-3 focus:outline-none"
+                      calendarClassName="rounded-md shadow-lg border-gray-200"
+                      clearIcon={null}
+                      placeholderText="Select Date of Birth"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="flex justify-center md:justify-end mt-4">
-              <button
-                type="button"
-                onClick={(e) => handlePassengerInfo(e, index)}
-                className="bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
-              >
-                Save & Next
-              </button>
-            </div>
+
+            {index === passengerData.length - 1 && (
+              <div className="flex justify-center md:justify-end mt-4">
+                <button
+                  type="button"
+                  onClick={(e) => handlePassengerInfo(e, index)}
+                  className="bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
+                >
+                  Save & Next
+                </button>
+              </div>
+            )}
           </form>
         </div>
       </div>

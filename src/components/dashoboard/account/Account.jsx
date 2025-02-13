@@ -6,7 +6,7 @@ import accountImg from "@/public/images/accountImg.png";
 import Link from "next/link";
 import { Switch } from "@/components/ui/switch";
 
-export default function Account() {
+export default function Account({ userData, userDataLoading }) {
   return (
     <section>
       <div className=" mx-auto ">
@@ -28,6 +28,11 @@ export default function Account() {
                       type="text"
                       id="name"
                       name="name"
+                      value={
+                        userData?.data?.first_name +
+                        " " +
+                        userData?.data?.last_name
+                      }
                       className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
                     />
                     <button className="ml-2 text-teal-600 hover:text-teal-800">
@@ -47,6 +52,7 @@ export default function Account() {
                       type="text"
                       id="displayName"
                       name="displayName"
+                      value={userData?.data?.first_name}
                       className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
                     />
                     <button className="ml-2 text-teal-600 hover:text-teal-800">
@@ -66,7 +72,7 @@ export default function Account() {
                       type="email"
                       id="email"
                       name="email"
-                      value="myname12345@gmail.com"
+                      value={userData?.data?.email}
                       readOnly
                       className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
                     />
@@ -87,7 +93,7 @@ export default function Account() {
                       type="text"
                       id="email-site"
                       name="email-site"
-                      value="Bangladesh"
+                      value={userData?.data?.home_airport}
                       readOnly
                       className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
                     />

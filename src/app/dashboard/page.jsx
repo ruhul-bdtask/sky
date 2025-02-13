@@ -1,10 +1,103 @@
+"use client";
 import TravelDashboard from "@/components/dashoboard/travelDashboard/TravelDashboard";
-import React from "react";
+import { fetchData } from "@/utils/api";
+import { useQuery } from "@tanstack/react-query";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import useAirlineStore from "../../../stores/airlineStore";
 
-export default function page() {
+export default function Page() {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const authToken = Cookies.get("auth-token");
+
+  const { setUserData, setToken, token } = useAirlineStore();
+
+  // useEffect(() => {
+  //   const checkAuth = () => {
+  //     const token = Cookies.get("auth-token");
+
+  //     try {
+  //       const decodedToken = jwtDecode(token);
+  //       setUser(decodedToken);
+  //     } catch (error) {
+  //       Cookies.remove("auth-token");
+  //       router.push("/login");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   checkAuth();
+  // }, [router]);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const authToken = Cookies.get("auth-token");
+
+      if (!authToken) {
+        Cookies.remove("auth-token");
+        setToken(null);
+        router.push("/login");
+        return;
+      }
+
+      try {
+        const decodedToken = jwtDecode(authToken);
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        if (decodedToken.exp && decodedToken.exp < currentTime) {
+          Cookies.remove("auth-token");
+          setToken(null);
+          router.push("/login");
+        } else {
+          setUser(decodedToken);
+        }
+      } catch (error) {
+        Cookies.remove("auth-token");
+        setToken(null);
+        router.push("/login");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router, token]);
+
+  const userPayload = {
+    document_type: "NID",
+  };
+
+  const {
+    data: userData,
+    error: userDataError,
+    isLoading: userDataLoading = true,
+    refetch: refetchUserData,
+  } = useQuery({
+    queryKey: ["user", token],
+    queryFn: () => fetchData("/user/me", "POST", userPayload, token),
+    enabled: true,
+    retry: false,
+  });
+
+  if (userDataLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <TravelDashboard />
+      <TravelDashboard userData={userData} userDataLoading={userDataLoading} />
       <div className="leading-10 text-[14px] max-w-[1300px] mx-auto py-8">
         <p className="text-[#0B7C9E] hover:underline cursor-pointer">
           Top International Flight Routes.
@@ -14,7 +107,7 @@ export default function page() {
           <span className="text-[#0B7C9E] hover:underline cursor-pointer">
              hotels
           </span>
-          , hire cars and travel deals: 
+          , hire cars and travel deals:
         </p>
         <p className="text-[#565656]">
           Ticketing searches hundreds of other travel sites at once to find the
