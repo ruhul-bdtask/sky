@@ -219,6 +219,10 @@ export default function Header() {
       if (isExp) {
         Cookies.remove("auth-token");
         setToken(null);
+        if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+          setSavedTrips([]);
+          setSelectedSavedTrip([]);
+        }
         setUserData({});
       }
     }
@@ -871,9 +875,9 @@ export default function Header() {
                                 </div>
                                 {data?.flights?.map((flight, index) => (
                                   <div
-                                    onClick={() =>
-                                      handleRedirect(flight?.flight_data)
-                                    }
+                                    // onClick={() =>
+                                    //   handleRedirect(flight?.flight_data)
+                                    // }
                                     class="flex flex-col p-4 border-b cursor-pointer"
                                     key={index}
                                   >
@@ -885,6 +889,7 @@ export default function Header() {
                                         onClick={(e) => e.stopPropagation()} // Prevent propagation from the dropdown
                                       >
                                         <PopupBtn
+                                          handleRedirect={handleRedirect}
                                           flight={flight}
                                           isShowPopupBtn={isShowPopupBtn}
                                           setIsShowPopupBtn={setIsShowPopupBtn}

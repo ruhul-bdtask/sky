@@ -568,7 +568,7 @@ export default function BookingForm() {
                     <img
                       src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${shd?.operating_code}.png`}
                       alt="Air Asia Airlines"
-                      className="rounded-full w-10 h-10"
+                      className="rounded-full w-10 h-10 me-2"
                     />
                     <div>
                       <h3 className="font-semibold">
@@ -637,7 +637,7 @@ export default function BookingForm() {
                         onClick={() => toggleFareRule(index)}
                       >
                         Show fare rules
-                        {showFareRules ? (
+                        {openFareRules[index] ? (
                           <ChevronUp className="w-4 h-4 ml-1" />
                         ) : (
                           <ChevronDown className="w-4 h-4 ml-1" />
@@ -690,7 +690,7 @@ export default function BookingForm() {
                         onClick={() => toggleFareRule(index)}
                       >
                         Hide fare rules
-                        {showFareRules ? (
+                        {openFareRules[index] ? (
                           <ChevronUp className="w-4 h-4 ml-1" />
                         ) : (
                           <ChevronDown className="w-4 h-4 ml-1" />

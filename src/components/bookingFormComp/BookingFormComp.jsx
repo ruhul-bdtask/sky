@@ -227,7 +227,7 @@ export default function BookingFormComp({
                 <div className="w-full ">
                   <Select
                     styles={customStyles}
-                    placeholder={"Select Document"}
+                    // placeholder={"Select Document"}
                     options={documentTypes}
                     value={documentTypes.find(
                       (option) => option.value === passenger.documentType
@@ -299,11 +299,12 @@ export default function BookingFormComp({
 
                   <Select
                     styles={customStyles}
-                    placeholder={"Select country"}
+                    // placeholder={"Select country"}
                     options={countryOptions}
-                    value={countryOptions.find(
-                      (option) => option.value === passenger.country
-                    )}
+                    isSearchable={true} // Enable search functionality
+                    // value={countryOptions.find(
+                    //   (option) => option.value === passenger.country
+                    // )}
                     onChange={(selected) =>
                       updatePassengerData(index, "country", selected.value)
                     }

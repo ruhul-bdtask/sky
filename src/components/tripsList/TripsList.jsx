@@ -9,7 +9,11 @@ import DownloadIcon from "@/public/icons/DownloadIcon";
 import sky from "@/public/images/sky.png";
 import bimanbd from "@/public/images/bimanbd.png";
 import Link from "next/link";
-export default function TripsList({ booking }) {
+import { getAirline } from "@/utils/getAirline";
+import { useAirlines } from "@/hooks/useAirlines";
+import { getAirlineLogo } from "@/utils/getAirlineLogo";
+export default function TripsList({ booking,airlinesData }) {
+
   return (
     <>
       <div className="w-full max-w-4xl mx-auto space-y-5 pb-20 ">
@@ -31,50 +35,93 @@ export default function TripsList({ booking }) {
             </div>
             <div className="p-4 sm:w-2/3 flex flex-col justify-between">
               <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-start ">
+                <div className="flex justify-between flex-wrap gap-4 items-start ">
                   <div className="space-y-3">
-                    <p className="text-[16px] text-black">
-                      Booking ID: {booking.fabricated_pnr}
-                    </p>
+                    {booking?.type !== "saved" ? (
+                      <p className="text-[16px] text-black">
+                        Booking ID:{" "}
+                        {booking.fabricated_pnr ? booking.fabricated_pnr : ""}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                     <h2 className="text-[20px] font-[600]">
-                      From {booking.legs[0]?.first_airport} To{" "}
-                      {booking.legs[0]?.last_airport}
+                      From{" "}
+                      {booking?.legs?.[0]?.first_airport
+                        ? booking?.legs?.[0]?.first_airport
+                        : booking?.origin_code}{" "}
+                      To{" "}
+                      {booking?.legs?.[0]?.last_airport
+                        ? booking?.legs?.[0]?.last_airport
+                        : booking?.destination_code}
                     </h2>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Link
-                      href={`/ticket-copy?status=success&slack=${booking?.transaction_number}`}
-                      className="bg-[#FC660F] text-white px-3 py-2 rounded-[10px] text-sm flex items-center gap-2 "
-                    >
-                      <div className="hidden md:block">
-                        <DownloadIcon />
-                      </div>
-                      Ticket Copy
-                    </Link>
-                    <Link
-                      href={`/ticket-invoice?status=success&slack=${booking?.transaction_number}`}
-                      className="bg-[#FC660F] text-white px-3 py-2 rounded-[10px] text-sm flex items-center gap-2 "
-                    >
-                      <div className="hidden md:block">
-                        <DownloadIcon />
-                      </div>
-                      Ticket invoice
-                    </Link>
-                  </div>
+                  {booking?.type !== "saved" && booking?.transaction_number ? (
+                    <div className="flex items-center flex-wrap gap-4">
+                      <Link
+                        href={`/ticket-copy?status=success&slack=${
+                          booking?.transaction_number
+                            ? booking?.transaction_number
+                            : ""
+                        }`}
+                        className="bg-[#FC660F] text-white px-3 py-2 rounded-[10px] text-sm flex items-center gap-2 "
+                      >
+                        <div className="hidden md:block">
+                          <DownloadIcon />
+                        </div>
+                        Ticket Copy
+                      </Link>
+                      <Link
+                        href={`/ticket-invoice?status=success&slack=${
+                          booking?.transaction_number
+                            ? booking?.transaction_number
+                            : ""
+                        }`}
+                        className="bg-[#FC660F] text-white px-3 py-2 rounded-[10px] text-sm flex items-center gap-2 "
+                      >
+                        <div className="hidden md:block">
+                          <DownloadIcon />
+                        </div>
+                        Ticket invoice
+                      </Link>
+                    </div>
+                  ) : (
+                    ""
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <img
-                    src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${booking?.flights[0]?.airline_code}.png`}
+                    // src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${
+                    //   booking?.flights?.[0]?.airline_code
+                    //     ? booking?.flights?.[0]?.airline_code
+                    //     : booking?.airline_code
+                    // }.png`}
+                    src={getAirlineLogo(
+                      booking?.flights?.[0]?.airline_code
+                        ? booking?.flights?.[0]?.airline_code
+                        : booking?.airline_code
+                    )}
                     // src={`https://pics.avs.io/200/200/${stop?.operating_code}@2x.png`}
                     alt="airline logo"
                     className="w-[30px] h-[30px]"
                   />
                   <p className="text-[16px] font-[400] ">
-                    {booking?.flights[0]?.airline_code}
+                    {getAirline(
+                      airlinesData,
+                      booking?.flights?.[0]?.airline_code
+                        ? booking?.flights?.[0]?.airline_code
+                        : booking?.airline_code
+                    )}
+                    {/* {booking?.flights?.[0]?.airline_code
+                      ? booking?.flights?.[0]?.airline_code
+                      : booking?.airline_code} */}
                   </p>
                 </div>
                 <p className="text-[16px] font-[500] text-black">
-                  Departure: {booking?.legs[0].departure_date}
+                  Departure:{" "}
+                  {booking?.legs?.[0]?.departure_date
+                    ? booking?.legs?.[0]?.departure_date
+                    : booking?.departure_date}
                 </p>
                 <p className="text-[16px] font-[500] text-black">
                   {booking.type}
