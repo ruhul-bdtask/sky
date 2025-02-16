@@ -25,7 +25,7 @@ export default function Page() {
       if (!authToken) {
         if (savedTrips?.length > 0 && savedTrips[0]?.id) {
           setSavedTrips([]);
-          setSelectedSavedTrip([]);
+          setSelectedSavedTrip({});
         }
         Cookies.remove("auth-token");
         setToken(null);
