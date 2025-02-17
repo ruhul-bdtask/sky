@@ -245,6 +245,7 @@ export default function FlightCard({
           if (res.success) {
             toast.success("Flight removed successfully!");
             setSavedTrips(res.data); // update the state with the modified trips
+            setIsChangeTrip(false);
           }
           return;
         } else {
@@ -275,6 +276,7 @@ export default function FlightCard({
           if (res.success) {
             toast.success("Flight saved successfully!");
             setSavedTrips(res.data); // Update the state with the modified trips
+            setIsChangeTrip(false);
           }
           return;
         } else {
@@ -285,8 +287,10 @@ export default function FlightCard({
       }
     }
 
+    // if user has no token
     if (flightAlreadySaved) {
       setSavedTrips(updatedSavedTrips);
+      setIsChangeTrip(false);
     } else {
       // Add the flight to the selectedSavedTrip
       updatedSavedTrips = updatedSavedTrips.map((trip) => {
@@ -299,6 +303,7 @@ export default function FlightCard({
         return trip;
       });
       setSavedTrips(updatedSavedTrips);
+      setIsChangeTrip(false);
     }
   };
 
