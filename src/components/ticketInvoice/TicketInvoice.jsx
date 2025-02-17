@@ -54,7 +54,7 @@ export default function TicketInvoice({ searchParams, authToken }) {
         setToken(null);
         if (savedTrips?.length > 0 && savedTrips[0]?.id) {
           setSavedTrips([]);
-          setSelectedSavedTrip([]);
+          setSelectedSavedTrip({});
         }
         router.push("/login");
         return;

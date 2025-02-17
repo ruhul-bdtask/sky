@@ -174,7 +174,7 @@ export default function Header() {
     Cookies.remove("auth-token");
     if (savedTrips?.length > 0 && savedTrips[0]?.id) {
       setSavedTrips([]);
-      setSelectedSavedTrip([]);
+      setSelectedSavedTrip({});
     }
     setToken(null);
     setUserData({});
@@ -221,7 +221,7 @@ export default function Header() {
         setToken(null);
         if (savedTrips?.length > 0 && savedTrips[0]?.id) {
           setSavedTrips([]);
-          setSelectedSavedTrip([]);
+          setSelectedSavedTrip({});
         }
         setUserData({});
       }

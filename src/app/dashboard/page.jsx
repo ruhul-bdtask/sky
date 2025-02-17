@@ -62,7 +62,7 @@ export default function Page() {
           setToken(null);
           if (savedTrips?.length > 0 && savedTrips[0]?.id) {
             setSavedTrips([]);
-            setSelectedSavedTrip([]);
+            setSelectedSavedTrip({});
           }
           router.push("/login");
         } else {
@@ -73,7 +73,7 @@ export default function Page() {
         setToken(null);
         if (savedTrips?.length > 0 && savedTrips[0]?.id) {
           setSavedTrips([]);
-          setSelectedSavedTrip([]);
+          setSelectedSavedTrip({});
         }
         router.push("/login");
       } finally {
