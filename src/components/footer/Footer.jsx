@@ -14,9 +14,9 @@ import InstagramIcon from "@/public/icons/InstagramIcon";
 
 export default function Footer() {
   return (
-    <footer className="bg-white text-gray-600 py-8 border-t ">
+    <footer className="bg-white text-gray-600 py-8 border-t">
       <div className=" py-10 container_section_sm  max-w-7xl">
-        <div className="px-20 xl:px-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 ">
+        <div className="px-5 md:px-0  grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 ">
           <div>
             <h2 className="text-[14px] font-semibold mb-4">Company</h2>
             <ul className="space-y-2 text-[14px] ">

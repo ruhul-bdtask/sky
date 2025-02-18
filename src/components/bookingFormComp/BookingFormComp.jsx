@@ -69,6 +69,7 @@ export default function BookingFormComp({
   };
 
   const validatePassengers = (passengers) => {
+    const nameRegex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
     for (let i = 0; i < passengers.length; i++) {
       const passenger = passengers[i];
 
@@ -76,8 +77,20 @@ export default function BookingFormComp({
         toast.error(`Passenger ${i + 1}: Please fill up First Name`);
         return false;
       }
+      if (!nameRegex.test(passenger.firstName)) {
+        toast.error(
+          `Passenger ${i + 1}: First Name should not contain special characters`
+        );
+        return false;
+      }
       if (!passenger.lastName || passenger.lastName.trim() === "") {
         toast.error(`Passenger ${i + 1}: Please fill up Last Name`);
+        return false;
+      }
+      if (!nameRegex.test(passenger.lastName)) {
+        toast.error(
+          `Passenger ${i + 1}: Last Name should not contain special characters`
+        );
         return false;
       }
 

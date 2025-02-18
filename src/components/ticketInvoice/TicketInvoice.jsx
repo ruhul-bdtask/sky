@@ -118,6 +118,25 @@ export default function TicketInvoice({ searchParams, authToken }) {
     );
   }
 
+  const base_fare = Number(bookingData?.data?.base_fare);
+  const taxFare = Number(bookingData?.data?.tax_fare);
+  const vatAmount = Number(bookingData?.data?.vat_amount);
+  const adminCharge = Number(bookingData?.data?.admin_charge);
+
+  const totalTax =
+    (isNaN(taxFare) ? 0 : taxFare) +
+    (isNaN(vatAmount) ? 0 : vatAmount) +
+    (isNaN(adminCharge) ? 0 : adminCharge);
+
+  const totalAmount =
+    (isNaN(taxFare) ? 0 : taxFare) +
+    (isNaN(vatAmount) ? 0 : vatAmount) +
+    (isNaN(adminCharge) ? 0 : adminCharge) +
+    (isNaN(base_fare) ? 0 : base_fare);
+
+  const formattedAmount = totalTax.toLocaleString("en-BD");
+  const formattedTotalAmount = totalAmount.toLocaleString("en-BD");
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
@@ -146,10 +165,10 @@ export default function TicketInvoice({ searchParams, authToken }) {
                 Invoice #{bookingData?.data?.reservation_code}
               </p>
             </div>
-            <div className="mt-4 md:mt-0 text-right">
+            {/* <div className="mt-4 md:mt-0 text-right">
               <p className="font-semibold">Date Issued</p>
               <p className="text-muted-foreground">February 9, 2024</p>
-            </div>
+            </div> */}
           </div>
 
           {/* Customer Info */}
@@ -174,8 +193,8 @@ export default function TicketInvoice({ searchParams, authToken }) {
                 Payment Info
               </h2>
               <div className="space-y-1 text-muted-foreground">
-                <p>Payment Method: Credit Card</p>
-                <p>Transaction ID: TXN123456789</p>
+                <p>Payment Method: SSL commerz</p>
+                <p>Transaction ID: {searchParams.slack}</p>
                 <p>Status: Paid</p>
               </div>
             </div>
@@ -220,7 +239,7 @@ export default function TicketInvoice({ searchParams, authToken }) {
                   </div>
                   <div className="flex-1 mx-4">
                     <div className="relative w-2/3 mx-auto">
-                      <div className="border-t-2 border-gray-300 w-full absolute top-1/2 -translate-y-1/2"></div>
+                      <div className="border-t-2 border-dashed border-gray-300 w-full absolute top-1/2 -translate-y-1/2"></div>
                       <div className="text-center text-sm text-gray-500">
                         {flight?.cabin_class}
                       </div>
@@ -246,20 +265,23 @@ export default function TicketInvoice({ searchParams, authToken }) {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Base Fare</span>
-                <span>$850.00</span>
+                <span>
+                  BDT{" "}
+                  {Number(bookingData?.data?.base_fare).toLocaleString("en-BD")}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Taxes & Fees</span>
-                <span>$120.00</span>
+                <span>BDT {formattedAmount}</span>
               </div>
-              <div className="flex justify-between">
+              {/* <div className="flex justify-between">
                 <span className="text-muted-foreground">Travel Insurance</span>
                 <span>$30.00</span>
-              </div>
+              </div> */}
               <div className="border-t pt-2 mt-4">
                 <div className="flex justify-between font-bold">
                   <span>Total Amount</span>
-                  <span>$1,000.00</span>
+                  <span>BDT {formattedTotalAmount}</span>
                 </div>
               </div>
             </div>

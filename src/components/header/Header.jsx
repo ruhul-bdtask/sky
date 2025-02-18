@@ -8,10 +8,11 @@ import ActiveIcon from "@/public/icons/ActiveIcon";
 import AvatarIcon from "@/public/icons/AvatarIcon";
 import HeartIcon from "@/public/icons/HeartIcon";
 import logo from "@/public/images/logo.png";
+import mobileLogo from "@/public/images/mobileLogo.jpg";
 import weather from "@/public/images/weather.png";
 import { fetchData } from "@/utils/api";
 import Cookies from "js-cookie";
-import { Menu, Pencil, SearchIcon, X } from "lucide-react";
+import { Menu, Pencil, SearchIcon, UserRound, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -31,6 +32,9 @@ import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
 import { Bounce } from "react-toastify";
 import { isExpired } from "react-jwt";
 import { useQuery } from "@tanstack/react-query";
+import { BiSolidUser } from "react-icons/bi";
+import { formatShortDate } from "@/lib/formatShortDate";
+
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -702,13 +706,54 @@ export default function Header() {
                 setTravelPlanningDate("");
               }}
             >
-              <Image className="mx-4 md:mx-0" alt="logo" src={logo}></Image>
+              <Image
+                className="mx-0 w-full hidden md:block"
+                alt="logo"
+                src={logo}
+              ></Image>
+              <Image
+                className="mx-4  w-7 block md:hidden"
+                alt="logo"
+                src={mobileLogo}
+              ></Image>
             </a>
           </div>
           <div>
             {pathname == "/search-result" && searchData?.tripType && (
               <div
-                className="w-full flex items-center  gap-1"
+                className="w-full items-center gap-1 flex md:hidden"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <div className="">
+                  <div className="flex items-center gap-2">
+                    <div className="font-semibold">
+                      {origin} - {destination}
+                    </div>
+                    <Pencil size={15} className="text-black" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[12px]">
+                      {" "}
+                      {formatShortDate(journeyDate)}{" "}
+                      {tripType == "return" && (
+                        <>- {formatShortDate(returnDate)} </>
+                      )}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      {/* <UserRound size={15} className="text-black" /> */}
+                      <BiSolidUser />
+
+                      <span>{totalPassengers} </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div>
+            {pathname == "/search-result" && searchData?.tripType && (
+              <div
+                className="w-full  items-center  gap-1 hidden md:flex"
                 onClick={() => setIsModalOpen(true)}
               >
                 <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer hover:bg-gray-300 transition-all border-[#d9e2e8] border">
@@ -1265,7 +1310,7 @@ export default function Header() {
                   </div>
 
                   {isOpenProfile && (
-                    <div className="absolute right-0 z-10 w-80 mt-2 bg-white rounded-md shadow-lg border border-gray-200">
+                    <div className="absolute right-0 z-10 w-80 mt-2 bg-white rounded-md shadow-lg border border-gray-200 mx-2">
                       <div className="py-2 px-4 flex items-center gap-2">
                         <div className="w-[40px] h-[40px] ">
                           <img
@@ -1332,11 +1377,11 @@ export default function Header() {
             ) : (
               <Link href={"/login"}>
                 <button
-                  className="flex items-center gap-2 p-3 border border-[#9BA8B0] justify-center rounded-[10px] "
+                  className="flex items-center gap-2 p-2 md:p-3 mx-2 border border-[#9BA8B0] justify-center rounded-[10px] "
                   onClick={handleRoute}
                 >
-                  <AvatarIcon />
-                  Sign in
+                  <AvatarIcon className="text-sm md:text-md" />
+                  <p className="text-sm md:text-md">Sign in</p>
                 </button>
               </Link>
             )}

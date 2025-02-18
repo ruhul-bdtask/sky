@@ -84,7 +84,7 @@ export default function DatePicker({
     <div className={cn("grid gap-2", className)}>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-          <div className="flex gap-2">
+          <div className="flex flex-col md:flex-row gap-2 mt-2 md:mt-0">
             {/* From Date Picker */}
             <button
               id="from-date"

@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
-        <Snowfall snowflakeCount={30} />
+        {/* <Snowfall snowflakeCount={30} /> */}
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <SidebarProvider>
             <div>
