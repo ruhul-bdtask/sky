@@ -284,25 +284,15 @@ export default function BookingForm() {
 
   const handleBooking = (e) => {
     e.preventDefault();
-    const isEmailValid = validateEmail(contactInfo.email);
-    const isPhoneValid = validatePhone(contactInfo.phone);
 
-    if (!isEmailValid) {
-      toast.error("Please enter a valid email address");
-    }
-    if (!isPhoneValid) {
-      toast.error("Please enter a valid phone number");
-    }
-    if (isEmailValid && isPhoneValid) {
-      if (token == null || token == undefined || token == "") {
+    if (token == null || token == undefined || token == "") {
+      refetchRegister();
+    } else {
+      if (isMyTokenExpired) {
+        setToken(null);
         refetchRegister();
       } else {
-        if (isMyTokenExpired) {
-          setToken(null);
-          refetchRegister();
-        } else {
-          refetchBookingData();
-        }
+        refetchBookingData();
       }
     }
   };
@@ -331,7 +321,6 @@ export default function BookingForm() {
   }, [bookingData]);
 
   const handleChangeTab = (arg) => {
-    setActiveTab(arg);
     if (contactInfo?.email == "") {
       toast.error("Please enter a valid email address");
       return;
@@ -340,7 +329,18 @@ export default function BookingForm() {
       toast.error("Please enter a valid phone number");
       return;
     }
+    const isEmailValid = validateEmail(contactInfo.email);
+    // const isPhoneValid = validatePhone(contactInfo.phone);
+
+    if (!isEmailValid) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    // if (!isPhoneValid) {
+    //   toast.error("Please enter a valid phone number");
+    // }
     setContactInformation(contactInfo);
+    setActiveTab(arg);
   };
 
   const toggleFareRule = (index) => {
@@ -501,11 +501,11 @@ export default function BookingForm() {
                   </Link>
                 </div>
                 {passengerInformation?.length > 0 && (
-                  <div className="p-3 border rounded-[6px]">
+                  <div className="p-3 bg-[#FC660F] rounded-[6px]">
                     <button
                       onClick={() => handleChangeTab("payment")}
-                      // type="submit"
-                      className=" float-right bg-transparent text-[#717171] font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
+                      type="button"
+                      className=" float-right  text-white font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
                     >
                       Continue to Payment
                     </button>
