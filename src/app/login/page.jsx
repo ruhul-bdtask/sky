@@ -86,8 +86,8 @@ export default function Page() {
         setToken(token);
         setUserData(data?.user);
         syncSavedFlights(token);
-        const redirectPath = "/";
-        router.push(redirectPath);
+        // const redirectPath = router?.back || "/";
+        router.back();
       } catch (err) {
         console.error("Error during login:", err);
         setError(err.message || "Login failed.");

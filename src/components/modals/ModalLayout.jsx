@@ -306,6 +306,38 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     { name: "Kids", ageRange: "2-5", count: 0 },
     { name: "Infants on lap", ageRange: "under 2", count: 0 },
   ]);
+
+
+
+  useEffect(() => {
+    // const passengerData = [
+    //   { type: "ADT", quantity: 2, age: "18" },
+    //   { type: "C06", quantity: 2, age: "11" },
+    //   { type: "INF", quantity: 1, age: "1" },
+    // ];
+
+    const categoryMapping = {
+      ADT: "Adults",
+      C06: "Children",
+      C04: "Kids",
+      INF: "Infants on lap",
+    };
+
+    const updatedCategories = categories.map((category) => {
+      const matchingPassenger = searchData?.passengers?.find(
+        (passenger) => categoryMapping[passenger.type] === category.name
+      );
+
+      return matchingPassenger
+        ? { ...category, count: matchingPassenger.quantity }
+        : category;
+    });
+
+    setCategories(updatedCategories);
+  }, [searchData]);
+
+
+
   const [classes, setClasses] = useState([
     { name: "Economy", price: 50, shortCode: "Y" },
     { name: "Premium Economy", price: 70, shortCode: "P" },
@@ -1364,7 +1396,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                   setIsOpenClassPassenger(!isOpenClassPassenger)
                                 }
                               >
-                                <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+                                <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5] cursor-pointer">
                                   {totalPassengers}{" "}
                                   {totalPassengers !== 1
                                     ? "Travelers"
@@ -1779,7 +1811,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                       )
                                     }
                                   >
-                                    <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+                                    <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5] cursor-pointer">
                                       {totalPassengers}{" "}
                                       {totalPassengers !== 1
                                         ? "Travelers"
