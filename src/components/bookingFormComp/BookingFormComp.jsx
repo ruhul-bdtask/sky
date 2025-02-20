@@ -5,6 +5,10 @@ import moment from "moment";
 import useAirlineStore from "../../../stores/airlineStore";
 import { toast } from "react-toastify";
 import DatePicker from "react-date-picker";
+import { fetchData } from "@/utils/api";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { FaArrowRightToBracket } from "react-icons/fa6";
 const countryOptions = require("../../../public/utils/countries.json");
 
 export default function BookingFormComp({
@@ -12,28 +16,83 @@ export default function BookingFormComp({
   passenger,
   updatePassengerData,
   passengerData,
+  fillPassengerData,
+  // handlePassengerInfo,
 }) {
+  // const customStyles = {
+  //   control: (base) => ({
+  //     ...base,
+  //     height: 50, // Desired height of the select box
+  //     minHeight: 50, // Ensures the height doesn't shrink
+  //   }),
+  //   valueContainer: (base) => ({
+  //     ...base,
+  //     height: 50, // Matches the height of the control
+  //     display: "flex",
+  //     alignItems: "center", // Vertically center the text
+  //   }),
+  //   input: (base) => ({
+  //     ...base,
+  //     height: "100%", // Ensures input height fills the control height
+  //     margin: 0,
+  //   }),
+  //   singleValue: (base) => ({
+  //     ...base,
+  //     display: "flex",
+  //     alignItems: "center", // Center the selected value vertically
+  //   }),
+  // };
+
   const customStyles = {
-    control: (base) => ({
+    control: (base, state) => ({
       ...base,
-      height: 50, // Desired height of the select box
-      minHeight: 50, // Ensures the height doesn't shrink
+      height: 50, // Set a fixed height
+      minHeight: 50, // Prevent shrinking
+      textAlign: "left", // Align text to the left
+      borderColor: state.isFocused ? "#007bff" : "#ced4da", // Highlight on focus
+      boxShadow: state.isFocused ? "0 0 0 2px rgba(0,123,255,0.25)" : "none",
+      "&:hover": {
+        borderColor: "#007bff",
+      },
     }),
     valueContainer: (base) => ({
       ...base,
-      height: 50, // Matches the height of the control
+      height: "100%", // Ensure it fills the control height
       display: "flex",
-      alignItems: "center", // Vertically center the text
+      alignItems: "center",
+      padding: "0 12px", // Adds spacing inside the select
     }),
     input: (base) => ({
       ...base,
-      height: "100%", // Ensures input height fills the control height
+      height: "100%",
       margin: 0,
+      padding: 0, // Ensures no extra padding
+      "&:focus": {
+        textAlign: "left", // Keep text left-aligned on focus
+      },
     }),
     singleValue: (base) => ({
       ...base,
       display: "flex",
-      alignItems: "center", // Center the selected value vertically
+      alignItems: "center",
+      color: "#333", // Ensures the text color is readable
+    }),
+    placeholder: (base, state) => ({
+      ...base,
+      display: "flex",
+      alignItems: "center",
+      color: "#999",
+      display: state.isFocused ? "none" : "flex",
+      transition: "opacity 0.2s ease-in-out", // Smooth transition effect
+    }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      padding: "8px", // Adjusts the dropdown icon spacing
+    }),
+    indicatorsContainer: (base) => ({
+      ...base,
+      height: "100%", // Ensures consistent height
+      alignItems: "center",
     }),
   };
 
@@ -58,7 +117,8 @@ export default function BookingFormComp({
 
   const [isDetailed, setIsDetailed] = useState(false);
   const [tabIndex, setTabIndex] = useState();
-  const { setPassengerInformation, passengerInformation } = useAirlineStore();
+  const { setPassengerInformation, passengerInformation, token } =
+    useAirlineStore();
 
   const handleDetails = (index) => {
     setTabIndex(index);
@@ -68,60 +128,28 @@ export default function BookingFormComp({
     }
   };
 
-  const validatePassengers = (passengers) => {
-    const nameRegex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
-    for (let i = 0; i < passengers.length; i++) {
-      const passenger = passengers[i];
-
-      if (!passenger.firstName || passenger.firstName.trim() === "") {
-        toast.error(`Passenger ${i + 1}: Please fill up First Name`);
-        return false;
-      }
-      if (!nameRegex.test(passenger.firstName)) {
-        toast.error(
-          `Passenger ${i + 1}: First Name should not contain special characters`
-        );
-        return false;
-      }
-      if (!passenger.lastName || passenger.lastName.trim() === "") {
-        toast.error(`Passenger ${i + 1}: Please fill up Last Name`);
-        return false;
-      }
-      if (!nameRegex.test(passenger.lastName)) {
-        toast.error(
-          `Passenger ${i + 1}: Last Name should not contain special characters`
-        );
-        return false;
-      }
-
-      if (!passenger.documentType || passenger.documentType.trim() === "") {
-        toast.error(`Passenger ${i + 1}: Please select Document Type`);
-        return false;
-      }
-
-      if (!passenger.country || passenger.country.trim() === "") {
-        toast.error(`Passenger ${i + 1}: Please select Country`);
-        return false;
-      }
-      if (!passenger.docNumber || passenger.docNumber.trim() === "") {
-        toast.error(`Passenger ${i + 1}: Please fill up Document Number`);
-        return false;
-      }
-    }
-
-    return true;
+  const userPayload = {
+    document_type: "NID",
   };
 
-  const handlePassengerInfo = (e, index) => {
-    e.preventDefault();
+  const {
+    data: userData,
+    error: userDataError,
+    isLoading: userDataLoading = true,
+    refetch: refetchUserData,
+  } = useQuery({
+    queryKey: ["user", token],
+    queryFn: () => fetchData("/user/me", "POST", userPayload, token),
+    enabled: true,
+    retry: false,
+  });
 
-    const isValid = validatePassengers(passengerData);
-    if (isValid) {
-      setPassengerInformation(passengerData);
-      handleDetails(index);
-    }
-  };
-
+  const options = userData?.data?.media?.map((passenger) => ({
+    label: `${passenger.pxn_title} ${passenger.first_name} ${
+      passenger.last_name
+    } ${passenger?.type ? `(${passenger.type})` : ""}`,
+    value: passenger,
+  }));
   const getDateLimits = (passengerType) => {
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -180,12 +208,12 @@ export default function BookingFormComp({
                 : passenger?.type}
               )
             </>
-          ) : passengerInformation[index]?.firstName == "" ? (
+          ) : passengerInformation[index]?.first_name == "" ? (
             "Fill up this box also..."
           ) : (
-            passengerInformation[index]?.firstName +
+            passengerInformation[index]?.first_name +
             " " +
-            passengerInformation[index]?.lastName
+            passengerInformation[index]?.last_name
           )}
         </label>
         <div className={`${tabIndex === index ? "block" : "hidden"}`}>
@@ -194,45 +222,68 @@ export default function BookingFormComp({
             please use English characters only. Names can’t be changed once you
             have completed your booking.
           </p>
-          <form onSubmit={handlePassengerInfo}>
+          <form>
             <div className="flex flex-col gap-4 mt-4 ">
-              <div className="w-[100px] ">
-                <Select
-                  styles={customStyles}
-                  options={titles}
-                  value={
-                    titles.find(
-                      (option) =>
-                        option.value ===
-                        passengerData[index][`pxn_title_${index + 1}`]
-                    ) || { label: "Mr.", value: "Mr." } // Default to "Mr."
-                  }
-                  onChange={(selected) =>
-                    updatePassengerData(
-                      index,
-                      `pxn_title_${index + 1}`,
-                      selected.value
-                    )
-                  }
-                />
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <div className="min-w-[100px] ">
+                  <Select
+                    styles={customStyles}
+                    options={titles}
+                    value={
+                      titles.find(
+                        (option) =>
+                          option.value === passengerData[index][`pxn_title`]
+                      ) || { label: "Mr.", value: "Mr." } // Default to "Mr."
+                    }
+                    onChange={(selected) =>
+                      updatePassengerData(index, `pxn_title`, selected.value)
+                    }
+                  />
+                </div>
+                {userData?.data?.media?.length > 0 ? (
+                  <div className="min-w-[300px] ">
+                    <Select
+                      isClearable={true}
+                      styles={customStyles}
+                      options={options}
+                      searchable={true}
+                      placeholder={"Select existing traveler"}
+                      onChange={(selected) =>
+                        fillPassengerData(index, selected?.value)
+                      }
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <Link
+                        className="text-[#FC660F] flex items-center gap-2"
+                        href={"/login"}
+                      >
+                        <p>Login to select existing traveler</p>{" "}
+                        <FaArrowRightToBracket />
+                      </Link>
+                    </div>
+                  </>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="text"
                   placeholder="First Name"
                   className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none"
-                  value={passenger?.firstName}
+                  value={passenger?.first_name}
                   onChange={(e) =>
-                    updatePassengerData(index, "firstName", e.target.value)
+                    updatePassengerData(index, "first_name", e.target.value)
                   }
                 />
                 <input
                   type="text"
                   placeholder="Last Name"
                   className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none"
-                  value={passenger.lastName}
+                  value={passenger.last_name}
                   onChange={(e) =>
-                    updatePassengerData(index, "lastName", e.target.value)
+                    updatePassengerData(index, "last_name", e.target.value)
                   }
                 />
               </div>
@@ -241,15 +292,16 @@ export default function BookingFormComp({
                   <Select
                     styles={customStyles}
                     // placeholder={"Select Document"}
+                    isClearable={true}
                     options={documentTypes}
                     value={documentTypes.find(
-                      (option) => option.value === passenger.documentType
+                      (option) => option?.shortCode === passenger?.document_type
                     )}
                     onChange={(selected) =>
                       updatePassengerData(
                         index,
-                        "documentType",
-                        selected.shortCode
+                        "document_type",
+                        selected?.shortCode
                       )
                     }
                   />
@@ -259,9 +311,13 @@ export default function BookingFormComp({
                     type="text"
                     placeholder="Document number"
                     className="border-2 border-gray-300 p-3 w-full rounded-[4px] focus:outline-none"
-                    value={passenger.docNumber}
+                    value={passenger.document_number}
                     onChange={(e) =>
-                      updatePassengerData(index, "docNumber", e.target.value)
+                      updatePassengerData(
+                        index,
+                        "document_number",
+                        e.target.value
+                      )
                     }
                   />
                 </div>
@@ -292,11 +348,15 @@ export default function BookingFormComp({
                   >
                     <DatePicker
                       onChange={(date) => {
-                        updatePassengerData(index, "doc_expire_date", date); // Update passenger data
+                        updatePassengerData(
+                          index,
+                          "document_expiration_date",
+                          date
+                        ); // Update passenger data
                       }}
                       value={
-                        passenger.doc_expire_date
-                          ? moment(passenger.doc_expire_date)
+                        passenger.document_expiration_date
+                          ? moment(passenger.document_expiration_date)
                           : ""
                       }
                       minDate={new Date()} // Prevent selecting past dates
@@ -315,11 +375,18 @@ export default function BookingFormComp({
                     // placeholder={"Select country"}
                     options={countryOptions}
                     isSearchable={true} // Enable search functionality
-                    // value={countryOptions.find(
-                    //   (option) => option.value === passenger.country
-                    // )}
+                    isClearable={true} // Enable clear button
+                    value={countryOptions.find(
+                      (option) =>
+                        option?.value ===
+                        passenger?.document_nationality_country
+                    )}
                     onChange={(selected) =>
-                      updatePassengerData(index, "country", selected.value)
+                      updatePassengerData(
+                        index,
+                        "document_nationality_country",
+                        selected?.value
+                      )
                     }
                   />
                 </div>
@@ -358,7 +425,11 @@ export default function BookingFormComp({
                         updatePassengerData(index, "dob", date)
                       }
                       value={
-                        passenger.dob ? moment(passenger.dob).toDate() : ""
+                        passenger.dob
+                          ? new Date(
+                              moment.utc(passenger.dob).format("YYYY-MM-DD")
+                            ) // Fix timezone shift
+                          : maxDate
                       }
                       minDate={minDate}
                       maxDate={maxDate}
@@ -373,7 +444,7 @@ export default function BookingFormComp({
               </div>
             </div>
 
-            {index === passengerData.length - 1 && (
+            {/* {index === passengerData.length - 1 && (
               <div className="flex justify-center md:justify-end mt-4">
                 <button
                   type="button"
@@ -383,7 +454,7 @@ export default function BookingFormComp({
                   Save & Next
                 </button>
               </div>
-            )}
+            )} */}
           </form>
         </div>
       </div>

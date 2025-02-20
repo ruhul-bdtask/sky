@@ -12,6 +12,7 @@ import { notFound, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LoadingBar from "react-top-loading-bar";
 import useAirlineStore from "../../../stores/airlineStore";
+// import ticketingGif from "@/public/images/ticketing.gif";
 import {
   Drawer,
   DrawerClose,
@@ -397,6 +398,17 @@ export default function Page({ searchParams }) {
       quickest: quickestFlight,
     });
   }, [allFlights]);
+  if (loadingRevalidate) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#FC660F] z-50">
+        <img
+          src={"/ticketing.gif"}
+          alt="Loading..."
+          className="w-48 md:w-64 h-full object-contain"
+        />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -540,9 +552,9 @@ export default function Page({ searchParams }) {
           </>
         )}
       </div>
-      {loadingRevalidate && (
+      {/* {loadingRevalidate && (
         <div className="fixed left-0 top-0 w-full h-screen  z-50"></div>
-      )}
+      )} */}
     </>
   );
 }

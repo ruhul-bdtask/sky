@@ -193,7 +193,7 @@ export default function TicketInvoice({ searchParams, authToken }) {
                 Payment Info
               </h2>
               <div className="space-y-1 text-muted-foreground">
-                <p>Payment Method: SSL commerz</p>
+                <p>Payment gateway: SSL commerz</p>
                 <p>Transaction ID: {searchParams.slack}</p>
                 <p>Status: Paid</p>
               </div>
