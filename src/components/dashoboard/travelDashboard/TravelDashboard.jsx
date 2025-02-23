@@ -31,7 +31,7 @@ export default function TravelDashboard({
   const [base64, setBase64] = useState("");
   const token = Cookies.get("auth-token");
   const [imageUploadedData, setImageUploadedData] = useState();
-
+  const [imageLoader, setImageLoader] = useState(false);
   const mutation = useMutation({
     mutationFn: (payload) =>
       fetchData("/user/profile-pic-update", "POST", payload, token),
@@ -39,8 +39,10 @@ export default function TravelDashboard({
       toast.success(data?.message);
       setImageUploadedData(data?.data);
       setIsOpen(false);
+      setImageLoader(false);
     },
     onError: (error) => {
+      setImageLoader(false);
       console.error("Mutation failed", error);
       toast.error(error?.message);
       setIsOpen(false);
@@ -49,6 +51,7 @@ export default function TravelDashboard({
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+    setImageLoader(true);
 
     if (file) {
       const reader = new FileReader();
@@ -68,6 +71,18 @@ export default function TravelDashboard({
   };
 
   const { lastLogin, expiration } = loginDetails;
+
+  if (imageLoader) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#FC660F] z-50">
+        <img
+          src={"/ticketing.gif"}
+          alt="Loading..."
+          className="w-48 md:w-64 h-full object-contain"
+        />
+      </div>
+    );
+  }
 
   const tabContent = {
     dashboard: (
@@ -173,25 +188,27 @@ export default function TravelDashboard({
                   {userData?.data?.email}
                 </p>
               </div>
-              <div className="flex items-center">
-                <p className="text-sm text-gray-600 mr-2 ">
-                  <span className="text-[10px] md:text-[12px] font-semibold text-[#3E4346]">
-                    Home Airport
-                  </span>
-                  <br />
-                  <span className="text-[12px] md:text-[16px] font-semibold text-black">
-                    {userData?.data?.home_airport}
-                  </span>
-                </p>
-              </div>
-              <div>
+              {userData?.data?.home_airport && (
+                <div className="flex items-center">
+                  <p className="text-sm text-gray-600 mr-2 ">
+                    <span className="text-[10px] md:text-[12px] font-semibold text-[#3E4346]">
+                      Home Airport
+                    </span>
+                    <br />
+                    <span className="text-[12px] md:text-[16px] font-semibold text-black">
+                      {userData?.data?.home_airport}
+                    </span>
+                  </p>
+                </div>
+              )}
+              {/* <div>
                 <p className="text-[10px] md:text-[14px] font-semibold text-black">
                   Last login: {lastLogin}
                 </p>
                 <p className="text-[10px] md:text-[14px] font-semibold text-black">
                   Token expiration: {expiration}
                 </p>
-              </div>
+              </div> */}
             </div>
 
             <div

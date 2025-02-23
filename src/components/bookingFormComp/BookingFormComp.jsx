@@ -240,7 +240,7 @@ export default function BookingFormComp({
                     }
                   />
                 </div>
-                {userData?.data?.media?.length > 0 ? (
+                {userData?.data ? (
                   <div className="min-w-[300px] ">
                     <Select
                       isClearable={true}

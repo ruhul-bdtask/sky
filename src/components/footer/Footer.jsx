@@ -99,7 +99,7 @@ export default function Footer() {
           </div>
           <div>
             <h2 className="text-[14px] font-semibold mb-4">
-              Get the KAYAK App
+              Get the Ticketing App
             </h2>
             <div className="flex flex-col gap-3">
               <Link href="#" className="inline-block">

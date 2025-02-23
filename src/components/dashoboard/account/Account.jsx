@@ -81,7 +81,7 @@ export default function Account({ userData, userDataLoading }) {
                     </button>
                   </div>
                 </div>
-                <div>
+                {/* <div>
                   <label
                     htmlFor="email-site"
                     className="block text-sm font-medium text-gray-700 mb-1"
@@ -101,7 +101,7 @@ export default function Account({ userData, userDataLoading }) {
                       Edit{" "}
                     </button>
                   </div>
-                </div>
+                </div> */}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -129,11 +129,11 @@ export default function Account({ userData, userDataLoading }) {
             />
           </div>
         </div>
-        <section className="bg-white rounded-[6px] shadow-sm p-6 border my-4">
+        {/* <section className="bg-white rounded-[6px] shadow-sm p-6 border my-4">
           <h2 className="text-[16px] font-semibold mb-4">Passkeys</h2>
           <p className="text-[14px] text-black mb-4">
             Passkeys are easy to set up and let you securely sign into your
-            KAYAK account using your fingerprint, face, or screen lock.
+            Ticketing account using your fingerprint, face, or screen lock.
           </p>
           <button className="bg-[#363F45] text-white px-3 py-2 rounded-[2px] text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
             Add Passkeys
@@ -170,7 +170,7 @@ export default function Account({ userData, userDataLoading }) {
             </h2>
             <p className="text-[14px] text-black mb-4">
               Forward booking receipts from these accounts manually to
-              trips@kayak.co.in to add them to your trips. There will be no
+              trips@Ticketing.co.in to add them to your trips. There will be no
               automatic syncing of receipts.
             </p>
             <p className="text-[16px] pb-3">myname123456@gmail.com(you)</p>
@@ -213,8 +213,8 @@ export default function Account({ userData, userDataLoading }) {
               Your usage information
             </h2>
             <p className="text-[14px] text-black mb-4">
-              Usage information helps us improve your KAYAK experience. Want to
-              check yours?
+              Usage information helps us improve your Ticketing experience. Want
+              to check yours?
             </p>
           </div>
           <button className="bg-[#363F45] text-white  rounded-[2px] text-[14px] font-medium hover:bg-gray-700 w-[105px] h-[27px]">
@@ -263,7 +263,7 @@ export default function Account({ userData, userDataLoading }) {
               </p>
             </div>
           </div>
-        </section>
+        </section> */}
       </div>
     </section>
   );

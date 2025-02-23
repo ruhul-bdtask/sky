@@ -89,22 +89,33 @@ export default function Page() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2">Loading...</p>
-        </div>
+      <div className="fixed inset-0 flex items-center justify-center bg-[#FC660F] z-50">
+        <img
+          src={"/ticketing.gif"}
+          alt="Loading..."
+          className="w-48 md:w-64 h-full object-contain"
+        />
       </div>
     );
   }
 
-  if (allPnrData?.success == false || allPnrData?.data?.length == 0) {
+  if (allPnrData?.success == false) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div>
           <p className="text-center text-red-500">
             {allPnrData?.message || "Something went wrong"}
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (allPnrData?.data?.length == 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div>
+          <p className="text-center text-red-500">No trips or flights found</p>
         </div>
       </div>
     );

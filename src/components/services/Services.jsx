@@ -9,7 +9,7 @@ export default function Services({ servicesData, homeDataLoading }) {
   //     icon: <CouponIcon />,
   //     title: " Search for the best flight deals",
   //     content:
-  //       "Search for the best flight deals from 900+ travel sites. No need to search multiple websites, KAYAK allows you to compare all of  them in one place.",
+  //       "Search for the best flight deals from 900+ travel sites. No need to search multiple websites, Ticketing allows you to compare all of  them in one place.",
   //   },
   //   // Add more services here
   //   {
@@ -27,7 +27,7 @@ export default function Services({ servicesData, homeDataLoading }) {
   //     icon: <CouponIcon />,
   //     title: "Easy to use trip planning tools",
   //     content:
-  //       "With useful tools like trip planner, flight tracker and bag measure, KAYAK is more than just a flight search site - it is your complete travel partner.",
+  //       "With useful tools like trip planner, flight tracker and bag measure, Ticketing is more than just a flight search site - it is your complete travel partner.",
   //   },
   // ];
   return (
@@ -61,7 +61,7 @@ export default function Services({ servicesData, homeDataLoading }) {
       ) : (
         <div className="py-10">
           <h2 className="text-[24px] font-bold text-black">
-            What KAYAK brings to the table.
+            What Ticketing brings to the table.
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 mx-auto lg:grid-cols-4 gap-[10px]  my-4 place-items-center">
@@ -72,10 +72,7 @@ export default function Services({ servicesData, homeDataLoading }) {
               >
                 <div className="p-5">
                   <div className="p-4 bg-[#FFDAC0] w-[56px] rounded-[7px]">
-                    <img
-                      src={service?.image_url}
-                      alt="Bangkok cityscape"
-                    />
+                    <img src={service?.image_url} alt="Bangkok cityscape" />
                   </div>
                   <div className="py-4">
                     <p className="text-[17px] font-semibold text-[#1C2226] mb-1">

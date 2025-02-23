@@ -307,7 +307,7 @@ export default function Page({ searchParams }) {
     operating_code: searchParams?.operating_code,
   };
 
-  const matchingFlight = allFlights?.data.sortedItineraries.find((flight) => {
+  const matchingFlight = allFlights?.data?.sortedItineraries.find((flight) => {
     // Check if any schedule inside the flight matches the given flight number and operating code
     const scheduleMatch = flight?.schedules?.some(
       (schedule) =>

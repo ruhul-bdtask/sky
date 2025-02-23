@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/utils/api";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 const TicketCopy = ({ searchParams, authToken }) => {
   const [buffer, setBuffer] = useState(true);
   const contentRef = useRef(null);
@@ -74,13 +75,19 @@ const TicketCopy = ({ searchParams, authToken }) => {
       setLoading(false);
     }
   }, [bookingData]);
+
+
+
+
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2">Loading...</p>
-        </div>
+      <div className="fixed inset-0 flex items-center justify-center bg-[#FC660F] z-50">
+        <img
+          src={"/ticketing.gif"}
+          alt="Loading..."
+          className="w-48 md:w-64 h-full object-contain"
+        />
       </div>
     );
   }
@@ -292,6 +299,9 @@ const TicketCopy = ({ searchParams, authToken }) => {
                       <div style={{ lineHeight: "15px" }}>
                         RESERVATION CODE : {bookingData?.data?.reservation_code}
                       </div>
+                      <div style={{ lineHeight: "20px" }}>
+                        AIRLINE PNR : {bookingData?.data?.airline_pnr}
+                      </div>
                     </div>
                     <div
                       style={{
@@ -419,7 +429,7 @@ const TicketCopy = ({ searchParams, authToken }) => {
                                 fontSize: "12px",
                               }}
                             >
-                              {/* {timeCalc(inf.duration_minutes)} */}
+                              {formatMinutesToHours(inf.duration_minutes)}
                             </div>
                             <div
                               style={{

@@ -53,6 +53,7 @@ export default function BookingForm() {
   const [isOpenContact, setIsOpenContact] = useState(false);
   const [showFareRules, setShowFareRules] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
   const router = useRouter();
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
@@ -267,10 +268,10 @@ export default function BookingForm() {
           // Validate DOB range if dobDate is valid
           if (dobDate < minDate) {
             dobDate = new Date(minDate);
-            dobDate.setDate(dobDate.getDate() + 1); // Add 1 day
+            dobDate.setDate(dobDate.getDate()); // Add 1 day
           } else if (dobDate > maxDate) {
             dobDate = new Date(maxDate);
-            dobDate.setDate(dobDate.getDate() + 1); // Add 1 day
+            dobDate.setDate(dobDate.getDate()); // Add 1 day
           }
         }
 
@@ -447,6 +448,7 @@ export default function BookingForm() {
 
   const handleBooking = (e) => {
     e.preventDefault();
+    setIsBookingLoading(true);
 
     if (token == null || token == undefined || token == "") {
       refetchRegister();
@@ -480,6 +482,8 @@ export default function BookingForm() {
       setSearchData([]);
       setLegDescription([]);
       setSelectedFlight({});
+    } else {
+      setIsBookingLoading(false);
     }
   }, [bookingData]);
 
@@ -569,7 +573,7 @@ export default function BookingForm() {
     }));
   };
 
-  if (registerLoading || bookingLoading) {
+  if (isBookingLoading) {
     return (
       <div className="fixed  inset-0 flex items-center justify-center bg-white z-50">
         <div className="w-full md:w-[750px]">
@@ -821,7 +825,7 @@ export default function BookingForm() {
                   </Link>
                 </div>
                 {/* {passengerInformation?.length > 0 && ( */}
-                <div className="p-3 bg-[#FC660F] rounded-[6px]">
+                <div className="p-3 bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px]">
                   <button
                     onClick={() => handleChangeTab("payment")}
                     type="button"
