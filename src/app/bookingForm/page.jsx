@@ -5,6 +5,7 @@ import BookingFormComp from "@/components/bookingFormComp/BookingFormComp";
 import { ChevronLeft, Info, Timer } from "lucide-react";
 import Link from "next/link";
 import { isExpired } from "react-jwt";
+import "react-phone-input-2/lib/style.css";
 import {
   ChevronDown,
   ChevronUp,
@@ -27,6 +28,7 @@ import { getAirline } from "@/utils/getAirline";
 import { useAirlines } from "@/hooks/useAirlines";
 import Cookies from "js-cookie";
 import { duration } from "moment";
+import PhoneInput from "react-phone-input-2";
 
 export default function BookingForm() {
   const {
@@ -53,6 +55,7 @@ export default function BookingForm() {
   const [isOpenContact, setIsOpenContact] = useState(false);
   const [showFareRules, setShowFareRules] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
   const router = useRouter();
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
@@ -267,10 +270,10 @@ export default function BookingForm() {
           // Validate DOB range if dobDate is valid
           if (dobDate < minDate) {
             dobDate = new Date(minDate);
-            dobDate.setDate(dobDate.getDate() + 1); // Add 1 day
+            dobDate.setDate(dobDate.getDate()); // Add 1 day
           } else if (dobDate > maxDate) {
             dobDate = new Date(maxDate);
-            dobDate.setDate(dobDate.getDate() + 1); // Add 1 day
+            dobDate.setDate(dobDate.getDate()); // Add 1 day
           }
         }
 
@@ -447,6 +450,7 @@ export default function BookingForm() {
 
   const handleBooking = (e) => {
     e.preventDefault();
+    setIsBookingLoading(true);
 
     if (token == null || token == undefined || token == "") {
       refetchRegister();
@@ -480,6 +484,8 @@ export default function BookingForm() {
       setSearchData([]);
       setLegDescription([]);
       setSelectedFlight({});
+    } else {
+      setIsBookingLoading(false);
     }
   }, [bookingData]);
 
@@ -569,7 +575,7 @@ export default function BookingForm() {
     }));
   };
 
-  if (registerLoading || bookingLoading) {
+  if (isBookingLoading) {
     return (
       <div className="fixed  inset-0 flex items-center justify-center bg-white z-50">
         <div className="w-full md:w-[750px]">
@@ -747,25 +753,24 @@ export default function BookingForm() {
                   Contact Info
                 </label>
 
-                <div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
-                    <div>
-                      <input
-                        onChange={(e) =>
-                          setContactInfo({
-                            ...contactInfo,
-                            email: e.target.value,
-                          })
-                        }
-                        type="text"
-                        id={`email`}
-                        name={`email`}
-                        value={contactInfo?.email ? contactInfo?.email : ""}
-                        placeholder="Email address"
-                        className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+                  <div>
+                    <input
+                      onChange={(e) =>
+                        setContactInfo({
+                          ...contactInfo,
+                          email: e.target.value,
+                        })
+                      }
+                      type="text"
+                      id={`email`}
+                      name={`email`}
+                      value={contactInfo?.email ? contactInfo?.email : ""}
+                      placeholder="Email address"
+                      className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
+                    />
+                  </div>
+                  {/* <div className="flex flex-col gap-4">
                       <div>
                         <input
                           onChange={(e) =>
@@ -782,16 +787,26 @@ export default function BookingForm() {
                           className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
                         />
                       </div>
-                      {/*  {Object.keys(contactInfo).length == 0 && (
-                        <div className="flex justify-center  md:justify-end ">
-                          <button
-                            onClick={handleContactInfo}
-                            className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
-                          >
-                            Save & Next
-                          </button>
-                        </div>
-                      )} */}
+                      
+                    </div> */}
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <PhoneInput
+                        country={"bd"} // Default country (Bangladesh)
+                        value={contactInfo?.phone || ""}
+                        onChange={(phone) =>
+                          setContactInfo({
+                            ...contactInfo,
+                            phone: phone,
+                          })
+                        }
+                        inputProps={{
+                          name: "phone",
+                          required: true,
+                          className:
+                            "border pl-10 border-[#9B9B9B] p-3 w-full rounded-[4px] focus:outline-none",
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -821,7 +836,7 @@ export default function BookingForm() {
                   </Link>
                 </div>
                 {/* {passengerInformation?.length > 0 && ( */}
-                <div className="p-3 bg-[#FC660F] rounded-[6px]">
+                <div className="p-3 bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px]">
                   <button
                     onClick={() => handleChangeTab("payment")}
                     type="button"

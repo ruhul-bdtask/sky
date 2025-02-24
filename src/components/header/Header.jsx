@@ -707,7 +707,7 @@ export default function Header() {
               }}
             >
               <Image
-                className="mx-0 w-full hidden md:block"
+                className="mx-0 w-28 hidden md:block"
                 alt="logo"
                 src={logo}
               ></Image>

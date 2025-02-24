@@ -98,7 +98,7 @@ export default function FlightCard({
       if (res?.data?.data) {
         setSelectedFlight(res?.data?.data?.sortedItineraries);
         router.push("/bookingForm");
-        setLoadingRevalidate(false);
+        // setLoadingRevalidate(false);
       } else {
         toast.error(res?.data?.message);
         setLoadingRevalidate(false);

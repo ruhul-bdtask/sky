@@ -15,10 +15,12 @@ import { useRouter } from "next/navigation";
 import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import { Oval } from "react-loader-spinner";
+import "react-phone-input-2/lib/style.css";
 import Cookies from "js-cookie";
 import useAirlineStore from "../../../stores/airlineStore";
 import LoginWithGoogle from "@/components/login/LoginWithGoogle";
 import LoginWithFacebook from "@/components/login/LoginWithFacebook";
+import PhoneInput from "react-phone-input-2";
 export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -110,7 +112,6 @@ export default function Page() {
     if (payload) {
       registerDataRefetch();
     }
-
   };
 
   useEffect(() => {
@@ -208,7 +209,7 @@ export default function Page() {
                 className="w-full border rounded-md px-3 py-2 text-sm mt-1"
               />
             </div>
-            <div>
+            {/* <div>
               <label
                 htmlFor="phone"
                 className="block text-sm font-medium text-gray-700"
@@ -222,6 +223,28 @@ export default function Page() {
                 name="phone"
                 placeholder="Enter your phone"
                 className="w-full border rounded-md px-3 py-2 text-sm mt-1"
+              />
+            </div> */}
+            <div>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Phone
+              </label>
+              <PhoneInput
+                country={"bd"} // Default country
+                value={phone}
+                onChange={(phone) => {
+                  setPhone(phone);
+                }}
+                inputProps={{
+                  name: "phone",
+                  id: "phone",
+                  required: true,
+                  className:
+                    "pl-10 w-full border rounded-md px-3 py-2 text-sm ",
+                }}
               />
             </div>
             <div>

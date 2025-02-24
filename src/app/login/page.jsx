@@ -33,7 +33,8 @@ export default function Page() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [payload, setPayload] = useState(null);
-  const { token, setToken, setUserData, userData } = useAirlineStore();
+  const { token, setToken, setUserData, userData, setRecentSearchData } =
+    useAirlineStore();
 
   const { syncSavedFlights } = useSyncSavedFlights();
 
@@ -47,6 +48,28 @@ export default function Page() {
     queryFn: () => fetchData("/gds/save-trips", "GET", payload, token),
     enabled: false,
   });
+
+  const {
+    data: savedRecentSearches,
+    isLoading: savedRecentSearchesLoading,
+    refetch: savedRecentSearchesRefetch,
+  } = useQuery({
+    queryKey: ["saved-searches"],
+    queryFn: () => fetchData("/gds/recent-searches", "GET", undefined, token),
+    enabled: false,
+  });
+
+  useEffect(() => {
+    if (token) {
+      savedRecentSearchesRefetch();
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (savedRecentSearches?.data) {
+      setRecentSearchData(savedRecentSearches?.data);
+    }
+  }, [savedRecentSearches]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -78,7 +101,7 @@ export default function Page() {
       try {
         setIsLoading(true);
         const data = await fetchData("/user/login", "POST", payload);
-        const token = data.authorization?.token;
+        const token = data?.authorization?.token;
 
         if (!token) throw new Error("No token received from the server.");
 
