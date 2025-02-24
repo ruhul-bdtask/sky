@@ -948,9 +948,6 @@ export default function SearchPad() {
       }
     }
 
-    console.log(isDuplicate);
-    return;
-
     setOriginQuery(searchQueryOrigin);
     setDestinationQuery(searchQueryDestination);
     // setTravelPlanningDate(originalDate);
