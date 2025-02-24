@@ -1918,7 +1918,7 @@ export default function SearchPad() {
                                   {/* <p className="font-semibold capitalize">
                                         {recent?.type} Trip
                                       </p> */}
-                                  {recent?.legs.map((leg, legIndex) => (
+                                  {recent?.legs?.map((leg, legIndex) => (
                                     <div key={legIndex}>
                                       <p className="font-semibold text-[14px]">
                                         {leg?.from} → {leg?.to}
