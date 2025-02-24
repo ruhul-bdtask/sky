@@ -5,6 +5,7 @@ import BookingFormComp from "@/components/bookingFormComp/BookingFormComp";
 import { ChevronLeft, Info, Timer } from "lucide-react";
 import Link from "next/link";
 import { isExpired } from "react-jwt";
+import "react-phone-input-2/lib/style.css";
 import {
   ChevronDown,
   ChevronUp,
@@ -27,6 +28,7 @@ import { getAirline } from "@/utils/getAirline";
 import { useAirlines } from "@/hooks/useAirlines";
 import Cookies from "js-cookie";
 import { duration } from "moment";
+import PhoneInput from "react-phone-input-2";
 
 export default function BookingForm() {
   const {
@@ -751,25 +753,24 @@ export default function BookingForm() {
                   Contact Info
                 </label>
 
-                <div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
-                    <div>
-                      <input
-                        onChange={(e) =>
-                          setContactInfo({
-                            ...contactInfo,
-                            email: e.target.value,
-                          })
-                        }
-                        type="text"
-                        id={`email`}
-                        name={`email`}
-                        value={contactInfo?.email ? contactInfo?.email : ""}
-                        placeholder="Email address"
-                        className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+                  <div>
+                    <input
+                      onChange={(e) =>
+                        setContactInfo({
+                          ...contactInfo,
+                          email: e.target.value,
+                        })
+                      }
+                      type="text"
+                      id={`email`}
+                      name={`email`}
+                      value={contactInfo?.email ? contactInfo?.email : ""}
+                      placeholder="Email address"
+                      className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
+                    />
+                  </div>
+                  {/* <div className="flex flex-col gap-4">
                       <div>
                         <input
                           onChange={(e) =>
@@ -786,16 +787,26 @@ export default function BookingForm() {
                           className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
                         />
                       </div>
-                      {/*  {Object.keys(contactInfo).length == 0 && (
-                        <div className="flex justify-center  md:justify-end ">
-                          <button
-                            onClick={handleContactInfo}
-                            className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
-                          >
-                            Save & Next
-                          </button>
-                        </div>
-                      )} */}
+                      
+                    </div> */}
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <PhoneInput
+                        country={"bd"} // Default country (Bangladesh)
+                        value={contactInfo?.phone || ""}
+                        onChange={(phone) =>
+                          setContactInfo({
+                            ...contactInfo,
+                            phone: phone,
+                          })
+                        }
+                        inputProps={{
+                          name: "phone",
+                          required: true,
+                          className:
+                            "border pl-10 border-[#9B9B9B] p-3 w-full rounded-[4px] focus:outline-none",
+                        }}
+                      />
                     </div>
                   </div>
                 </div>

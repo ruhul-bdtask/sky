@@ -26,7 +26,11 @@ export default function Preferences({ userDataLoading }) {
   useEffect(() => {
     if (userData) {
       setHomeAirport(userData?.home_airport);
-      setSecondaryAirports(userData?.secondary_airports);
+      setSecondaryAirports(
+        userData?.secondary_airports !== null
+          ? userData?.secondary_airports
+          : []
+      );
     }
   }, [userData]);
 
@@ -108,25 +112,22 @@ export default function Preferences({ userDataLoading }) {
   };
 
   const handleSelection = (airport) => {
-    if (
-      secondaryAirports?.length < 3 &&
-      !secondaryAirports?.includes(airport.label)
-    ) {
-      setSecondaryAirports([...secondaryAirports, airport.label]);
-    } else {
-      toast.error("You can only select up to 3 secondary airports");
-    }
+    setSecondaryAirports([...secondaryAirports, airport.label]);
+
     setTempInput("");
     setDropdownOpen(false);
   };
 
+  console.log(secondaryAirports);
+
   const handleSelectionHome = (airport) => {
-    console.log(airport);
     setHomeAirport(airport.label);
 
     setTempInputHome("");
     setHomeDropdownOpen(false);
   };
+
+  
 
   const removeSecondaryAirport = (airport) => {
     setSecondaryAirports(secondaryAirports?.filter((item) => item !== airport));
