@@ -718,17 +718,17 @@ export default function SearchPad() {
     mutationFn: (payload) =>
       fetchData("/gds/recent-searches", "POST", payload, token),
     onSuccess: (data) => {
-      toast.success(data?.message);
+      // toast.success(data?.message);
       setRecentSearchData(data?.data);
     },
     onError: (error) => {
       console.error("Mutation failed", error);
-      toast.error(error?.message);
+      // toast.error(error?.message);
     },
   });
 
   const mutationDelete = useMutation({
-    mutationFn: (payload) =>
+    mutationFn: () =>
       fetchData("/gds/recent-searches", "DELETE", undefined, token),
     onSuccess: (data) => {
       toast.success(data?.message);
@@ -811,11 +811,11 @@ export default function SearchPad() {
     //   }
     // }
 
-    if (!originalDate) {
-      toast.error("Please select a departure date.");
-
+    if (!originalDate || isNaN(new Date(originalDate).getTime())) {
+      toast.error("Please select a valid departure date.");
       return;
     }
+
     if (selectedWay !== "multi_city" && !originAirport) {
       toast.error("Please select a Departure airport.");
 
@@ -1325,22 +1325,6 @@ export default function SearchPad() {
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                           <Airplane />
                         </div>
-                        {/* <input
-                          value={row.searchQueryOrigin}
-                          type="text"
-                          onChange={(e) =>
-                            updateCityData(
-                              row.id,
-                              "searchQueryOrigin",
-                              e.target.value
-                            )
-                          }
-                          placeholder="From ?"
-                          className="w-full pl-10 pr-4 py-4  focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Airplane />
-                        </div> */}
                       </div>
                       {row?.isOpenOrigin ? (
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
@@ -1901,43 +1885,57 @@ export default function SearchPad() {
                               ))}
                             </ul>
                           </div>
-                          <ul className="space-y-4 max-h-[200px] overflow-y-auto">
-                            {recentSearchData?.map((recent, index) => (
-                              <li
-                                key={index}
-                                onClick={() => handleSubmitRecentSearch(recent)}
-                                className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                              >
-                                <div className="bg-[#FFF3EB] p-4 rounded-lg">
-                                  <Airplane />
-                                </div>
-                                <div>
-                                  {/* <p className="font-semibold capitalize">
+                          {recentSearchData?.length > 0 ? (
+                            <div className="p-8">
+                              <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                Recent Searches
+                                <button
+                                  type="button"
+                                  onClick={() => handleRecentSearchDelete()}
+                                  className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
+                                >
+                                  Clear
+                                </button>
+                              </h3>
+                              <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                {recentSearchData?.map((recent, index) => (
+                                  <li
+                                    key={index}
+                                    onClick={() =>
+                                      handleSubmitRecentSearch(recent)
+                                    }
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                  >
+                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                      <Airplane />
+                                    </div>
+                                    <div>
+                                      {/* <p className="font-semibold capitalize">
                                         {recent?.type} Trip
                                       </p> */}
-                                  {recent?.legs?.map((leg, legIndex) => (
-                                    <div key={legIndex}>
-                                      <p className="font-semibold text-[14px]">
-                                        {leg?.from} → {leg?.to}
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        {moment(leg?.departure_date).format(
-                                          "MMMM Do, YYYY"
-                                        )}
-
-                                        {leg?.arrival_date && (
-                                          <>
-                                            <span> - </span>
-
-                                            {moment(leg?.arrival_date).format(
+                                      {recent?.legs?.map((leg, legIndex) => (
+                                        <div key={legIndex}>
+                                          <p className="font-semibold text-[14px]">
+                                            {leg?.from} → {leg?.to}
+                                          </p>
+                                          <p className="text-xs text-gray-500">
+                                            {moment(leg?.departure_date).format(
                                               "MMMM Do, YYYY"
                                             )}
-                                          </>
-                                        )}
-                                      </p>
-                                    </div>
-                                  ))}
-                                  {/* <p className="text-sm text-gray-500">
+
+                                            {leg?.arrival_date && (
+                                              <>
+                                                <span> - </span>
+
+                                                {moment(
+                                                  leg?.arrival_date
+                                                ).format("MMMM Do, YYYY")}
+                                              </>
+                                            )}
+                                          </p>
+                                        </div>
+                                      ))}
+                                      {/* <p className="text-sm text-gray-500">
                                         {recent?.passengers
                                           ?.map(
                                             (pax) =>
@@ -1945,10 +1943,14 @@ export default function SearchPad() {
                                           )
                                           .join(", ")}
                                       </p> */}
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : (
+                            ""
+                          )}
                           {!token && (
                             <div className="px-8 pb-8 ">
                               <div className="space-y-4 max-h-[200px] overflow-y-auto">
@@ -2099,45 +2101,57 @@ export default function SearchPad() {
                                 )}
                               </ul>
                             </div>
-                            <ul className="space-y-4 max-h-[200px] overflow-y-auto">
-                              {recentSearchData?.map((recent, index) => (
-                                <li
-                                  key={index}
-                                  onClick={() =>
-                                    handleSubmitRecentSearch(recent)
-                                  }
-                                  className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                >
-                                  <div className="bg-[#FFF3EB] p-4 rounded-lg">
-                                    <Airplane />
-                                  </div>
-                                  <div>
-                                    {/* <p className="font-semibold capitalize">
+                            {recentSearchData?.length > 0 ? (
+                              <div className="p-8">
+                                <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                  Recent Searches
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRecentSearchDelete()}
+                                    className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
+                                  >
+                                    Clear
+                                  </button>
+                                </h3>
+                                <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                  {recentSearchData?.map((recent, index) => (
+                                    <li
+                                      key={index}
+                                      onClick={() =>
+                                        handleSubmitRecentSearch(recent)
+                                      }
+                                      className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                    >
+                                      <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                        <Airplane />
+                                      </div>
+                                      <div>
+                                        {/* <p className="font-semibold capitalize">
                                         {recent?.type} Trip
                                       </p> */}
-                                    {recent?.legs.map((leg, legIndex) => (
-                                      <div key={legIndex}>
-                                        <p className="font-semibold text-[14px]">
-                                          {leg?.from} → {leg?.to}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                          {moment(leg?.departure_date).format(
-                                            "MMMM Do, YYYY"
-                                          )}
+                                        {recent?.legs.map((leg, legIndex) => (
+                                          <div key={legIndex}>
+                                            <p className="font-semibold text-[14px]">
+                                              {leg?.from} → {leg?.to}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              {moment(
+                                                leg?.departure_date
+                                              ).format("MMMM Do, YYYY")}
 
-                                          {leg?.arrival_date && (
-                                            <>
-                                              <span> - </span>
+                                              {leg?.arrival_date && (
+                                                <>
+                                                  <span> - </span>
 
-                                              {moment(leg?.arrival_date).format(
-                                                "MMMM Do, YYYY"
+                                                  {moment(
+                                                    leg?.arrival_date
+                                                  ).format("MMMM Do, YYYY")}
+                                                </>
                                               )}
-                                            </>
-                                          )}
-                                        </p>
-                                      </div>
-                                    ))}
-                                    {/* <p className="text-sm text-gray-500">
+                                            </p>
+                                          </div>
+                                        ))}
+                                        {/* <p className="text-sm text-gray-500">
                                         {recent?.passengers
                                           ?.map(
                                             (pax) =>
@@ -2145,10 +2159,14 @@ export default function SearchPad() {
                                           )
                                           .join(", ")}
                                       </p> */}
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              ""
+                            )}
                             {!token && (
                               <div className="px-8 pb-8 ">
                                 <div className="space-y-4 max-h-[200px] overflow-y-auto">
@@ -2277,45 +2295,57 @@ export default function SearchPad() {
                                 )}
                               </ul>
 
-                              <ul className="space-y-4 max-h-[200px] overflow-y-auto">
-                                {recentSearchData?.map((recent, index) => (
-                                  <li
-                                    key={index}
-                                    onClick={() =>
-                                      handleSubmitRecentSearch(recent)
-                                    }
-                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                  >
-                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
-                                      <Airplane />
-                                    </div>
-                                    <div>
-                                      {/* <p className="font-semibold capitalize">
+                              {recentSearchData?.length > 0 ? (
+                                <div className="p-8">
+                                  <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                    Recent Searches
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRecentSearchDelete()}
+                                      className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
+                                    >
+                                      Clear
+                                    </button>
+                                  </h3>
+                                  <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                    {recentSearchData?.map((recent, index) => (
+                                      <li
+                                        key={index}
+                                        onClick={() =>
+                                          handleSubmitRecentSearch(recent)
+                                        }
+                                        className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                      >
+                                        <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                          <Airplane />
+                                        </div>
+                                        <div>
+                                          {/* <p className="font-semibold capitalize">
                                         {recent?.type} Trip
                                       </p> */}
-                                      {recent?.legs.map((leg, legIndex) => (
-                                        <div key={legIndex}>
-                                          <p className="font-semibold text-[14px]">
-                                            {leg?.from} → {leg?.to}
-                                          </p>
-                                          <p className="text-xs text-gray-500">
-                                            {moment(leg?.departure_date).format(
-                                              "MMMM Do, YYYY"
-                                            )}
-
-                                            {leg?.arrival_date && (
-                                              <>
-                                                <span> - </span>
-
+                                          {recent?.legs.map((leg, legIndex) => (
+                                            <div key={legIndex}>
+                                              <p className="font-semibold text-[14px]">
+                                                {leg?.from} → {leg?.to}
+                                              </p>
+                                              <p className="text-xs text-gray-500">
                                                 {moment(
-                                                  leg?.arrival_date
+                                                  leg?.departure_date
                                                 ).format("MMMM Do, YYYY")}
-                                              </>
-                                            )}
-                                          </p>
-                                        </div>
-                                      ))}
-                                      {/* <p className="text-sm text-gray-500">
+
+                                                {leg?.arrival_date && (
+                                                  <>
+                                                    <span> - </span>
+
+                                                    {moment(
+                                                      leg?.arrival_date
+                                                    ).format("MMMM Do, YYYY")}
+                                                  </>
+                                                )}
+                                              </p>
+                                            </div>
+                                          ))}
+                                          {/* <p className="text-sm text-gray-500">
                                         {recent?.passengers
                                           ?.map(
                                             (pax) =>
@@ -2323,10 +2353,14 @@ export default function SearchPad() {
                                           )
                                           .join(", ")}
                                       </p> */}
-                                    </div>
-                                  </li>
-                                ))}
-                              </ul>
+                                        </div>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : (
+                                ""
+                              )}
                               {!token && (
                                 <div className="px-8 pb-8 ">
                                   <div className="space-y-4 max-h-[200px] overflow-y-auto">

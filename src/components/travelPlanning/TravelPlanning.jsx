@@ -47,45 +47,49 @@ export default function TravelPlanning() {
   };
 
   return (
-    <div className="py-10">
-      <div className="pb-6">
-        <h2 className="text-[24px] font-bold text-black">
-          Start your travel planning here
-        </h2>
-        <p className="text-[16px]">Search Flights</p>
-      </div>
-      <div className="w-full    ">
-        <Accordion
-          type="single"
-          collapsible
-          className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-10"
-        >
-          {travelData?.data?.map((destination, index) => (
-            <AccordionItem value={destination.name} key={index}>
-              <div className="text-[16ox] font-semibold py-3">
-                {destination.name}
-              </div>
-              <AccordionTrigger className="text-left py-1">
-                <div className="text-[12px]  text-[#0C7C99]">FLIGHTS</div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="space-y-2">
-                  {destination.routes.map((item, itemIndex) => (
-                    <li
-                      onClick={() => handleSearch(item, destination)}
-                      key={itemIndex}
-                      className="flex justify-between text-sm hover:underline cursor-pointer"
-                    >
-                      <span>{item.departure}</span>
-                      <span className="text-gray-600">{item.price}</span>
-                    </li>
-                  ))}
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </div>
-    </div>
+    <>
+      {travelData?.data?.length > 0 && (
+        <div className="py-10">
+          <div className="pb-6">
+            <h2 className="text-[24px] font-bold text-black">
+              Start your travel planning here
+            </h2>
+            <p className="text-[16px]">Search Flights</p>
+          </div>
+          <div className="w-full    ">
+            <Accordion
+              type="single"
+              collapsible
+              className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-10"
+            >
+              {travelData?.data?.map((destination, index) => (
+                <AccordionItem value={destination.name} key={index}>
+                  <div className="text-[16ox] font-semibold py-3">
+                    {destination.name}
+                  </div>
+                  <AccordionTrigger className="text-left py-1">
+                    <div className="text-[12px]  text-[#0C7C99]">FLIGHTS</div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <ul className="space-y-2">
+                      {destination.routes.map((item, itemIndex) => (
+                        <li
+                          onClick={() => handleSearch(item, destination)}
+                          key={itemIndex}
+                          className="flex justify-between text-sm hover:underline cursor-pointer"
+                        >
+                          <span>{item.departure}</span>
+                          <span className="text-gray-600">{item.price}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

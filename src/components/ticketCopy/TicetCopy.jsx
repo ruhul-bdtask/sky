@@ -8,6 +8,7 @@ import { fetchData } from "@/utils/api";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
+import Loading from "../loader/Loading";
 const TicketCopy = ({ searchParams, authToken }) => {
   const [buffer, setBuffer] = useState(true);
   const contentRef = useRef(null);
@@ -47,7 +48,7 @@ const TicketCopy = ({ searchParams, authToken }) => {
     };
 
     checkAuth();
-  }, [authToken]);
+  }, [token]);
 
   const payload = {
     tran_id: searchParams.slack,
@@ -60,7 +61,7 @@ const TicketCopy = ({ searchParams, authToken }) => {
     refetch: refetchBookingData,
   } = useQuery({
     queryKey: ["reservation-info", payload],
-    queryFn: () => fetchData("/gds/reservation-info", "POST", payload, token),
+    queryFn: () => fetchData("/gds/reservation-info", "POST", payload, null),
     enabled: false,
   });
 
@@ -76,21 +77,17 @@ const TicketCopy = ({ searchParams, authToken }) => {
     }
   }, [bookingData]);
 
-
-
-
-
-  if (loading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#FC660F] z-50">
-        <img
-          src={"/ticketing.gif"}
-          alt="Loading..."
-          className="w-48 md:w-64 h-full object-contain"
-        />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+  //       <img
+  //         src={"/ticketing.gif"}
+  //         alt="Loading..."
+  //         className="w-48 md:w-64 h-full object-contain"
+  //       />
+  //     </div>
+  //   );
+  // }
 
   if (bookingData?.success == false) {
     return (
@@ -106,6 +103,7 @@ const TicketCopy = ({ searchParams, authToken }) => {
 
   return (
     <div>
+      <Loading loading={loading} />
       <div
         className="body0container"
         style={{

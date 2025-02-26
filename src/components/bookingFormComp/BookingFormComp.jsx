@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { FaArrowRightToBracket } from "react-icons/fa6";
 const countryOptions = require("../../../public/utils/countries.json");
+import { IoIosArrowDown } from "react-icons/io";
 
 export default function BookingFormComp({
   index,
@@ -42,7 +43,7 @@ export default function BookingFormComp({
   //     alignItems: "center", // Center the selected value vertically
   //   }),
   // };
-
+  console.log(passenger);
   const customStyles = {
     control: (base, state) => ({
       ...base,
@@ -100,7 +101,7 @@ export default function BookingFormComp({
 
   const documentTypes = [
     { value: "passport", label: "Passport", shortCode: "p" },
-    { value: "nid", label: "Nid", shortCode: "n" },
+    { value: "nid", label: "NID", shortCode: "n" },
   ];
 
   const titles = [
@@ -189,33 +190,57 @@ export default function BookingFormComp({
 
   const { minDate, maxDate } = getDateLimits(passenger.type);
 
+  const formatDateString = (date) => {
+    if (!date) return "";
+
+    // Get year, month, and day components and create a date string in YYYY-MM-DD format
+    // This avoids timezone issues that can occur with toISOString()
+    const year = date?.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
+
+  useEffect(() => {
+    if (!passenger?.dob) {
+      updatePassengerData(index, "dob", formatDateString(maxDate));
+    }
+  }, [passenger, index]);
+
   return (
     <div>
       <div className="py-6 px-4 md:px-16  shadow-custom_shadow">
-        <label
-          className={`block text-sm font-medium ${
-            tabIndex === index ? "text-black" : "text-[#9A9A9A]"
-          } mb-1 cursor-pointer text-[18px] font-[600] rounded-[4px]`}
+        <div
+          className="flex justify-between items-center cursor-pointer"
           onClick={() => handleDetails(index)}
         >
-          {Object.keys(passengerInformation).length == 0 ? (
-            <>
-              <span>Passenger {index + 1}</span> (
-              {passenger?.type == "C04"
-                ? "KID"
-                : passenger.type == "C06"
-                ? "CHILD"
-                : passenger?.type}
-              )
-            </>
-          ) : passengerInformation[index]?.first_name == "" ? (
-            "Fill up this box also..."
-          ) : (
-            passengerInformation[index]?.first_name +
-            " " +
-            passengerInformation[index]?.last_name
-          )}
-        </label>
+          <label
+            className={`block text-sm font-medium ${
+              tabIndex === index ? "text-black" : "text-[#9A9A9A]"
+            } mb-1  text-[18px] font-[600] rounded-[4px]`}
+          >
+            {Object.keys(passengerInformation).length == 0 ? (
+              <>
+                <span>Passenger {index + 1}</span> (
+                {passenger?.type == "C04"
+                  ? "KID"
+                  : passenger.type == "C06"
+                  ? "CHILD"
+                  : passenger?.type}
+                )
+              </>
+            ) : passengerInformation[index]?.first_name == "" ? (
+              "Fill up this box also..."
+            ) : (
+              passengerInformation[index]?.first_name +
+              " " +
+              passengerInformation[index]?.last_name
+            )}
+          </label>
+          <IoIosArrowDown />
+        </div>
         <div className={`${tabIndex === index ? "block" : "hidden"}`}>
           <p className="text-[14px] text-[#8696A1]">
             Make sure the names you enter exactly match your passport, and
@@ -233,7 +258,7 @@ export default function BookingFormComp({
                       titles.find(
                         (option) =>
                           option.value === passengerData[index][`pxn_title`]
-                      ) || { label: "Mr.", value: "Mr." } // Default to "Mr."
+                      ) || { label: "Mr", value: "Mr" } // Default to "Mr."
                     }
                     onChange={(selected) =>
                       updatePassengerData(index, `pxn_title`, selected.value)
@@ -325,24 +350,7 @@ export default function BookingFormComp({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="w-full">
                   <label htmlFor="">Document Expiry</label>
-                  {/* <Datetime
-                    inputProps={{
-                      className:
-                        "border-2 border-gray-300 p-2.5 w-full rounded-[4px] focus:outline-none outline-none focus:outline-none focus:ring-0",
-                    }}
-                    dateFormat="DD-MM-YYYY"
-                    timeFormat={false}
-                    initialValue={moment().add(10, "day")}
-                    // isValidDate={valid}
-                    value={
-                      passenger.doc_expire_date
-                        ? moment(passenger.doc_expire_date)
-                        : ""
-                    }
-                    onChange={(date) =>
-                      updatePassengerData(index, "doc_expire_date", date)
-                    }
-                  /> */}
+                 
                   <div
                     className="w-full border-2 border-gray-300 rounded-[4px] focus:outline-none" // Ensure border styles here
                   >
@@ -351,12 +359,17 @@ export default function BookingFormComp({
                         updatePassengerData(
                           index,
                           "document_expiration_date",
-                          date
+                          // new Date(date).toLocaleDateString()
+                          // moment(date).toISOString()
+                          formatDateString(date)
                         ); // Update passenger data
                       }}
                       value={
                         passenger.document_expiration_date
-                          ? moment(passenger.document_expiration_date)
+                          ? moment
+                              .utc(passenger.document_expiration_date)
+                              .startOf("day")
+                              .toDate() // Force UTC date part only
                           : ""
                       }
                       minDate={new Date()} // Prevent selecting past dates
@@ -394,41 +407,23 @@ export default function BookingFormComp({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="w-full">
                   <label htmlFor="">Date of birth</label>
-                  {/* <Datetime
-                    inputProps={{
-                      className:
-                        "border-2 border-gray-300 p-2.5 w-full rounded-[4px] focus:outline-none outline-none focus:outline-none focus:ring-0",
-                    }}
-                    dateFormat="DD-MM-YYYY"
-                    timeFormat={false}
-                    initialValue={moment().add(10, "day")}
-                    // isValidDate={valid}
-                    value={passenger.dob ? moment(passenger.dob) : ""}
-                    onChange={(date) => updatePassengerData(index, "dob", date)}
-                  /> */}
+                 
                   <div
                     className="w-full border-2 border-gray-300 rounded-[4px] focus:outline-none" // Ensure border styles here
                   >
-                    {/* <DatePicker
-                      onChange={(date) => {
-                        updatePassengerData(index, "dob", date); // Update passenger data
-                      }}
-                      value={passenger.dob ? moment(passenger.dob) : ""}
-                      maxDate={new Date()} // Prevent selecting past dates
-                      format="dd-MM-yyyy"
-                      className="w-full p-3  focus:outline-none" // Ensure border styles here
-                      calendarClassName="rounded-md shadow-lg border-gray-200"
-                      clearIcon={null} // Removes the clear icon for a cleaner design
-                    /> */}
+                    
                     <DatePicker
                       onChange={(date) =>
-                        updatePassengerData(index, "dob", date)
+                        updatePassengerData(
+                          index,
+                          "dob",
+                          // new Date(date).toLocaleDateString()
+                          formatDateString(date)
+                        )
                       }
                       value={
                         passenger.dob
-                          ? new Date(
-                              moment.utc(passenger.dob).format("YYYY-MM-DD")
-                            ) // Fix timezone shift
+                          ? moment.utc(passenger.dob).startOf("day").toDate() // Force UTC date part only
                           : maxDate
                       }
                       minDate={minDate}

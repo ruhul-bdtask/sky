@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import SavedTripsList from "@/components/tripsList/SavedTripLits";
 import { useAirlines } from "@/hooks/useAirlines";
+import Loading from "@/components/loader/Loading";
 export default function Page() {
   const { token, setToken, savedTrips, setSavedTrips, setSelectedSavedTrip } =
     useAirlineStore();
@@ -87,17 +88,17 @@ export default function Page() {
     }
   }, [allPnrData]);
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#FC660F] z-50">
-        <img
-          src={"/ticketing.gif"}
-          alt="Loading..."
-          className="w-48 md:w-64 h-full object-contain"
-        />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+  //       <img
+  //         src={"/ticketing.gif"}
+  //         alt="Loading..."
+  //         className="w-48 md:w-64 h-full object-contain"
+  //       />
+  //     </div>
+  //   );
+  // }
 
   if (allPnrData?.success == false) {
     return (
@@ -122,114 +123,119 @@ export default function Page() {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <h2 className="text-[36px] font-[700] py-8">Trips</h2>
-      <div className=" bg-white shadow-custom_shadow flex items-center justify-between flex-wrap gap-5 py-5 px-5 sm:px-20 rounded-[7px]">
-        <div className="col-span-3">
-          <p className="text-[24px] font-[500]">{mergedArray?.length}</p>
-          <span className="text-[14px]">All</span>
-        </div>
-        <div className="col-span-3">
-          <p className="text-[24px] font-[500]">{allFlights?.length}</p>
-          <span className="text-[14px]">Saved flights</span>
-        </div>
-        <div className="col-span-3">
-          <p className="text-[24px] font-[500]">{allPnrData?.data?.length}</p>
-          <span className="text-[14px]">Booked Trips</span>
-        </div>
-        {/* <button className="col-span-1 flex justify-end items-center">
+    <>
+      <Loading loading={loading} />
+      <div className="w-full max-w-4xl mx-auto">
+        <h2 className="text-[36px] font-[700] py-8">Trips</h2>
+        <div className=" bg-white shadow-custom_shadow flex items-center justify-between flex-wrap gap-5 py-5 px-5 sm:px-20 rounded-[7px]">
+          <div className="col-span-3">
+            <p className="text-[24px] font-[500]">{mergedArray?.length}</p>
+            <span className="text-[14px]">All</span>
+          </div>
+          <div className="col-span-3">
+            <p className="text-[24px] font-[500]">{allFlights?.length}</p>
+            <span className="text-[14px]">Saved flights</span>
+          </div>
+          <div className="col-span-3">
+            <p className="text-[24px] font-[500]">{allPnrData?.data?.length}</p>
+            <span className="text-[14px]">Booked Trips</span>
+          </div>
+          {/* <button className="col-span-1 flex justify-end items-center">
           <RightIcon />
         </button> */}
-      </div>
-      {/* <h2 className="text-[20px] font-[600] w-[160px] my-10 ml-2 pb-1  border-b-2 border-black">
+        </div>
+        {/* <h2 className="text-[20px] font-[600] w-[160px] my-10 ml-2 pb-1  border-b-2 border-black">
         Ticket List <span className="">({allPnrData?.data?.length})</span>
       </h2> */}
 
-      <div className="w-full max-w-5xl mx-auto my-10 ">
-        <Tabs defaultValue="list" className="w-full ">
-          <TabsList className="grid w-full grid-cols-3 gap-2">
-            <TabsTrigger value="list" className="border">
-              All
-            </TabsTrigger>
-            <TabsTrigger value="saved" className="border">
-              Saved flights
-            </TabsTrigger>
-            <TabsTrigger value="trips" className="border">
-              Booked Trips
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="list">
-            <div className="">
-              <ScrollArea className="max-h-screen overflow-y-scroll">
-                {mergedArray?.length == 0 && (
-                  <div className=" mt-10 ">
-                    <div>
-                      <p className="text-center text-red-500">
-                        No trips or flights found
-                      </p>
+        <div className="w-full max-w-5xl mx-auto my-10 ">
+          <Tabs defaultValue="list" className="w-full ">
+            <TabsList className="grid w-full grid-cols-3 gap-2">
+              <TabsTrigger value="list" className="border">
+                All
+              </TabsTrigger>
+              <TabsTrigger value="saved" className="border">
+                Saved flights
+              </TabsTrigger>
+              <TabsTrigger value="trips" className="border">
+                Booked Trips
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="list">
+              <div className="">
+                <ScrollArea className="max-h-screen overflow-y-scroll">
+                  {mergedArray?.length == 0 && (
+                    <div className=" mt-10 ">
+                      <div>
+                        <p className="text-center text-red-500">
+                          No trips or flights found
+                        </p>
+                      </div>
                     </div>
+                  )}
+                  <div className="mt-10 p-4">
+                    {mergedArray?.map((booking, index) => (
+                      <TripsList
+                        airlinesData={airlinesData}
+                        booking={booking}
+                        key={index}
+                      />
+                    ))}
                   </div>
-                )}
-                <div className="mt-10 p-4">
-                  {mergedArray?.map((booking, index) => (
-                    <TripsList
-                      airlinesData={airlinesData}
-                      booking={booking}
-                      key={index}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          </TabsContent>
-          <TabsContent value="saved">
-            <div className="">
-              <ScrollArea className="max-h-screen overflow-y-scroll">
-                {allFlights?.length == 0 && (
-                  <div className=" mt-10 ">
-                    <div>
-                      <p className="text-center text-red-500">
-                        No saved flights found
-                      </p>
+                </ScrollArea>
+              </div>
+            </TabsContent>
+            <TabsContent value="saved">
+              <div className="">
+                <ScrollArea className="max-h-screen overflow-y-scroll">
+                  {allFlights?.length == 0 && (
+                    <div className=" mt-10 ">
+                      <div>
+                        <p className="text-center text-red-500">
+                          No saved flights found
+                        </p>
+                      </div>
                     </div>
+                  )}
+                  <div className="mt-10 p-4 ">
+                    {allFlights?.map((booking, index) => (
+                      <SavedTripsList
+                        airlinesData={airlinesData}
+                        booking={booking}
+                        key={index}
+                      />
+                    ))}
                   </div>
-                )}
-                <div className="mt-10 p-4 ">
-                  {allFlights?.map((booking, index) => (
-                    <SavedTripsList
-                      airlinesData={airlinesData}
-                      booking={booking}
-                      key={index}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          </TabsContent>
-          <TabsContent value="trips">
-            <div className="">
-              <ScrollArea className="max-h-screen overflow-y-scroll">
-                {allPnrData?.data?.length == 0 && (
-                  <div className=" mt-10 ">
-                    <div>
-                      <p className="text-center text-red-500">No trips found</p>
+                </ScrollArea>
+              </div>
+            </TabsContent>
+            <TabsContent value="trips">
+              <div className="">
+                <ScrollArea className="max-h-screen overflow-y-scroll">
+                  {allPnrData?.data?.length == 0 && (
+                    <div className=" mt-10 ">
+                      <div>
+                        <p className="text-center text-red-500">
+                          No trips found
+                        </p>
+                      </div>
                     </div>
+                  )}
+                  <div className="mt-10 p-4 ">
+                    {allPnrData?.data?.map((booking, index) => (
+                      <TripsList
+                        airlinesData={airlinesData}
+                        booking={booking}
+                        key={index}
+                      />
+                    ))}
                   </div>
-                )}
-                <div className="mt-10 p-4 ">
-                  {allPnrData?.data?.map((booking, index) => (
-                    <TripsList
-                      airlinesData={airlinesData}
-                      booking={booking}
-                      key={index}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          </TabsContent>
-        </Tabs>
+                </ScrollArea>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

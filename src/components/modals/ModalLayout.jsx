@@ -572,25 +572,25 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       });
     }
 
-    if (selectedWay !== "multi_city") {
-      const recentSearch = {
-        origin: searchQueryOrigin,
-        destination: searchQueryDestination,
-        tripType: selectedWay,
-        class: selectedClass,
-        passengers: passengers,
-        journeyDate: originalDate,
-        returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
-        originAirport: originAirport,
-        destinationAirport: destinationAirport,
-      };
+    // if (selectedWay !== "multi_city") {
+    //   const recentSearch = {
+    //     origin: searchQueryOrigin,
+    //     destination: searchQueryDestination,
+    //     tripType: selectedWay,
+    //     class: selectedClass,
+    //     passengers: passengers,
+    //     journeyDate: originalDate,
+    //     returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+    //     originAirport: originAirport,
+    //     destinationAirport: destinationAirport,
+    //   };
 
-      const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
-        0,
-        5
-      );
-      setRecentSearchData(updatedRecentSearches);
-    }
+    //   const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
+    //     0,
+    //     5
+    //   );
+    //   setRecentSearchData(updatedRecentSearches);
+    // }
 
     setOriginDestinationInformation(originDestinationInfo);
 
@@ -767,7 +767,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
         >
           <div className="p-8 bg-[#ffffff] min-h-[320px] shadow-md ">
             <Link href={"/"} onClick={() => setIsModalOpen(false)}>
-              <Image className="mx-4 md:mx-0 " alt="logo" src={logo}></Image>
+              <Image className="mx-4 md:mx-0 w-24" alt="logo" src={logo}></Image>
             </Link>
 
             <main

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/drawer";
 import _ from "lodash";
 import { FilterXIcon } from "lucide-react";
+import Loading from "@/components/loader/Loading";
 export default function Page({ searchParams }) {
   const [loadingRevalidate, setLoadingRevalidate] = useState(false);
   const ref = useRef(null);
@@ -398,20 +399,21 @@ export default function Page({ searchParams }) {
       quickest: quickestFlight,
     });
   }, [allFlights]);
-  if (loadingRevalidate) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#FC660F] z-50">
-        <img
-          src={"/ticketing.gif"}
-          alt="Loading..."
-          className="w-48 md:w-64 h-full object-contain"
-        />
-      </div>
-    );
-  }
+  // if (loadingRevalidate) {
+  //   return (
+  //     <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+  //       <img
+  //         src={"/ticketing.gif"}
+  //         alt="Loading..."
+  //         className="w-48 md:w-64 h-full object-contain"
+  //       />
+  //     </div>
+  //   );
+  // }
 
   return (
     <>
+      <Loading loading={loadingRevalidate} />
       <div className="bg-[#F0F3F5] py-10">
         <LoadingBar color="#f11946" height={2} ref={ref} />
         {allFlightsLoading ? (

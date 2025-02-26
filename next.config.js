@@ -5,6 +5,7 @@ module.exports = {
     domains: [
       "pics.avs.io",
       "143.110.191.53",
+      "ticketing.com.bd",
       "tbbd-flight.s3.ap-southeast-1.amazonaws.com",
       "192.168.1.162",
       "ticketing.com.bd",
