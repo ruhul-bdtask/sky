@@ -23,12 +23,12 @@ export default function Page() {
       const authToken = Cookies.get("auth-token");
 
       if (!authToken) {
+        Cookies.remove("auth-token");
+        setToken(null);
         if (savedTrips?.length > 0 && savedTrips[0]?.id) {
           setSavedTrips([]);
           setSelectedSavedTrip({});
         }
-        Cookies.remove("auth-token");
-        setToken(null);
         router.push("/login");
         return;
       }
