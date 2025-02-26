@@ -153,7 +153,6 @@ export default function FlightCard({
 
   const handleSavedFlights = async (event, flight, action) => {
     event.stopPropagation();
-
     // open SaveDialog
     setIsOpenSavedDialog(true);
 

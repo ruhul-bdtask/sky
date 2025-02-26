@@ -26,6 +26,11 @@ const FlightDetails = ({ flight }) => {
   const { airportsData } = useAirports();
   const { airlinesData } = useAirlines();
 
+  const totalFlightsDuration = flight.itinerary_leg_descs.reduce(
+    (total, current) => total + (current.duration || 0),
+    0
+  );
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
@@ -36,6 +41,7 @@ const FlightDetails = ({ flight }) => {
           Depart • {formatShortDate(departure_date)}
         </strong>
         <span>{flight_duration}</span>
+        <span>{formatMinutesToHours(totalFlightsDuration)}</span>
       </div>
 
       {schedules.map((schedule) => {
