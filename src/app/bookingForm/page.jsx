@@ -150,7 +150,7 @@ export default function BookingForm() {
 
   // Generate pxn_title fields dynamically
   const passengerTitles = passengerData?.reduce((acc, _, index) => {
-    acc[`pxn_title_${index + 1}`] = "Mr."; // Assign title, can adjust as needed
+    acc[`pxn_title_${index + 1}`] = "Mr"; // Assign title, can adjust as needed
     return acc;
   }, {});
 
@@ -249,6 +249,18 @@ export default function BookingForm() {
   //   );
   // };
 
+  const formatDateString = (date) => {
+    if (!date) return "";
+
+    // Get year, month, and day components and create a date string in YYYY-MM-DD format
+    // This avoids timezone issues that can occur with toISOString()
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
   const fillPassengerData = (index, value) => {
     setPassengerData((prevData) =>
       prevData.map((passenger, i) => {
@@ -338,28 +350,36 @@ export default function BookingForm() {
   //   }, {}),
   // };
 
-  const formatPassengerDate = (dateString) => {
-    if (!dateString) {
-      return "";
-    }
-    const date = new Date(dateString);
-    return date?.toISOString().split("T")[0]; // Extract YYYY-MM-DD
-  };
+  const formatDate = (inputDate) => {
+    if (!inputDate) return null;
 
+    // Check if the input is already in the short format
+    const shortFormatRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (shortFormatRegex.test(inputDate)) return inputDate;
+
+    // Convert full timestamp to short format
+    const date = new Date(inputDate);
+    if (isNaN(date.getTime())) return null; // Invalid date check
+
+    return date.toISOString().split("T")[0]; // Extract YYYY-MM-DD
+  };
   // // const formattedDate = formatDate("Sun Feb 02 2025 00:00:00 GMT+0600");
   // console.log(formattedDate); // "2025-02-02"
 
-  const PassengerInformation = {
+  // console.log(formatDate("2001-01-18T18:00:00.000Z")); // Output: "2001-01-18"
+  // console.log(formatDate("2001-01-01")); // Output: "2001-01-01"
+
+  const customersInfo = {
     email: contactInfo?.email,
     phone_no: contactInfo?.phone,
     pxn_type: passengerData?.map((p) => p.pxn_type),
     first_name: passengerData?.map((p) => p.first_name),
     last_name: passengerData?.map((p) => p.last_name),
-    dob: passengerData?.map((p) => formatPassengerDate(p.dob) || ""),
+    dob: passengerData?.map((p) => formatDate(p.dob) || ""),
     doc_type: passengerData?.map((p) => p.document_type || ""),
     doc_number: passengerData?.map((p) => p.document_number || ""),
     doc_expire_date: passengerData?.map((p) =>
-      formatPassengerDate(p.document_expiration_date)
+      formatDate(p.document_expiration_date)
     ),
     doc_issue_country: passengerData?.map(
       (p) => p.document_nationality_country || ""
@@ -367,14 +387,9 @@ export default function BookingForm() {
     nationality: passengerData?.map(
       (p) => p.document_nationality_country || ""
     ),
-    // ...passengerData?.reduce((acc, passenger, index) => {
-    //   const titleKey = `pxn_title_${index + 1}`;
-    //   acc[titleKey] = passenger[titleKey] || "Mr.";
-    //   return acc;
-    // }, {}),
   };
   passengerData?.forEach((p, index) => {
-    PassengerInformation[`pxn_title_${index + 1}`] = p.pxn_title;
+    customersInfo[`pxn_title_${index + 1}`] = p.pxn_title;
   });
 
   useEffect(() => {
@@ -382,7 +397,7 @@ export default function BookingForm() {
     const totalPassengers = passengers?.flatMap((p) =>
       Array.from({ length: p.quantity }, () => ({
         pxn_type: p.type === "ADT" || p.type == "INF" ? p.type : "CNN",
-        pxn_title: "Mr.", // Default title
+        pxn_title: "Mr", // Default title
         first_name: "",
         type: p.type,
         last_name: "",
@@ -398,7 +413,7 @@ export default function BookingForm() {
     setPassengerData((prevData) =>
       totalPassengers?.map((newPassenger, index) => ({
         ...newPassenger,
-        pxn_title: prevData?.[index]?.pxn_title || "Mr.", // Persist the existing title or set default
+        pxn_title: prevData?.[index]?.pxn_title || "Mr", // Persist the existing title or set default
       }))
     );
   }, [passengers]);
@@ -415,9 +430,21 @@ export default function BookingForm() {
       LegDescription: LegDescription,
       DirectFlightsOnly: directFlightsOnly,
       AvailableFlightsOnly: availableFlightsOnly,
-      PassengerInformation: PassengerInformation,
+      PassengerInformation: customersInfo,
     },
   };
+
+  // const {
+  //   data: bookingData,
+  //   error: bookingError,
+  //   isLoading: bookingLoading,
+  //   refetch: refetchBookingData,
+  // } = useQuery({
+  //   queryKey: ["bookingData", payload],
+  //   queryFn: () => fetchData("/gds/make-booking", "POST", payload, token),
+  //   enabled: false,
+  //
+  // });
 
   const {
     data: bookingData,
@@ -426,7 +453,26 @@ export default function BookingForm() {
     refetch: refetchBookingData,
   } = useQuery({
     queryKey: ["bookingData", payload],
-    queryFn: () => fetchData("/gds/make-booking", "POST", payload, token),
+    queryFn: async () => {
+      const response = await fetchData(
+        "/gds/make-booking",
+        "POST",
+        payload,
+        token
+      );
+      if (response?.success == true) {
+        router.push(response?.data?.redirect_url);
+        setPassengerInformation([]);
+        setContactInformation({});
+        setOriginDestinationInformation([]);
+        setSearchData([]);
+        setLegDescription([]);
+        setSelectedFlight({});
+      } else {
+        setIsBookingLoading(false);
+      }
+      return response;
+    },
     enabled: false,
   });
 
@@ -475,19 +521,22 @@ export default function BookingForm() {
     }
   }, [registerData, token]);
 
-  useEffect(() => {
-    if (bookingData?.success == true) {
-      router.push(bookingData?.data?.redirect_url);
-      setPassengerInformation([]);
-      setContactInformation({});
-      setOriginDestinationInformation([]);
-      setSearchData([]);
-      setLegDescription([]);
-      setSelectedFlight({});
-    } else {
-      setIsBookingLoading(false);
-    }
-  }, [bookingData]);
+  // useEffect(() => {
+  //   if (bookingData?.success == true) {
+  //     // router.push(bookingData?.data?.redirect_url);
+  //     // setPassengerInformation([]);
+  //     // setContactInformation({});
+  //     // setOriginDestinationInformation([]);
+  //     // setSearchData([]);
+  //     // setLegDescription([]);
+  //     // setSelectedFlight({});
+  //     console.log(bookingData);
+  //   } else {
+  //     setIsBookingLoading(false);
+  //   }
+  // }, [bookingData]);
+
+  // console.log(bookingData, payload, registerData);
 
   const validatePassengers = (passengers) => {
     const nameRegex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
@@ -563,6 +612,8 @@ export default function BookingForm() {
     if (!isValid) {
       return;
     }
+
+    console.log(passengerData, customersInfo);
     setPassengerInformation(passengerData);
     setContactInformation(contactInfo);
     setActiveTab(arg);

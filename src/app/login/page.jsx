@@ -79,17 +79,25 @@ export default function Page() {
     const trimmedPassword = password.trim();
     // Basic validations
     if (!trimmedEmail) {
-      return toast.error("Email is required.");
+      setIsLoading(false);
+      toast.error("Email is required.");
+      return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      return toast.error("Please enter a valid email address.");
+      setIsLoading(false);
+      toast.error("Please enter a valid email address.");
+      return;
     }
     if (!trimmedPassword) {
-      return toast.error("Password is required.");
+      setIsLoading(false);
+      toast.error("Password is required.");
+      return;
     }
     if (trimmedPassword.length < 8) {
-      return toast.error("Password must be at least 8 characters long.");
+      setIsLoading(false);
+      toast.error("Password must be at least 8 characters long.");
+      return;
     }
 
     const payload = {
@@ -113,12 +121,14 @@ export default function Page() {
         router.back();
       } catch (err) {
         console.error("Error during login:", err);
+        setIsLoading(false);
         setError(err.message || "Login failed.");
       } finally {
         setIsLoading(false);
       }
     } else {
       setError("Email and password are required.");
+      setIsLoading(false);
     }
   };
 

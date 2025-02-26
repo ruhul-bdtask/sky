@@ -59,34 +59,40 @@ export default function Services({ servicesData, homeDataLoading }) {
           </div>{" "}
         </>
       ) : (
-        <div className="py-10">
-          <h2 className="text-[24px] font-bold text-black">
-            What Ticketing brings to the table.
-          </h2>
+        <>
+          <div className="py-10">
+            {servicesData?.length > 0 && (
+              <>
+                <h2 className="text-[24px] font-bold text-black">
+                  What Ticketing brings to the table.
+                </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 mx-auto lg:grid-cols-4 gap-[10px]  my-4 place-items-center">
-            {servicesData?.map((service, index) => (
-              <div
-                className="w-full h-full rounded-[11px] border overflow-hidden"
-                key={index}
-              >
-                <div className="p-5">
-                  <div className="p-4 bg-[#FFDAC0] w-[56px] rounded-[7px]">
-                    <img src={service?.image_url} alt="Bangkok cityscape" />
-                  </div>
-                  <div className="py-4">
-                    <p className="text-[17px] font-semibold text-[#1C2226] mb-1">
-                      {service?.title}
-                    </p>
-                    <p className="text-[14px] text-[#6C7072] ">
-                      {service?.description}
-                    </p>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 mx-auto lg:grid-cols-4 gap-[10px]  my-4 place-items-center">
+                  {servicesData?.map((service, index) => (
+                    <div
+                      className="w-full h-full rounded-[11px] border overflow-hidden"
+                      key={index}
+                    >
+                      <div className="p-5">
+                        <div className="p-4 bg-[#FFDAC0] w-[56px] rounded-[7px]">
+                          <img src={service?.image_url} alt="icon" />
+                        </div>
+                        <div className="py-4">
+                          <p className="text-[17px] font-semibold text-[#1C2226] mb-1">
+                            {service?.title}
+                          </p>
+                          <p className="text-[14px] text-[#6C7072] ">
+                            {service?.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
+              </>
+            )}
           </div>
-        </div>
+        </>
       )}
     </div>
   );

@@ -149,50 +149,52 @@ export default function Travels({ latestFlightsLoading, travelsData }) {
           </div>
         </div>
       ) : (
-        <div className="w-full relative">
-          <div className="pb-6">
-            <h2 className="text-[24px] font-bold text-black">
-              Hop on, hop off
-            </h2>
-            <p className="text-[16px]">
-              Skip the layovers and fly nonstop to these destinations{" "}
-            </p>
-          </div>
-          <div className="">
-            <div className="z-10 prev absolute -left-4 top-0 bottom-0 my-auto bg-white shadow-lg rounded-lg w-[40px] h-[40px] flex justify-center items-center cursor-pointer ">
-              <FaAngleLeft />
-            </div>
-            <div className="z-10 next absolute -right-4 top-0 bottom-0 my-auto bg-white shadow-lg rounded-lg w-[40px] h-[40px] flex justify-center items-center cursor-pointer">
-              <FaAngleRight />
-            </div>
-          </div>
-          <Swiper
-            className="z-30"
-            slidesPerView={4}
-            spaceBetween={18}
-            breakpoints={{
-              375: {
-                slidesPerView: 1,
-              },
-              600: {
-                slidesPerView: 2,
-              },
-              1024: {
-                slidesPerView: 3,
-              },
-              1420: {
-                slidesPerView: 4,
-              },
-            }}
-            navigation={{
-              nextEl: ".next",
-              prevEl: ".prev",
-            }}
-            modules={[Navigation]}
-          >
-            {travelsData?.map((travel, index) => (
-              <SwiperSlide key={index} onClick={() => handleSearch(travel)}>
-                {/* <a
+        <>
+          {travelsData?.length > 0 && (
+            <div className="w-full relative">
+              <div className="pb-6">
+                <h2 className="text-[24px] font-bold text-black">
+                  Hop on, hop off
+                </h2>
+                <p className="text-[16px]">
+                  Skip the layovers and fly nonstop to these destinations{" "}
+                </p>
+              </div>
+              <div className="">
+                <div className="z-10 prev absolute -left-4 top-0 bottom-0 my-auto bg-white shadow-lg rounded-lg w-[40px] h-[40px] flex justify-center items-center cursor-pointer ">
+                  <FaAngleLeft />
+                </div>
+                <div className="z-10 next absolute -right-4 top-0 bottom-0 my-auto bg-white shadow-lg rounded-lg w-[40px] h-[40px] flex justify-center items-center cursor-pointer">
+                  <FaAngleRight />
+                </div>
+              </div>
+              <Swiper
+                className="z-30"
+                slidesPerView={4}
+                spaceBetween={18}
+                breakpoints={{
+                  375: {
+                    slidesPerView: 1,
+                  },
+                  600: {
+                    slidesPerView: 2,
+                  },
+                  1024: {
+                    slidesPerView: 3,
+                  },
+                  1420: {
+                    slidesPerView: 4,
+                  },
+                }}
+                navigation={{
+                  nextEl: ".next",
+                  prevEl: ".prev",
+                }}
+                modules={[Navigation]}
+              >
+                {travelsData?.map((travel, index) => (
+                  <SwiperSlide key={index} onClick={() => handleSearch(travel)}>
+                    {/* <a
                   href="#"
                   className="group relative block bg-black rounded-xl"
                 >
@@ -221,34 +223,34 @@ export default function Travels({ latestFlightsLoading, travelsData }) {
                   </div>
                 </a> */}
 
-                <div className="group relative block rounded-xl overflow-hidden cursor-pointer">
-                  <img
-                    alt=""
-                    src={travel?.image}
-                    className="absolute inset-0 min-h-full w-full object-cover"
-                  />
+                    <div className="group relative block rounded-xl overflow-hidden cursor-pointer">
+                      <img
+                        alt=""
+                        src={travel?.image}
+                        className="absolute inset-0 min-h-full w-full object-cover"
+                      />
 
-                  <div className="relative">
-                    <div className="p-8">
-                      <p className="bg-white text-black text-xs font-semibold py-1 px-2 rounded w-fit">
-                        {travel?.trip_type}
-                      </p>
-                    </div>
+                      <div className="relative">
+                        <div className="p-8">
+                          <p className="bg-white text-black text-xs font-semibold py-1 px-2 rounded w-fit">
+                            {travel?.trip_type}
+                          </p>
+                        </div>
 
-                    <div className="mt-32 sm:mt-48 lg:mt-64">
-                      <div className="translate-y-8 transform opacity-0 transition-all  group-hover:translate-y-0 group-hover:opacity-100  bg-black opacity-75i  p-4 rounded-b-lg">
-                        <p className="text-white text-[17px]">
-                          {travel?.origin_city} - {travel?.destination_city}
-                        </p>
-                        <span className="text-white text-[12px]">
-                          Price: {travel?.fare}
-                        </span>
+                        <div className="mt-32 sm:mt-48 lg:mt-64">
+                          <div className="translate-y-8 transform opacity-0 transition-all  group-hover:translate-y-0 group-hover:opacity-100  bg-black opacity-75i  p-4 rounded-b-lg">
+                            <p className="text-white text-[17px]">
+                              {travel?.origin_city} - {travel?.destination_city}
+                            </p>
+                            <span className="text-white text-[12px]">
+                              Price: {travel?.fare}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* <div className="">
+                    {/* <div className="">
                   <div className="">
                     <img
                       src={travel?.image}
@@ -269,10 +271,12 @@ export default function Travels({ latestFlightsLoading, travelsData }) {
                   <p className="text-[14px] text-black">{travel?.distance}</p>
                 </div>
                 </div> */}
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          )}
+        </>
       )}
     </>
   );

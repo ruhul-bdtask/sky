@@ -19,6 +19,7 @@ import { Navigation } from "swiper/modules";
 import Skeleton from "react-loading-skeleton";
 import useAirlineStore from "../../../stores/airlineStore";
 import Link from "next/link";
+import { formatDateForTicketCopy } from "@/lib/formatDateForTicketCopy";
 export default function WishlistTravels({ wishlistData, homeDataLoading }) {
   const { savedTrips } = useAirlineStore();
   const wishListData = [
@@ -70,70 +71,75 @@ export default function WishlistTravels({ wishlistData, homeDataLoading }) {
           </div>
         </div>
       ) : (
-        <div className="w-full relative py-6">
-          <div className="pb-6">
-            <h2 className="text-[24px] font-bold text-black">
-              Your Wishlist starts here
-            </h2>
-            <p className="text-[16px]">
-              Save destinations all in one place—even if you&apos;re not ready
-              to book
-            </p>
-          </div>
-          <div className="">
-            <div className="z-10 travel-prev absolute -left-4 top-0 bottom-0 my-auto bg-white shadow-lg rounded-lg w-[40px] h-[40px] flex justify-center items-center cursor-pointer ">
-              <FaAngleLeft />
+        <>
+          {savedTrips?.length > 0 && (
+            <div className="w-full relative py-6">
+              <div className="pb-6">
+                <h2 className="text-[24px] font-bold text-black">
+                  Your Wishlist starts here
+                </h2>
+                <p className="text-[16px]">
+                  Save destinations all in one place—even if you&apos;re not
+                  ready to book
+                </p>
+              </div>
+              <div className="">
+                <div className="z-10 travel-prev absolute -left-4 top-0 bottom-0 my-auto bg-white shadow-lg rounded-lg w-[40px] h-[40px] flex justify-center items-center cursor-pointer ">
+                  <FaAngleLeft />
+                </div>
+                <div className="z-10 travel-next absolute -right-4 top-0 bottom-0 my-auto bg-white shadow-lg rounded-lg w-[40px] h-[40px] flex justify-center items-center cursor-pointer">
+                  <FaAngleRight />
+                </div>
+              </div>
+              <Swiper
+                className="z-30"
+                slidesPerView={2}
+                breakpoints={{
+                  375: {
+                    slidesPerView: 1,
+                  },
+                  768: {
+                    slidesPerView: 2,
+                  },
+                }}
+                spaceBetween={18}
+                navigation={{
+                  nextEl: ".travel-next",
+                  prevEl: ".travel-prev",
+                }}
+                modules={[Navigation]}
+              >
+                {savedTrips?.map((item, index) => (
+                  <SwiperSlide key={index}>
+                    <Link
+                      href={"/trips"}
+                      className="w-full xl:w-[631px] overflow-hidden"
+                    >
+                      <div className="">
+                        <Image
+                          src={item?.image_url ? item?.image_url : bangkok}
+                          alt="Trip"
+                          width={631}
+                          height={200}
+                          className="object-cover h-[370px] w-full rounded-xl"
+                        />
+                      </div>
+                      <div className="py-4">
+                        <h3 className="font-semibold text-[16px] mb-1 text-black">
+                          {item?.destination}
+                        </h3>
+                        <p className="text-[14px] text-black">
+                          {formatDateForTicketCopy(item?.start_date)} -{" "}
+                          {formatDateForTicketCopy(item?.end_date)}
+                        </p>
+                      </div>
+                    </Link>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             </div>
-            <div className="z-10 travel-next absolute -right-4 top-0 bottom-0 my-auto bg-white shadow-lg rounded-lg w-[40px] h-[40px] flex justify-center items-center cursor-pointer">
-              <FaAngleRight />
-            </div>
-          </div>
-          <Swiper
-            className="z-30"
-            slidesPerView={2}
-            breakpoints={{
-              375: {
-                slidesPerView: 1,
-              },
-              768: {
-                slidesPerView: 2,
-              },
-            }}
-            spaceBetween={18}
-            navigation={{
-              nextEl: ".travel-next",
-              prevEl: ".travel-prev",
-            }}
-            modules={[Navigation]}
-          >
-            {savedTrips?.map((item, index) => (
-              <SwiperSlide key={index}>
-                <Link
-                  href={"/trips"}
-                  className="w-full xl:w-[631px] overflow-hidden"
-                >
-                  <div className="">
-                    <Image
-                      src={item?.image_url ? item?.image_url : bangkok}
-                      alt="Trip"
-                      width={631}
-                      height={200}
-                      className="object-cover h-[370px] w-full rounded-xl"
-                    />
-                  </div>
-                  <div className="py-4">
-                    <h3 className="font-semibold text-[16px] mb-1 text-black">
-                      {item?.destination}
-                    </h3>
-                    <p className="text-[14px] text-black">
-                      {item?.start_date} - {item?.end_date}
-                    </p>
-                  </div>
-                </Link>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
+          )}
+        </>
       )}
       {/* <div>
         <div className="pb-6">

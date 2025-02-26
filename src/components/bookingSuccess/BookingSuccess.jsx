@@ -14,7 +14,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
-export default function BookingSuccess({ data, slack }) {
+export default function BookingSuccess({ data, slack, message }) {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "short",
@@ -23,6 +23,8 @@ export default function BookingSuccess({ data, slack }) {
       day: "numeric",
     });
   };
+
+  console.log(message);
 
   const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(":");
@@ -84,61 +86,70 @@ export default function BookingSuccess({ data, slack }) {
 
           {/* Flight Details */}
           {data?.flights_info?.map((flight, index) => (
-            <div
-              key={index}
-              className="w-full border border-dashed p-4 rounded-lg mb-6"
-            >
-              <div className="flex items-center gap-4 mb-4">
-                <img
-                  src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${flight?.airline_code}.png`}
-                  alt="Air Asia Airlines"
-                  className="rounded-full w-12 h-12"
-                />
-                <div>
-                  <p className="font-medium">{flight?.airline_details}</p>
-                  <p className="text-sm text-gray-500">
-                    {flight?.flight_number} | {flight?.aircraft_type_name}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-center">
-                  <p className="text-xl font-bold">{flight?.departure_time}</p>
-                  <p className="text-sm text-gray-500">
-                    {formatDateForTicketCopy(flight?.departure_date)}
-                  </p>
-                  <p className="text-sm font-medium">{flight?.from_location}</p>
-                </div>
-
-                <div className="flex-1 mx-4">
-                  <div className="relative">
-                    <div className="border-t-2 border-gray-300 w-full absolute top-1/2 -translate-y-1/2"></div>
-                    <div className="text-center text-sm text-gray-500">
-                      {flight?.cabin_class}
-                    </div>
-                    <div className="text-center text-xs text-gray-400">
-                      {formatMinutesToHours(flight?.duration_minutes)}
-                    </div>
+            <>
+              <div
+                key={index}
+                className="w-full border border-dashed p-4 rounded-lg mb-6"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <img
+                    src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${flight?.airline_code}.png`}
+                    alt="Air Asia Airlines"
+                    className="rounded-full w-12 h-12"
+                  />
+                  <div>
+                    <p className="font-medium">{flight?.airline_details}</p>
+                    <p className="text-sm text-gray-500">
+                      {flight?.flight_number} | {flight?.aircraft_type_name}
+                    </p>
                   </div>
                 </div>
 
-                <div className="text-center">
-                  <p className="text-xl font-bold">{flight?.arrival_time}</p>
-                  <p className="text-sm text-gray-500">
-                    {formatDateForTicketCopy(flight?.arrival_date)}
-                  </p>
-                  <p className="text-sm font-medium">{flight?.to_location}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-center">
+                    <p className="text-xl font-bold">
+                      {flight?.departure_time}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {formatDateForTicketCopy(flight?.departure_date)}
+                    </p>
+                    <p className="text-sm font-medium">
+                      {flight?.from_location}
+                    </p>
+                  </div>
+
+                  <div className="flex-1 mx-4">
+                    <div className="relative">
+                      <div className="border-t-2 border-gray-300 w-full absolute top-1/2 -translate-y-1/2"></div>
+                      <div className="text-center text-sm text-gray-500">
+                        {flight?.cabin_class}
+                      </div>
+                      <div className="text-center text-xs text-gray-400">
+                        {formatMinutesToHours(flight?.duration_minutes)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-xl font-bold">{flight?.arrival_time}</p>
+                    <p className="text-sm text-gray-500">
+                      {formatDateForTicketCopy(flight?.arrival_date)}
+                    </p>
+                    <p className="text-sm font-medium">{flight?.to_location}</p>
+                  </div>
                 </div>
-              </div>
-              {/* 
+                {/* 
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">{flight?.cabin_class}</span>
                 <span className="font-bold">Tk.14,345</span>
               </div> */}
-            </div>
+              </div>
+            </>
           ))}
-
+          <p className="mb-2 text-sm">
+            <span>*</span>{" "}
+            {message == "0" ? "Your booking is issued automatically" : message}
+          </p>
           {/* Download Button */}
           <Link
             href={`/ticket-copy?status=success&slack=${slack}`}

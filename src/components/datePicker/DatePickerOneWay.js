@@ -48,7 +48,13 @@ export default function DatePickerOneWay({
               <div className="absolute left-3 text-gray-400">
                 <Calender />
               </div>
-              {originalDate ? (
+              {/* {originalDate ? (
+                formatLongDataToShort(originalDate)
+              ) : (
+                <span>Pick a date</span>
+              )} */}
+
+              {originalDate && !isNaN(new Date(originalDate)) ? (
                 formatLongDataToShort(originalDate)
               ) : (
                 <span>Pick a date</span>
@@ -85,11 +91,7 @@ export default function DatePickerOneWay({
               month: "space-y-4",
               caption: "flex justify-center pt-1 relative items-center ",
               caption_label: "text-[16px] font-bold ",
-              nav: "space-x-1 flex items-center",
-              nav_button: cn(
-                "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
-              ),
+
               nav_button_previous: "absolute left-1",
               nav_button_next: "absolute right-1",
               table: "w-[300px] border-collapse space-y-1",
