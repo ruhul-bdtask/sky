@@ -17,7 +17,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   FaFacebook,
+  FaHeart,
   FaLink,
+  FaRegHeart,
   FaTwitter,
   FaWhatsapp,
   FaYoutube,
@@ -62,8 +64,9 @@ export default function FlightCard({
   const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
   const { airlinesData } = useAirlines();
   const pathname = usePathname();
-  const toggleFlightDetails = (e) =>
+  const toggleFlightDetails = (e) => {
     setIsShowFlightDetails(!isShowFlightDetails);
+  };
   const [sharedInfo, setSharedInfo] = useState();
   const directFlightsOnly = false;
   const availableFlightsOnly = false;
@@ -146,7 +149,10 @@ export default function FlightCard({
     }
   }, [router]);
 
-  const handleSavedFlights = async (flight, action) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSavedFlights = async (event, flight, action) => {
+    event.stopPropagation();
     // open SaveDialog
     setIsOpenSavedDialog(true);
 
@@ -163,6 +169,7 @@ export default function FlightCard({
       toast.info("Please select a trip to save the flight");
       return;
     }
+    setLoading(true); // Start loading
 
     // getting matching flight to remove
     const matchingFlight = savedTrips
@@ -223,6 +230,7 @@ export default function FlightCard({
       // Send DELETE request to remove the flight from the database
       if (token) {
         const payload = { flight_uid: matchingFlight.uid };
+
         const response = await fetchData(
           "/gds/remove-flight",
           "POST",
@@ -240,9 +248,11 @@ export default function FlightCard({
             toast.success("Flight removed successfully!");
             setSavedTrips(res.data); // update the state with the modified trips
             setIsChangeTrip(false);
+            setLoading(false);
           }
           return;
         } else {
+          setLoading(false);
           console.error(response);
           toast.error(response?.errors?.[0] ?? "An unexpected error occurred.");
           return;
@@ -254,6 +264,7 @@ export default function FlightCard({
         const payload = {
           data: [{ trip_id: selectedSavedTrip?.id, flight_data: flight }],
         };
+
         const response = await fetchData(
           "/gds/save-flights",
           "POST",
@@ -271,9 +282,11 @@ export default function FlightCard({
             toast.success("Flight saved successfully!");
             setSavedTrips(res.data); // Update the state with the modified trips
             setIsChangeTrip(false);
+            setLoading(false);
           }
           return;
         } else {
+          setLoading(false);
           console.error(response);
           toast.error(response?.errors?.[0] ?? "An unexpected error occurred.");
           return;
@@ -285,6 +298,7 @@ export default function FlightCard({
     if (flightAlreadySaved) {
       setSavedTrips(updatedSavedTrips);
       setIsChangeTrip(false);
+      setLoading(false);
     } else {
       // Add the flight to the selectedSavedTrip
       updatedSavedTrips = updatedSavedTrips.map((trip) => {
@@ -298,6 +312,7 @@ export default function FlightCard({
       });
       setSavedTrips(updatedSavedTrips);
       setIsChangeTrip(false);
+      setLoading(false);
     }
   };
 
@@ -381,7 +396,8 @@ export default function FlightCard({
     };
   });
 
-  const handleShareFilter = (departure_time, arrival_time) => {
+  const handleShareFilter = (event, departure_time, arrival_time) => {
+    event.stopPropagation();
     const currentParams = new URLSearchParams(searchParams.toString());
     const newFilter = {
       departure_time,
@@ -701,14 +717,19 @@ export default function FlightCard({
             </svg>
           </button> */}
           <button
-            className={`border px-2 py-1 flex items-center gap-2 rounded-lg ${
-              isSavedFlight ? "bg-black text-white" : "bg-transparent"
-            }`}
-            onClick={() =>
-              handleSavedFlights(flight, isSavedFlight ? "remove" : "save")
+            className={`border px-2 py-1 flex items-center gap-2 rounded-lg `}
+            onClick={(e) =>
+              handleSavedFlights(e, flight, isSavedFlight ? "remove" : "save")
             }
           >
-            <Heart className="w-3 h-3" />
+            {/* <Heart className="w-3 h-3" /> */}
+            {loading ? (
+              <span className="animate-spin w-4 h-4 border-2 border-[#FC6610] border-t-transparent rounded-full"></span>
+            ) : isSavedFlight ? (
+              <FaHeart color="#FC6610" />
+            ) : (
+              <FaRegHeart />
+            )}
 
             {isSavedFlight ? (
               <p className="text-[12px] ">Saved</p>
@@ -763,17 +784,23 @@ export default function FlightCard({
                     className={`text-gray-600 hover:text-gray-800 flex flex-col gap-10 `}
                   >
                     <button
-                      className={`border px-2 py-1 flex items-center gap-2 rounded-lg ${
-                        isSavedFlight ? "bg-black text-white" : "bg-transparent"
-                      }`}
-                      onClick={() =>
+                      className={`border px-2 py-1 flex items-center gap-2 rounded-lg `}
+                      onClick={(e) =>
                         handleSavedFlights(
+                          e,
                           flight,
                           isSavedFlight ? "remove" : "save"
                         )
                       }
                     >
-                      <Heart className="w-3 h-3" />
+                      {/* <Heart className="w-3 h-3" /> */}
+                      {loading ? (
+                        <span className="animate-spin w-4 h-4 border-2 border-[#FC6610] border-t-transparent rounded-full"></span>
+                      ) : isSavedFlight ? (
+                        <FaHeart color="#FC6610" />
+                      ) : (
+                        <FaRegHeart />
+                      )}
 
                       {isSavedFlight ? (
                         <p className="text-[12px] ">Saved</p>
@@ -785,8 +812,9 @@ export default function FlightCard({
                   <div className="text-gray-600 hover:text-gray-800 flex flex-col gap-10">
                     <button
                       className="border px-2 py-1 flex items-center gap-2 rounded-lg"
-                      onClick={() =>
+                      onClick={(e) =>
                         handleShareFilter(
+                          e,
                           flight?.departure_time,
                           flight?.arrival_time
                         )
@@ -950,7 +978,10 @@ export default function FlightCard({
           </div>
 
           {isShareModalOpen && (
-            <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"
+            >
               <div className="bg-white rounded-lg p-6 max-w-full md:max-w-[450px] py-8 flex flex-col gap-5">
                 <div className="flex justify-between flex-wrap">
                   <h3 className="text-xl font-semibold text-center ">
