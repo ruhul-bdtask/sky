@@ -48,6 +48,10 @@ export default function Page() {
       if (!authToken) {
         Cookies.remove("auth-token");
         setToken(null);
+        if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+          setSavedTrips([]);
+          setSelectedSavedTrip({});
+        }
 
         router.push("/login");
         return;

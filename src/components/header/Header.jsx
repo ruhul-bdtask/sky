@@ -34,6 +34,7 @@ import { isExpired } from "react-jwt";
 import { useQuery } from "@tanstack/react-query";
 import { BiSolidUser } from "react-icons/bi";
 import { formatShortDate } from "@/lib/formatShortDate";
+import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
@@ -778,7 +779,7 @@ export default function Header() {
                   <LuChevronsLeftRight size={20} />
                   {tripType == "return" && (
                     <>
-                      <div class="border-l-2 border-gray-100 h-5"></div>
+                      <div className="border-l-2 border-gray-100 h-5"></div>
                       {formatLongDataToShort(returnDate)}{" "}
                       <LuChevronsLeftRight size={20} />
                     </>
@@ -826,7 +827,7 @@ export default function Header() {
                     className="absolute inset-0 "
                     onClick={handleSaved}
                   ></div>
-                  <div className="absolute right-0 top-[80px] h-[calc(100vh-80px)] w-full max-w-[380px] overflow-y-auto bg-white shadow-xl transition-transform duration-300 ease-in-out">
+                  <div className="absolute right-0 top-[80px] h-[calc(100vh-80px)] w-full max-w-[370px] overflow-y-auto bg-white shadow-xl transition-transform duration-300 ease-in-out">
                     <div className="sticky top-0 z-10 border-b bg-white p-4">
                       <div className="flex items-center justify-between">
                         <button
@@ -867,12 +868,20 @@ export default function Header() {
                               ></Image>
                               <div>
                                 <h2 className="text-lg font-bold">
-                                  {selectedSavedTrip.name}
+                                  {selectedSavedTrip?.name}
                                 </h2>
                                 <div className="text-sm text-black flex space-x-1">
-                                  <span>{selectedSavedTrip.start_date}</span>
+                                  <span>
+                                    {formatShortDate(
+                                      selectedSavedTrip?.start_date
+                                    )}
+                                  </span>
                                   <span>-</span>
-                                  <span> {selectedSavedTrip.end_date}</span>
+                                  <span>
+                                    {formatShortDate(
+                                      selectedSavedTrip?.end_date
+                                    )}
+                                  </span>
                                 </div>
                               </div>
                             </div>
@@ -885,7 +894,7 @@ export default function Header() {
                           </div>
 
                           <div className="px-4 pb-2 border-b">
-                            <h4 className="text-lg font-semibold">Flights</h4>
+                            <h4 className="text-md font-semibold">Flights</h4>
                           </div>
 
                           <div className="p-4">
@@ -899,35 +908,36 @@ export default function Header() {
                             {groupedFlights?.map((data, index) => (
                               <div
                                 key={index}
-                                class="w-full shadow-xl rounded-[20px] mb-6"
+                                className="w-full shadow-xl rounded-[20px] mb-6"
                               >
-                                <div class="flex justify-between items-center bg-[#F0F3F5] border-b  rounded-t-[20px] p-4">
-                                  <div class="text-left">
-                                    <div class="text-lg flex items-center space-x-1 font-semibold text-gray-800">
+                                <div className="flex justify-between items-center bg-[#F0F3F5] border-b  rounded-t-[20px] p-4">
+                                  <div className="text-left">
+                                    <div className="text-md flex items-center space-x-1 font-semibold text-gray-800">
                                       <span>{data?.origin_code}</span>
                                       <MdOutlineArrowRightAlt />
                                       <span>{data?.destination_code}</span>
                                     </div>
-                                    <div class="text-sm text-black">
+                                    <div className="text-sm text-black">
                                       {data?.departure_date}
                                     </div>
                                   </div>
-                                  <div class="text-right">
-                                    {/* <span class="text-xs font-medium text-black">
+                                  <div className="text-right">
+                                    {/* <span className="text-xs font-medium text-black">
                                       Economy
                                     </span> */}
                                   </div>
                                 </div>
+                                {/* =================Flights list================= */}
                                 {data?.flights?.map((flight, index) => (
                                   <div
                                     // onClick={() =>
                                     //   handleRedirect(flight?.flight_data)
                                     // }
-                                    class="flex flex-col p-4 border-b cursor-pointer"
+                                    className="flex flex-col p-4 border-b cursor-pointer"
                                     key={index}
                                   >
                                     <div className="flex items-center justify-between text-sm">
-                                      <span class="font-medium text-gray-800">
+                                      <span className="font-medium text-gray-800">
                                         {flight?.flight_data?.airline_name}
                                       </span>
                                       <div
@@ -943,71 +953,58 @@ export default function Header() {
                                     </div>
                                     <div className="flex items-center gap-2 justify-between pt-2">
                                       <div className="">
-                                        {flight?.flight_data?.schedules?.map(
-                                          (schedule, index) => (
-                                            <div className="" key={index}>
-                                              <div class="text-xs text-black border px-2 inline-block rounded-md mb-2 font-semibold ">
-                                                {
-                                                  flight?.flight_data
-                                                    ?.departure_date
-                                                }
-                                              </div>
+                                        <div className="text-xs text-black border px-2 inline-block rounded-md mb-2 font-semibold ">
+                                          {flight?.flight_data?.departure_date}
+                                        </div>
 
-                                              <div class="flex items-center justify-between">
-                                                <Image
-                                                  width={50}
-                                                  height={50}
-                                                  src={
-                                                    flight?.flight_data
-                                                      ?.airline_logo
-                                                  }
-                                                  alt="Air line Logo"
-                                                  class="h-8 w-8 object-contain"
-                                                />
-                                                <div class="flex flex-col text-center ">
-                                                  <span class=" font-semibold">
-                                                    {unifyTimeFormat(
-                                                      flight?.flight_data
-                                                        ?.departure_time
-                                                    )}
-                                                  </span>
-                                                  <span class="text-xs text-black">
-                                                    {
-                                                      flight?.flight_data
-                                                        ?.origin_code
-                                                    }
-                                                  </span>
-                                                </div>
-                                                <div class="flex flex-col items-center text-xs text-black border-b mx-2">
-                                                  <span>
-                                                    {
-                                                      flight?.flight_data
-                                                        ?.flight_duration
-                                                    }
-                                                  </span>
-                                                </div>
-                                                <div class="flex flex-col text-center">
-                                                  <span class=" font-semibold">
-                                                    {unifyTimeFormat(
-                                                      flight?.flight_data
-                                                        ?.arrival_time
-                                                    )}
-                                                  </span>
-                                                  <span class="text-xs text-black">
-                                                    {
-                                                      flight?.flight_data
-                                                        ?.destination_code
-                                                    }
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          )
-                                        )}
+                                        <div className="flex items-center justify-between">
+                                          <Image
+                                            width={50}
+                                            height={50}
+                                            src={
+                                              flight?.flight_data?.airline_logo
+                                            }
+                                            alt="Air line Logo"
+                                            className="h-8 w-8 object-contain mr-2"
+                                          />
+                                          <div className="flex flex-col text-center ">
+                                            <span className="font-semibold text-sm">
+                                              {unifyTimeFormat(
+                                                flight?.flight_data
+                                                  ?.departure_time
+                                              )}
+                                            </span>
+                                            <span className="text-black text-xs">
+                                              {flight?.flight_data?.origin_code}
+                                            </span>
+                                          </div>
+                                          <div className="flex flex-col items-center text-xs text-black border-b mx-2">
+                                            <span>
+                                              {
+                                                flight?.flight_data
+                                                  ?.flight_duration
+                                              }
+                                            </span>
+                                          </div>
+                                          <div className="flex flex-col text-center">
+                                            <span className=" font-semibold text-sm">
+                                              {unifyTimeFormat(
+                                                flight?.flight_data
+                                                  ?.arrival_time
+                                              )}
+                                            </span>
+                                            <span className="text-black text-xs">
+                                              {
+                                                flight?.flight_data
+                                                  ?.destination_code
+                                              }
+                                            </span>
+                                          </div>
+                                        </div>
                                       </div>
-                                      <div class="">
-                                        <div class=" font-semibold text-black">
-                                          Tk .
+                                      <div className="">
+                                        <div className="font-semibold text-black text-md">
+                                          Tk.{" "}
                                           {formatFlightFare(
                                             flight?.flight_data?.fare_details
                                               ?.total_fare

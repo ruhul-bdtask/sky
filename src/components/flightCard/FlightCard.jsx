@@ -175,9 +175,7 @@ export default function FlightCard({
             fl?.flight_data?.departure_date === flight?.departure_date &&
             fl?.flight_data?.arrival_date === flight?.arrival_date &&
             fl?.flight_data?.arrival_time === flight?.arrival_time &&
-            fl?.flight_data?.departure_time === flight?.departure_time &&
-            fl?.flight_data?.air_pricing_solution_key ===
-              flight?.air_pricing_solution_key
+            fl?.flight_data?.departure_time === flight?.departure_time
         )
       )
       .find((flight) => flight !== undefined);
@@ -194,9 +192,7 @@ export default function FlightCard({
           fl?.flight_data?.departure_date === flight?.departure_date &&
           fl?.flight_data?.arrival_date === flight?.arrival_date &&
           fl?.flight_data?.arrival_time === flight?.arrival_time &&
-          fl?.flight_data?.departure_time === flight?.departure_time &&
-          fl?.flight_data?.air_pricing_solution_key ===
-            flight?.air_pricing_solution_key
+          fl?.flight_data?.departure_time === flight?.departure_time
       );
 
       if (flightExists) {
@@ -215,9 +211,7 @@ export default function FlightCard({
                 fl?.flight_data?.departure_date === flight?.departure_date &&
                 fl?.flight_data?.arrival_date === flight?.arrival_date &&
                 fl?.flight_data?.arrival_time === flight?.arrival_time &&
-                fl?.flight_data?.departure_time === flight?.departure_time &&
-                fl?.flight_data?.air_pricing_solution_key ===
-                  flight?.air_pricing_solution_key
+                fl?.flight_data?.departure_time === flight?.departure_time
               )
           ),
         };
@@ -567,6 +561,8 @@ export default function FlightCard({
       )
     );
   }, [savedTrips, flight]);
+  // && fl?.flight_data?.air_pricing_solution_key === flight?.air_pricing_solution_key
+
   return (
     <>
       {/* Mobile */}

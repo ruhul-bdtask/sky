@@ -24,7 +24,8 @@ const removeDuplicateFlights = (flights) => {
 };
 
 const useSyncSavedFlights = () => {
-  const { token, setToken, savedTrips, setSavedTrips } = useAirlineStore();
+  const { token, setToken, savedTrips, setSavedTrips, setSelectedSavedTrip } =
+    useAirlineStore();
   // const formattedSavedFlights = formatSavedFlight(savedTrips);
   const payloadData = savedTrips?.map((trip) => {
     return {
@@ -40,14 +41,11 @@ const useSyncSavedFlights = () => {
   const syncSavedFlights = async (token) => {
     try {
       if (savedTrips.length > 0) {
-        // post existing local saved flights to the server
-        const response = await fetchData(
-          "/gds/save-bulk-trips",
-          "POST",
-          payload,
-          token
-        );
-        if (response.success) {
+        // token expired but if still saved trips exist in local storage
+        const isExist = savedTrips.some((trip) => trip.id);
+        if (savedTrips?.length > 0 && isExist) {
+          setSavedTrips([]);
+          setSelectedSavedTrip({});
           const response = await fetchData(
             "/gds/get-saved-trips",
             "GET",
@@ -56,9 +54,32 @@ const useSyncSavedFlights = () => {
           );
           if (response.success && response.data) {
             setSavedTrips(response.data);
+            setSelectedSavedTrip({});
+          } else {
+            throw new Error("Failed to sync saved flights.");
           }
         } else {
-          throw new Error(response.errors[0]);
+          // post existing local saved flights to the server
+          const response = await fetchData(
+            "/gds/save-bulk-trips",
+            "POST",
+            payload,
+            token
+          );
+          if (response.success) {
+            const response = await fetchData(
+              "/gds/get-saved-trips",
+              "GET",
+              null,
+              token
+            );
+            if (response.success && response.data) {
+              setSavedTrips(response.data);
+              setSelectedSavedTrip({});
+            }
+          } else {
+            throw new Error(response.errors[0]);
+          }
         }
       } else {
         const response = await fetchData(
@@ -69,6 +90,7 @@ const useSyncSavedFlights = () => {
         );
         if (response.success && response.data) {
           setSavedTrips(response.data);
+          setSelectedSavedTrip({});
         } else {
           throw new Error("Failed to sync saved flights.");
         }
