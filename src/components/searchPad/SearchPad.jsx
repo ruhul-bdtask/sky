@@ -591,69 +591,7 @@ export default function SearchPad() {
     setOriginalArrivalDate(formattedDateTimeOrigin);
   }, [oneWayDate, roundDate, selectedWay]);
 
-  // const handleSubmitRecentSearch = (item) => {
-  //   // const searchData = {
-  //   //   origin: item?.origin,
-  //   //   destination: item?.destination,
-  //   //   tripType: item?.tripType,
-  //   //   class: item?.class,
-  //   //   passengers: item?.passengers,
-  //   //   journeyDate: item?.journeyDate,
-  //   //   returnDate: item?.returnDate,
-  //   // };
-  //   setOneWayDate(item?.journeyDate);
-  //   setRoundDate({
-  //     from: item?.journeyDate,
-  //     to: item?.returnDate,
-  //   });
-  //   setSearchQueryOrigin(item?.origin);
-  //   setOriginAirport(item?.originAirport);
-  //   setDestinationAirport(item?.destinationAirport);
-  //   setSearchQueryDestination(item?.destination);
-  //   setSelectedWay(item?.tripType);
-  //   setSelectedClass(item?.class);
-  //   setPassengerInformation(item?.passengers);
-  //   setIsOpenDestination(false);
-  //   setIsOpenArrival(false);
-  // };
-
-  // const handleSubmitRecentSearch = (item) => {
-  //   // Update journey and return dates
-  //   setOneWayDate(item?.journeyDate);
-  //   setRoundDate({
-  //     from: item?.journeyDate,
-  //     to: item?.returnDate,
-  //   });
-
-  //   // Update origin and destination
-  //   setSearchQueryOrigin(item?.origin);
-  //   setOriginAirport(item?.originAirport);
-  //   setDestinationAirport(item?.destinationAirport);
-  //   setSearchQueryDestination(item?.destination);
-
-  //   // Update trip type, class, and passenger info
-  //   setSelectedWay(item?.tripType);
-  //   setSelectedClass(item?.class);
-  //   setPassengerInformation(item?.passengers);
-
-  //   // Close dropdowns
-  //   setIsOpenDestination(false);
-  //   setIsOpenArrival(false);
-
-  //   // Sync categories based on passengers
-  //   if (item?.passengers && Array.isArray(item.passengers)) {
-  //     const updatedCategories = categories.map((category) => {
-  //       const matchingPassenger = item.passengers.find(
-  //         (passenger) => passenger.type === category.type
-  //       );
-  //       return {
-  //         ...category,
-  //         count: matchingPassenger ? matchingPassenger.quantity : 0,
-  //       };
-  //     });
-  //     setCategories(updatedCategories); // Update the categories state
-  //   }
-  // };
+  
 
   const handleSubmitRecentSearch = (item) => {
     if (item?.type === "multi") {

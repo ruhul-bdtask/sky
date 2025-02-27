@@ -16,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
@@ -26,15 +26,17 @@ import { ImFacebook2 } from "react-icons/im";
 import LoginWithGoogle from "@/components/login/LoginWithGoogle";
 import LoginWithFacebook from "@/components/login/LoginWithFacebook";
 
-export default function Page() {
+export default function Page({ searchParams }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [payload, setPayload] = useState(null);
+  const [history, setHistory] = useState([]);
   const { token, setToken, setUserData, userData, setRecentSearchData } =
     useAirlineStore();
+  const pathname = usePathname();
 
   const { syncSavedFlights } = useSyncSavedFlights();
 
@@ -118,7 +120,12 @@ export default function Page() {
         setUserData(data?.user);
         syncSavedFlights(token);
         // const redirectPath = router?.back || "/";
-        router.back();
+        const fromRoute = Cookies.get("fromRoute");
+        if (fromRoute == "/reset") {
+          router.push("/dashboard");
+        } else {
+          router.back();
+        }
       } catch (err) {
         console.error("Error during login:", err);
         setIsLoading(false);
@@ -208,7 +215,9 @@ export default function Page() {
             <button
               disabled={isLoading}
               type="submit"
-              className="w-full bg-[#f06a3d] text-white font-medium py-2 px-4 rounded-md hover:bg-[#f06a3d] focus:outline-none  focus:ring-0"
+              className={` ${
+                isLoading && "bg-gray-300 cursor-not-allowed"
+              } w-full bg-[#f06a3d]  text-white font-medium py-2 px-4 rounded-md hover:bg-[#b94c28] focus:outline-none  focus:ring-0`}
             >
               {isLoading ? (
                 <div className="flex justify-center items-center ">
@@ -231,6 +240,15 @@ export default function Page() {
             </button>
           </div>
         </form>
+        <div className="flex justify-between items-center">
+          <p className="text-sm">Forget password ?</p>
+          <Link
+            className="text-blue-400 text-sm underline"
+            href={"reset-password"}
+          >
+            Reset it
+          </Link>
+        </div>
 
         <div className="flex items-center justify-center my-4">
           <div className="w-full h-px bg-gray-300"></div>

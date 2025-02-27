@@ -118,6 +118,7 @@ export default function Page() {
       <Loading loading={userDataLoading} />
       <div>
         <TravelDashboard
+          refetchUserData={refetchUserData}
           userData={userData}
           userDataLoading={userDataLoading}
           loginDetails={loginDetails}

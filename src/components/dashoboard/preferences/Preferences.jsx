@@ -210,21 +210,21 @@ export default function Preferences({ userDataLoading }) {
     setAvoidAirlines(avoidAirlines?.filter((item) => item?.value !== airline));
   };
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
-  //       <img
-  //         src={"/ticketing.gif"}
-  //         alt="Loading..."
-  //         className="w-48 md:w-64 h-full object-contain"
-  //       />
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+        <img
+          src={"/ticketing.gif"}
+          alt="Loading..."
+          className="w-48 md:w-64 h-full object-contain"
+        />
+      </div>
+    );
+  }
 
   return (
     <section className="flex flex-col gap-5">
-      {isLoading && <LoadingFixed />}
+      {/* {isLoading && <LoadingFixed />} */}
       <div className="w-full mx-auto flex flex-col gap-10">
         <form
           onSubmit={handleSubmit}
@@ -253,7 +253,7 @@ export default function Preferences({ userDataLoading }) {
               value={tempInputHome}
               onChange={(e) => setTempInputHome(e.target.value)}
               onFocus={() => setHomeDropdownOpen(true)}
-              placeholder="Search for airports"
+              placeholder="Search for airports eg. DAC, DXB"
               className="w-full md:w-[50%] px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none"
             />
             {homeDropdownOpen && suggestions.length > 0 && (
@@ -303,7 +303,7 @@ export default function Preferences({ userDataLoading }) {
               value={tempInput}
               onChange={(e) => setTempInput(e.target.value)}
               onFocus={() => setDropdownOpen(true)}
-              placeholder="Search for airports"
+              placeholder="Search for airports eg. DAC, DXB"
               className="w-full md:w-[50%] px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none"
             />
             {dropdownOpen && suggestions.length > 0 && (
@@ -373,7 +373,7 @@ export default function Preferences({ userDataLoading }) {
               value={tempInputAvoid}
               onChange={(e) => setTempInputAvoid(e.target.value)}
               onFocus={() => setAvoidDropdownOpen(true)}
-              placeholder="Search for airports"
+              placeholder="Search for airlines eg. EK, BG"
               className="w-full md:w-[50%] px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none"
             />
             {avoidDropdownOpen && avoidSuggestions.length > 0 && (

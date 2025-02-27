@@ -18,7 +18,11 @@ import Loading from "@/components/loader/Loading";
 import { fetchData } from "@/utils/api";
 import { useRouter } from "next/navigation";
 
-export default function Travelers({ userData, userDataLoading }) {
+export default function Travelers({
+  userData,
+  userDataLoading,
+  refetchUserData,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const { token } = useAirlineStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +42,6 @@ export default function Travelers({ userData, userDataLoading }) {
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-
 
   // const handleSubmit = (e) => {
   //   e.preventDefault();
@@ -116,19 +119,33 @@ export default function Travelers({ userData, userDataLoading }) {
     mutationFn: (payload) =>
       fetchData("/gds/client-user-media", "POST", payload, token),
     onSuccess: (data) => {
-      setIsLoading(false);
-      toast.success(data?.message);
-      setIsOpen(false);
-      if (data?.error == 30001) {
+      if (data?.success == true) {
+        setIsLoading(false);
+        toast.success(data?.message);
+        refetchUserData();
+        setIsOpen(false);
+        setFormData({
+          pxn_title: "",
+          first_name: "",
+          last_name: "",
+          dob: null,
+          document_expiration_date: null,
+          document_issuing_country: "",
+          document_nationality_country: "",
+          document_number: "",
+          document_type: "",
+        });
+      } else if (data?.error == 30001) {
         router.push("/login");
+      } else {
+        setIsLoading(false);
+        toast.error(data?.message);
       }
     },
     onError: (error) => {
       setIsLoading(false);
-
       console.error("Mutation failed", error);
       toast.error(error?.message);
-      setIsOpen(false);
     },
   });
 
@@ -157,7 +174,16 @@ export default function Travelers({ userData, userDataLoading }) {
   return (
     <section>
       <Loading loading={isLoading} />
-      <h2 className="text-[24px] font-bold text-black mb-5">Travelers</h2>
+      <div className="flex justify-between items-center flex-wrap gap-5">
+        <h2 className="text-[24px] font-bold text-black mb-5">Travelers</h2>
+        <button
+          onClick={() => setIsOpen(true)}
+          className={` text-white bg-[#FC660F] text-sm py-1.5 px-3  hover:bg-[#da7b44]  rounded-md`}
+        >
+          Add Traveler Data
+        </button>
+      </div>
+
       <div className="w-full flex flex-col gap-10">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-10">
           <div className="">
@@ -303,8 +329,6 @@ export default function Travelers({ userData, userDataLoading }) {
         </div> */}
 
         <div>
-          <Button onClick={() => setIsOpen(true)}>Add User Data</Button>
-
           {isOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
               <div className="relative w-full max-w-3xl max-h-[90vh] overflow-auto rounded-lg bg-white shadow-lg py-10">
@@ -559,7 +583,13 @@ export default function Travelers({ userData, userDataLoading }) {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit">Save Traveler Data</Button>
+                    <button
+                      type="submit"
+                      className="text-white bg-[#FC660F] text-sm py-1.5 px-3  hover:bg-[#da7b44]  rounded-md"
+                    >
+                      {" "}
+                      Save Traveler Data
+                    </button>
                   </div>
                 </form>
               </div>
