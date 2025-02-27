@@ -10,7 +10,7 @@ export async function middleware(request) {
     (pathname.startsWith("/dashboard") ||
       pathname === "/trips" ||
       pathname === "/ticket-invoice" ||
-      pathname === "/ticket-copy")
+      pathname === "ticket-copy")
   ) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -30,7 +30,7 @@ export async function middleware(request) {
         pathname.startsWith("/dashboard") ||
         pathname === "/trips" ||
         pathname === "/ticket-invoice" ||
-        pathname === "/ticket-copy"
+        pathname === "ticket-copy"
       ) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
@@ -46,7 +46,7 @@ export const config = {
     "/login",
     "/sign-up",
     "/trips",
-    "/ticket-copy",
     "/ticket-invoice",
+    "/ticket-copy",
   ],
 };

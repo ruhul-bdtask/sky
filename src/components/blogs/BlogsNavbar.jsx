@@ -20,10 +20,10 @@ export default function BlogsNavbar() {
             <Link href="/blog/news">News</Link>
           </ul>
         </div>
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <span className="text-[13px]">Search articles and guides</span>
           <Search className="w-5" />
-        </div>
+        </div> */}
       </div>
     </div>
   );

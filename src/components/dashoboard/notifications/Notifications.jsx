@@ -19,7 +19,7 @@ export default function Notifications({ userData, userDataLoading }) {
               {
                 title: "Travel Hacker Tips",
                 description:
-                  "A monthly update on the latest travel tips, tricks, trends and tools from KAYAK.",
+                  "A monthly update on the latest travel tips, tricks, trends and tools from Ticketing.",
               },
               {
                 title: "Special offers",

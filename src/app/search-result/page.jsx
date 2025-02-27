@@ -12,7 +12,20 @@ import { notFound, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LoadingBar from "react-top-loading-bar";
 import useAirlineStore from "../../../stores/airlineStore";
+// import ticketingGif from "@/public/images/ticketing.gif";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import _ from "lodash";
+import { FilterXIcon } from "lucide-react";
+import Loading from "@/components/loader/Loading";
 export default function Page({ searchParams }) {
   const [loadingRevalidate, setLoadingRevalidate] = useState(false);
   const ref = useRef(null);
@@ -295,7 +308,7 @@ export default function Page({ searchParams }) {
     operating_code: searchParams?.operating_code,
   };
 
-  const matchingFlight = allFlights?.data.sortedItineraries.find((flight) => {
+  const matchingFlight = allFlights?.data?.sortedItineraries.find((flight) => {
     // Check if any schedule inside the flight matches the given flight number and operating code
     const scheduleMatch = flight?.schedules?.some(
       (schedule) =>
@@ -386,15 +399,77 @@ export default function Page({ searchParams }) {
       quickest: quickestFlight,
     });
   }, [allFlights]);
+  // if (loadingRevalidate) {
+  //   return (
+  //     <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+  //       <img
+  //         src={"/ticketing.gif"}
+  //         alt="Loading..."
+  //         className="w-48 md:w-64 h-full object-contain"
+  //       />
+  //     </div>
+  //   );
+  // }
 
   return (
     <>
+      <Loading loading={loadingRevalidate} />
       <div className="bg-[#F0F3F5] py-10">
         <LoadingBar color="#f11946" height={2} ref={ref} />
         {allFlightsLoading ? (
           <ResultPageSkeleton />
         ) : (
           <>
+            <div className="block md:hidden">
+              <div className=" flex md:hidden w-full md:w-[260px] h-[160px] bg-white rounded-lg border p-4 flex-col justify-between  ">
+                <div className="p-4 flex justify-center flex-col gap-1 items-center">
+                  <h2 className="text-xl font-bold text-gray-800">Time Left</h2>
+                  <div className=" text-3xl font-mono text-[#FC660F]">
+                    {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+                  </div>
+                  <p className="text-[12px] text-center">
+                    Make sure to book before this time.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-between items-center my-5">
+                <Drawer>
+                  <DrawerTrigger className="bg-transparent border p-2 rounded-md mx-5 ">
+                    <div className="flex items-center gap-2">
+                      <FilterXIcon size={20} />
+                      <p>Filter</p>
+                    </div>
+                  </DrawerTrigger>
+                  <DrawerContent>
+                    {/* <DrawerHeader>
+                    <DrawerTitle>Are you absolutely sure?</DrawerTitle>
+                    <DrawerDescription>
+                      This action cannot be undone.
+                    </DrawerDescription>
+                  </DrawerHeader>
+                  <DrawerFooter>
+                    <button>Submit</button>
+                   
+                  </DrawerFooter> */}
+
+                    <div className="overflow-auto max-h-screen w-full mx-auto">
+                      <FlightFilter
+                        timer={{
+                          minutes,
+                          seconds,
+                        }}
+                        allFlights={allFlights?.data?.sortedItineraries}
+                      />
+                    </div>
+                    <DrawerClose>
+                      <button className="bg-[#FC660F] py-1  px-2 rounded-md text-white ">
+                        Submit
+                      </button>
+                    </DrawerClose>
+                  </DrawerContent>
+                </Drawer>
+              </div>
+            </div>
             {isModalOpen && (
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                 <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center animate-fade-in">
@@ -413,15 +488,18 @@ export default function Page({ searchParams }) {
                 </div>
               </div>
             )}
+
             <div className="container_search max-w-5xl">
-              <div className="flex gap-5">
-                <FlightFilter
-                  timer={{
-                    minutes,
-                    seconds,
-                  }}
-                  allFlights={allFlights?.data?.sortedItineraries}
-                />
+              <div className="flex gap-0 md:gap-5">
+                <div className="hidden md:block">
+                  <FlightFilter
+                    timer={{
+                      minutes,
+                      seconds,
+                    }}
+                    allFlights={allFlights?.data?.sortedItineraries}
+                  />
+                </div>
 
                 <div className="flex-1">
                   {matchingFlight !== undefined && (
@@ -431,11 +509,13 @@ export default function Page({ searchParams }) {
                       flight={matchingFlight}
                     />
                   )}
-                  <TopFilter
-                    setSortCriteria={setSortCriteria}
-                    sortCriteria={sortCriteria}
-                    topSortedFlights={topSortedFlights}
-                  />
+                  <div className="">
+                    <TopFilter
+                      setSortCriteria={setSortCriteria}
+                      sortCriteria={sortCriteria}
+                      topSortedFlights={topSortedFlights}
+                    />
+                  </div>
 
                   {/* {allFlights?.data?.sortedItineraries ? (
                     allFlights.data.sortedItineraries.map((flight) => (
@@ -474,9 +554,9 @@ export default function Page({ searchParams }) {
           </>
         )}
       </div>
-      {loadingRevalidate && (
+      {/* {loadingRevalidate && (
         <div className="fixed left-0 top-0 w-full h-screen  z-50"></div>
-      )}
+      )} */}
     </>
   );
 }

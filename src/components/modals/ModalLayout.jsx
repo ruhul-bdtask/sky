@@ -306,6 +306,38 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     { name: "Kids", ageRange: "2-5", count: 0 },
     { name: "Infants on lap", ageRange: "under 2", count: 0 },
   ]);
+
+
+
+  useEffect(() => {
+    // const passengerData = [
+    //   { type: "ADT", quantity: 2, age: "18" },
+    //   { type: "C06", quantity: 2, age: "11" },
+    //   { type: "INF", quantity: 1, age: "1" },
+    // ];
+
+    const categoryMapping = {
+      ADT: "Adults",
+      C06: "Children",
+      C04: "Kids",
+      INF: "Infants on lap",
+    };
+
+    const updatedCategories = categories.map((category) => {
+      const matchingPassenger = searchData?.passengers?.find(
+        (passenger) => categoryMapping[passenger.type] === category.name
+      );
+
+      return matchingPassenger
+        ? { ...category, count: matchingPassenger.quantity }
+        : category;
+    });
+
+    setCategories(updatedCategories);
+  }, [searchData]);
+
+
+
   const [classes, setClasses] = useState([
     { name: "Economy", price: 50, shortCode: "Y" },
     { name: "Premium Economy", price: 70, shortCode: "P" },
@@ -540,25 +572,25 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       });
     }
 
-    if (selectedWay !== "multi_city") {
-      const recentSearch = {
-        origin: searchQueryOrigin,
-        destination: searchQueryDestination,
-        tripType: selectedWay,
-        class: selectedClass,
-        passengers: passengers,
-        journeyDate: originalDate,
-        returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
-        originAirport: originAirport,
-        destinationAirport: destinationAirport,
-      };
+    // if (selectedWay !== "multi_city") {
+    //   const recentSearch = {
+    //     origin: searchQueryOrigin,
+    //     destination: searchQueryDestination,
+    //     tripType: selectedWay,
+    //     class: selectedClass,
+    //     passengers: passengers,
+    //     journeyDate: originalDate,
+    //     returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+    //     originAirport: originAirport,
+    //     destinationAirport: destinationAirport,
+    //   };
 
-      const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
-        0,
-        5
-      );
-      setRecentSearchData(updatedRecentSearches);
-    }
+    //   const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
+    //     0,
+    //     5
+    //   );
+    //   setRecentSearchData(updatedRecentSearches);
+    // }
 
     setOriginDestinationInformation(originDestinationInfo);
 
@@ -735,20 +767,20 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
         >
           <div className="p-8 bg-[#ffffff] min-h-[320px] shadow-md ">
             <Link href={"/"} onClick={() => setIsModalOpen(false)}>
-              <Image className="mx-4 md:mx-0 " alt="logo" src={logo}></Image>
+              <Image className="mx-4 md:mx-0 w-24" alt="logo" src={logo}></Image>
             </Link>
 
             <main
               className={`container_section_home mx-auto  max-w-7xl h-full`}
             >
-              <div className=" mx-auto  p-5 rounded-lg">
+              <div className=" mx-auto  p-1 md:p-5 rounded-lg">
                 <form className="" onSubmit={handleSubmitSearch}>
                   <div className="flex flex-wrap gap-4 mb-4">
                     <div className="w-[300px] text-center flex justify-between items-center py-2 text-sm  text-gray-700 cursor-pointer gap-2">
                       <span
                         className={`${
                           selectedWay == "one_way" && "bg-gray-200"
-                        } w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300`}
+                        } w-full border p-1 md:p-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-xs md:text-sm`}
                         onClick={() => setSelectedWay("one_way")}
                       >
                         One way
@@ -756,7 +788,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                       <span
                         className={`${
                           selectedWay == "return" && "bg-gray-200"
-                        } w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300`}
+                        } w-full border p-1  md:p-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-xs md:text-sm`}
                         onClick={() => setSelectedWay("return")}
                       >
                         Round-trip
@@ -764,7 +796,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                       <span
                         className={`${
                           selectedWay == "multi_city" && "bg-gray-200"
-                        } w-full border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300`}
+                        } w-full border p-1 md:p-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-xs md:text-sm`}
                         onClick={() => setSelectedWay("multi_city")}
                       >
                         Multi city
@@ -779,7 +811,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                           className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2 items-center"
                         >
                           <div
-                            className="relative"
+                            className="relative w-full"
                             id={`origin-dropdown-${index}`}
                           >
                             <div
@@ -787,21 +819,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 toggleField(row.id, "isOpenOrigin")
                               }
                             >
-                              {/* <p
-                          className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
-                            row?.originAirport == "" ||
-                            row?.originAirport == undefined ||
-                            row.searchQueryOrigin == "" ||
-                            row.searchQueryOrigin == undefined
-                              ? ""
-                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
-                          }`}
-                        >
-                          {row?.originAirport !== "" ? row?.originAirport : ""}
-                          <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
-                            <FaTimes onClick={() => handleClearMulti(row.id)} />
-                          </span>
-                        </p> */}
                               <p
                                 className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                                   row?.originAirport
@@ -853,25 +870,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                                 <Airplane />
                               </div>
-                              {/* <input
-                          value={row.searchQueryOrigin}
-                          type="text"
-                          onChange={(e) =>
-                            updateCityData(
-                              row.id,
-                              "searchQueryOrigin",
-                              e.target.value
-                            )
-                          }
-                          placeholder="From ?"
-                          className="w-full pl-10 pr-4 py-4  focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Airplane />
-                        </div> */}
                             </div>
                             {row?.isOpenOrigin ? (
-                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md  absolute top-16 w-full md:w-[591px] max-h-[600px] z-10 overflow-y-auto">
                                 <div className="p-6 ">
                                   <ul className="space-y-4">
                                     {filteredAirportsDestinationMulti[
@@ -993,7 +994,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               </div>
                             </div>
                             {row?.isOpenDestination ? (
-                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-full md:w-[591px] max-h-[600px] z-10 overflow-y-auto">
                                 <div className="p-6 ">
                                   <ul className="space-y-4">
                                     {filteredAirportsArrivalMulti[
@@ -1051,7 +1052,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             )}
                           </div>
 
-                          <div className="col-span-2 flex gap-2 justify-between">
+                          <div className="col-span-2 flex gap-0 md:gap-2 justify-between ">
                             <DatePickerOneWay
                               className="w-[95%]"
                               originalDate={row.departureDate}
@@ -1073,6 +1074,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 </div>
                               )}
                             </div>
+                          </div>
+                          <div class=" flex">
+                            <p>Flight </p> <p> {index + 1}</p>
                           </div>
                         </div>
                       ))}
@@ -1104,7 +1108,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                   ) : selectedWay == "one_way" ? (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-5  gap-2 relative">
-                        <div className="col-span-2 flex gap-1 ">
+                        <div className="col-span-2 flex gap-1 flex-col md:flex-row">
                           <div
                             className="relative  w-full"
                             ref={dropdownRefDestination}
@@ -1159,7 +1163,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               )}
                             </div>
                             {isOpenDestination ? (
-                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-full md:w-[591px] max-h-[700px] z-10 ">
                                 <div className="p-6 max-h-[300px] overflow-y-auto">
                                   <ul className="space-y-4">
                                     {filteredAirportsDestination.map(
@@ -1178,7 +1182,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                           <img
                                             src={destination.img}
                                             alt=""
-                                            className="w-[60px] h-[60px]"
+                                            className="w-[60px] h-[60px] hidden md:block"
                                           />
                                           <div className="flex-grow">
                                             <div className="flex items-center gap-3">
@@ -1202,56 +1206,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                     )}
                                   </ul>
                                 </div>
-                                {recentSearchData?.length > 0 ? (
-                                  <div className="p-8">
-                                    <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
-                                      Recent Searches
-                                      <button
-                                        onClick={() => setRecentSearchData([])}
-                                        className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
-                                      >
-                                        Clear
-                                      </button>
-                                    </h3>
-                                    <ul className="space-y-4 max-h-[200px] overflow-y-auto">
-                                      {recentSearchData?.map(
-                                        (recent, index) => (
-                                          <li
-                                            onClick={() =>
-                                              handleSubmitRecentSearch(recent)
-                                            }
-                                            key={index}
-                                            className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                          >
-                                            <div className="bg-[#FFF3EB] p-4 rounded-lg">
-                                              <Airplane />
-                                            </div>
-                                            <div>
-                                              <p className="font-semibold">
-                                                {recent?.origin} -{" "}
-                                                {recent?.destination}
-                                              </p>
-                                              <p className="text-sm text-gray-500">
-                                                {moment(
-                                                  recent?.journeyDate
-                                                ).format("MMMM Do, YYYY")}
 
-                                                {recent?.tripType == "return" &&
-                                                  ` - ${moment(
-                                                    recent?.returnDate
-                                                  ).format("MMMM Do, YYYY")}`}
-                                              </p>
-                                            </div>
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-                                ) : (
-                                  ""
-                                )}
                                 {!token && (
-                                  <div className="px-8 pb-8 ">
+                                  <div className="px-1 md:px-8 pb-8  ">
                                     <div className="space-y-4 max-h-[200px] overflow-y-auto">
                                       <Link
                                         href={"/login"}
@@ -1261,7 +1218,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
                                         className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                       >
-                                        <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                        <div className="bg-[#FFF3EB] p-4 rounded-lg hidden md:block">
                                           <UserAvatar />
                                         </div>
                                         <div>
@@ -1285,7 +1242,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                           <button
                             type="button"
                             onClick={handleSwap}
-                            className="py-3 px-4 bg-gray-100 rounded-md"
+                            className="py-3 px-4 bg-gray-100 rounded-md hidden md:block"
                           >
                             <ArrowLeftRightIcon
                               size={25}
@@ -1345,7 +1302,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                               )}
                             </div>
                             {isOpenArrival ? (
-                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10">
+                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-full md:w-[591px] max-h-[700px] z-10">
                                 <div className="p-6 max-h-[300px] overflow-y-auto">
                                   <ul className="space-y-4">
                                     {filteredAirportsArrival.map(
@@ -1366,7 +1323,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                           <img
                                             src={arrival.img}
                                             alt=""
-                                            className="w-[60px] h-[60px]"
+                                            className="w-[60px] h-[60px] hidden md:block"
                                           />
                                           <div className="flex-grow">
                                             <div className="flex items-center gap-3 ">
@@ -1390,55 +1347,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                     )}
                                   </ul>
                                 </div>
-                                {recentSearchData?.length > 0 ? (
-                                  <div className="p-8">
-                                    <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
-                                      Recent Searches
-                                      <button
-                                        onClick={() => setRecentSearchData([])}
-                                        className="text-[#4A8DBB] hover:text-[#3b7aa3]"
-                                      >
-                                        Clear
-                                      </button>
-                                    </h3>
-                                    <ul className="space-y-4 max-h-[200px] overflow-y-auto">
-                                      {recentSearchData?.map(
-                                        (recent, index) => (
-                                          <li
-                                            onClick={() =>
-                                              handleSubmitRecentSearch(recent)
-                                            }
-                                            key={index}
-                                            className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                          >
-                                            <div className="bg-[#FFF3EB] p-4 rounded-lg">
-                                              <Airplane />
-                                            </div>
-                                            <div>
-                                              <p className="font-semibold">
-                                                {recent?.origin} -{" "}
-                                                {recent?.destination}
-                                              </p>
-                                              <p className="text-sm text-gray-500">
-                                                {moment(
-                                                  recent?.journeyDate
-                                                ).format("MMMM Do, YYYY")}
-                                                {recent?.tripType == "return" &&
-                                                  ` - ${moment(
-                                                    recent?.returnDate
-                                                  ).format("MMMM Do, YYYY")}`}
-                                              </p>
-                                            </div>
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-                                ) : (
-                                  ""
-                                )}
+
                                 {!token && (
-                                  <div className="px-8 pb-8 ">
+                                  <div className="px-1 md:px-8 pb-8  ">
                                     <div className="space-y-4 max-h-[200px] overflow-y-auto">
                                       <Link
                                         href={"/login"}
@@ -1448,7 +1359,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
                                         className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                       >
-                                        <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                        <div className="bg-[#FFF3EB] p-4 rounded-lg hidden md:block">
                                           <UserAvatar />
                                         </div>
                                         <div>
@@ -1471,21 +1382,21 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                           </div>
                         </div>
 
-                        <div className="col-span-3 grid grid-cols-7 gap-2">
+                        <div className="col-span-3 flex-col md:flex-row gap-2 justify-between  md:grid grid-cols-7 ">
                           <DatePickerOneWay
                             originalDate={originalDate}
-                            className={"w-full col-span-4"}
+                            className={"w-full col-span-1 md:col-span-4"}
                             setOneWayDate={setOneWayDate}
                             oneWayDate={oneWayDate}
                           />
-                          <div className="col-span-2">
+                          <div className="col-span-1  md:col-span-2 my-2 md:my-0">
                             <div className="relative" ref={dropdownRef}>
                               <div
                                 onClick={() =>
                                   setIsOpenClassPassenger(!isOpenClassPassenger)
                                 }
                               >
-                                <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+                                <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5] cursor-pointer">
                                   {totalPassengers}{" "}
                                   {totalPassengers !== 1
                                     ? "Travelers"
@@ -1604,7 +1515,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
                           {/* <Link href={"/search-result"}> */}
                           <button
-                            className="rounded-[10px] bg-[#FC660F] w-[130px] h-full hover:bg-[#d67136] col-span-1"
+                            className="rounded-[10px] bg-[#FC660F] w-full md:w-[130px] py-5 md:py-0 h-fit md:h-full hover:bg-[#d67136] col-span-1"
                             type="submit"
                           >
                             <div className="flex justify-center items-center w-full gap-1">
@@ -1619,10 +1530,10 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                   ) : (
                     <>
                       <>
-                        <div className="grid grid-cols-1 md:grid-cols-5  gap-2 relative">
-                          <div className="col-span-2 flex gap-1 ">
+                        <div className="grid grid-cols-1 md:grid-cols-5  gap-0 md:gap-2 relative">
+                          <div className="col-span-1 md:col-span-2 flex gap-1 flex-col md:flex-row">
                             <div
-                              className="relative  w-full"
+                              className="relative w-full "
                               ref={dropdownRefDestination}
                             >
                               <div onClick={() => setIsOpenDestination(true)}>
@@ -1675,7 +1586,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 )}
                               </div>
                               {isOpenDestination ? (
-                                <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                                <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-full md:w-[591px] max-h-[700px] z-10 ">
                                   <div className="p-6 max-h-[300px] overflow-y-auto">
                                     <ul className="space-y-4">
                                       {filteredAirportsDestination.map(
@@ -1697,7 +1608,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                             <img
                                               src={destination.img}
                                               alt=""
-                                              className="w-[60px] h-[60px]"
+                                              className="w-[60px] h-[60px] hidden md:block"
                                             />
                                             <div className="flex-grow">
                                               <p className="font-semibold">
@@ -1714,58 +1625,9 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                       )}
                                     </ul>
                                   </div>
-                                  {recentSearchData?.length > 0 ? (
-                                    <div className="p-8 ">
-                                      <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
-                                        Recent Searches
-                                        <button
-                                          onClick={() =>
-                                            setRecentSearchData([])
-                                          }
-                                          className="text-[#4A8DBB] hover:text-[#3b7aa3]"
-                                        >
-                                          Clear
-                                        </button>
-                                      </h3>
-                                      <ul className="space-y-4 max-h-[200px] overflow-y-auto">
-                                        {recentSearchData?.map(
-                                          (recent, index) => (
-                                            <li
-                                              onClick={() =>
-                                                handleSubmitRecentSearch(recent)
-                                              }
-                                              key={index}
-                                              className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                            >
-                                              <div className="bg-[#FFF3EB] p-4 rounded-lg">
-                                                <Airplane />
-                                              </div>
-                                              <div>
-                                                <p className="font-semibold">
-                                                  {recent?.origin} -{" "}
-                                                  {recent?.destination}
-                                                </p>
-                                                <p className="text-sm text-gray-500">
-                                                  {moment(
-                                                    recent?.journeyDate
-                                                  ).format("MMMM Do, YYYY")}
-                                                  {recent?.tripType ==
-                                                    "return" &&
-                                                    ` - ${moment(
-                                                      recent?.returnDate
-                                                    ).format("MMMM Do, YYYY")}`}
-                                                </p>
-                                              </div>
-                                            </li>
-                                          )
-                                        )}
-                                      </ul>
-                                    </div>
-                                  ) : (
-                                    ""
-                                  )}
+
                                   {!token && (
-                                    <div className="px-8 pb-8 ">
+                                    <div className="px-1 md:px-8 pb-8 ">
                                       <div className="space-y-4 max-h-[200px] overflow-y-auto">
                                         <Link
                                           href={"/login"}
@@ -1775,7 +1637,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
                                           className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                         >
-                                          <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                          <div className="bg-[#FFF3EB] p-4 rounded-lg hidden md:block">
                                             <UserAvatar />
                                           </div>
                                           <div>
@@ -1799,7 +1661,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             <button
                               onClick={handleSwap}
                               type="button"
-                              className="py-3 px-4 bg-gray-100 rounded-md"
+                              className="py-3 px-4 bg-gray-100 rounded-md hidden md:block"
                             >
                               <ArrowLeftRightIcon
                                 size={25}
@@ -1859,7 +1721,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                 )}
                               </div>
                               {isOpenArrival ? (
-                                <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                                <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-full md:w-[591px] max-h-[600px] z-10 overflow-y-auto">
                                   <div className="p-6 ">
                                     <ul className="space-y-4">
                                       {filteredAirportsArrival.map(
@@ -1880,7 +1742,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                             <img
                                               src={arrival.img}
                                               alt=""
-                                              className="w-[60px] h-[60px]"
+                                              className="w-[60px] h-[60px] hidden md:block"
                                             />
                                             <div className="flex-grow">
                                               <p className="font-semibold">
@@ -1896,62 +1758,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                       )}
                                     </ul>
 
-                                    {recentSearchData?.length > 0 ? (
-                                      <div className="mt-8">
-                                        <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
-                                          Recent Searches
-                                          <button
-                                            onClick={() =>
-                                              setRecentSearchData([])
-                                            }
-                                            className="text-[#4A8DBB] hover:text-[#3b7aa3]"
-                                          >
-                                            Clear
-                                          </button>
-                                        </h3>
-                                        <ul className="space-y-4 max-h-[200px] overflow-y-auto">
-                                          {recentSearchData?.map(
-                                            (recent, index) => (
-                                              <li
-                                                onClick={() =>
-                                                  handleSubmitRecentSearch(
-                                                    recent
-                                                  )
-                                                }
-                                                key={index}
-                                                className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                              >
-                                                <div className="bg-[#FFF3EB] p-4 rounded-lg">
-                                                  <Airplane />
-                                                </div>
-                                                <div>
-                                                  <p className="font-semibold">
-                                                    {recent?.origin} -{" "}
-                                                    {recent?.destination}
-                                                  </p>
-                                                  <p className="text-sm text-gray-500">
-                                                    {moment(
-                                                      recent?.journeyDate
-                                                    ).format("MMMM Do, YYYY")}
-                                                    {recent?.tripType ==
-                                                      "return" &&
-                                                      ` - ${moment(
-                                                        recent?.returnDate
-                                                      ).format(
-                                                        "MMMM Do, YYYY"
-                                                      )}`}
-                                                  </p>
-                                                </div>
-                                              </li>
-                                            )
-                                          )}
-                                        </ul>
-                                      </div>
-                                    ) : (
-                                      ""
-                                    )}
                                     {!token && (
-                                      <div className="px-8 pb-8 ">
+                                      <div className="px-1 md:px-8 pb-8  ">
                                         <div className="space-y-4 max-h-[200px] overflow-y-auto">
                                           <Link
                                             href={"/login"}
@@ -1961,7 +1769,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
                                             className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                           >
-                                            <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                            <div className="bg-[#FFF3EB] p-4 rounded-lg hidden md:block">
                                               <UserAvatar />
                                             </div>
                                             <div>
@@ -1986,7 +1794,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                             </div>
                           </div>
 
-                          <div className="col-span-3 flex gap-2 justify-between">
+                          <div className="col-span-3 flex  flex-col md:flex-row gap-2 justify-between">
                             <div>
                               <DatePicker
                                 setRoundDate={setRoundDate}
@@ -2003,7 +1811,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                       )
                                     }
                                   >
-                                    <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]">
+                                    <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5] cursor-pointer">
                                       {totalPassengers}{" "}
                                       {totalPassengers !== 1
                                         ? "Travelers"
@@ -2019,7 +1827,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                     </div>
                                   </div>
                                   {isOpenClassPassenger ? (
-                                    <div className="absolute w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
+                                    <div className="absolute min-w-56 md:w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
                                       <div className=" ">
                                         <div className="py-5 px-3">
                                           {categories.map((category, index) => (

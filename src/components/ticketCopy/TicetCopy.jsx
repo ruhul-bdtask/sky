@@ -7,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/utils/api";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
+import Loading from "../loader/Loading";
 const TicketCopy = ({ searchParams, authToken }) => {
   const [buffer, setBuffer] = useState(true);
   const contentRef = useRef(null);
@@ -21,7 +23,8 @@ const TicketCopy = ({ searchParams, authToken }) => {
   }, [printFn]);
 
   const router = useRouter();
-  const { token, setToken } = useAirlineStore();
+  const { token, setToken, savedTrips, setSavedTrips, setSelectedSavedTrip } =
+    useAirlineStore();
   const [hasError, setHasError] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -35,13 +38,17 @@ const TicketCopy = ({ searchParams, authToken }) => {
       if (!authToken) {
         Cookies.remove("auth-token");
         setToken(null);
+        if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+          setSavedTrips([]);
+          setSelectedSavedTrip({});
+        }
         router.push("/login");
         return;
       }
     };
 
     checkAuth();
-  }, [authToken]);
+  }, [token]);
 
   const payload = {
     tran_id: searchParams.slack,
@@ -54,7 +61,7 @@ const TicketCopy = ({ searchParams, authToken }) => {
     refetch: refetchBookingData,
   } = useQuery({
     queryKey: ["reservation-info", payload],
-    queryFn: () => fetchData("/gds/reservation-info", "POST", payload, token),
+    queryFn: () => fetchData("/gds/reservation-info", "POST", payload, null),
     enabled: false,
   });
 
@@ -69,16 +76,18 @@ const TicketCopy = ({ searchParams, authToken }) => {
       setLoading(false);
     }
   }, [bookingData]);
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+
+  // if (loading) {
+  //   return (
+  //     <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+  //       <img
+  //         src={"/ticketing.gif"}
+  //         alt="Loading..."
+  //         className="w-48 md:w-64 h-full object-contain"
+  //       />
+  //     </div>
+  //   );
+  // }
 
   if (bookingData?.success == false) {
     return (
@@ -94,6 +103,7 @@ const TicketCopy = ({ searchParams, authToken }) => {
 
   return (
     <div>
+      <Loading loading={loading} />
       <div
         className="body0container"
         style={{
@@ -287,6 +297,9 @@ const TicketCopy = ({ searchParams, authToken }) => {
                       <div style={{ lineHeight: "15px" }}>
                         RESERVATION CODE : {bookingData?.data?.reservation_code}
                       </div>
+                      <div style={{ lineHeight: "20px" }}>
+                        AIRLINE PNR : {bookingData?.data?.airline_pnr}
+                      </div>
                     </div>
                     <div
                       style={{
@@ -414,7 +427,7 @@ const TicketCopy = ({ searchParams, authToken }) => {
                                 fontSize: "12px",
                               }}
                             >
-                              {/* {timeCalc(inf.duration_minutes)} */}
+                              {formatMinutesToHours(inf.duration_minutes)}
                             </div>
                             <div
                               style={{

@@ -1,5 +1,6 @@
 "use client";
 import BookingSuccess from "@/components/bookingSuccess/BookingSuccess";
+import Loading from "@/components/loader/Loading";
 import { fetchData } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
@@ -48,16 +49,17 @@ export default function Page({ searchParams }) {
     }
   }, [bookingData]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+  //       <img
+  //         src={"/ticketing.gif"}
+  //         alt="Loading..."
+  //         className="w-48 md:w-64 h-full object-contain"
+  //       />
+  //     </div>
+  //   );
+  // }
 
   if (bookingData?.success == false || !searchParams?.slack) {
     return (
@@ -73,7 +75,8 @@ export default function Page({ searchParams }) {
 
   return (
     <>
-      <BookingSuccess data={bookingData?.data} slack={searchParams?.slack} />
+      <Loading loading={loading} />
+      <BookingSuccess data={bookingData?.data} slack={searchParams?.slack} message={searchParams?.ticket_issue} />
     </>
   );
 }

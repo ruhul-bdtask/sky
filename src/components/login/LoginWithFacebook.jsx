@@ -20,6 +20,9 @@ const LoginWithFacebook = () => {
     try {
       setIsLoading(true);
       const access_token = credentialResponse?.accessToken;
+      if (!access_token) {
+        throw new Error("Facebook login was cancelled or failed.");
+      }
       const response = await fetchData("/user/login-with-social", "POST", {
         provider: "facebook",
         token: access_token,

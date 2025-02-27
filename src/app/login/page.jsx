@@ -16,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
@@ -26,14 +26,17 @@ import { ImFacebook2 } from "react-icons/im";
 import LoginWithGoogle from "@/components/login/LoginWithGoogle";
 import LoginWithFacebook from "@/components/login/LoginWithFacebook";
 
-export default function Page() {
+export default function Page({ searchParams }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [payload, setPayload] = useState(null);
-  const { token, setToken, setUserData, userData } = useAirlineStore();
+  const [history, setHistory] = useState([]);
+  const { token, setToken, setUserData, userData, setRecentSearchData } =
+    useAirlineStore();
+  const pathname = usePathname();
 
   const { syncSavedFlights } = useSyncSavedFlights();
 
@@ -48,6 +51,28 @@ export default function Page() {
     enabled: false,
   });
 
+  const {
+    data: savedRecentSearches,
+    isLoading: savedRecentSearchesLoading,
+    refetch: savedRecentSearchesRefetch,
+  } = useQuery({
+    queryKey: ["saved-searches"],
+    queryFn: () => fetchData("/gds/recent-searches", "GET", undefined, token),
+    enabled: false,
+  });
+
+  useEffect(() => {
+    if (token) {
+      savedRecentSearchesRefetch();
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (savedRecentSearches?.data) {
+      setRecentSearchData(savedRecentSearches?.data);
+    }
+  }, [savedRecentSearches]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -56,17 +81,25 @@ export default function Page() {
     const trimmedPassword = password.trim();
     // Basic validations
     if (!trimmedEmail) {
-      return toast.error("Email is required.");
+      setIsLoading(false);
+      toast.error("Email is required.");
+      return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      return toast.error("Please enter a valid email address.");
+      setIsLoading(false);
+      toast.error("Please enter a valid email address.");
+      return;
     }
     if (!trimmedPassword) {
-      return toast.error("Password is required.");
+      setIsLoading(false);
+      toast.error("Password is required.");
+      return;
     }
     if (trimmedPassword.length < 8) {
-      return toast.error("Password must be at least 8 characters long.");
+      setIsLoading(false);
+      toast.error("Password must be at least 8 characters long.");
+      return;
     }
 
     const payload = {
@@ -78,7 +111,7 @@ export default function Page() {
       try {
         setIsLoading(true);
         const data = await fetchData("/user/login", "POST", payload);
-        const token = data.authorization?.token;
+        const token = data?.authorization?.token;
 
         if (!token) throw new Error("No token received from the server.");
 
@@ -86,16 +119,23 @@ export default function Page() {
         setToken(token);
         setUserData(data?.user);
         syncSavedFlights(token);
-        const redirectPath = "/";
-        router.push(redirectPath);
+        // const redirectPath = router?.back || "/";
+        const fromRoute = Cookies.get("fromRoute");
+        if (fromRoute == "/reset") {
+          router.push("/dashboard");
+        } else {
+          router.back();
+        }
       } catch (err) {
         console.error("Error during login:", err);
+        setIsLoading(false);
         setError(err.message || "Login failed.");
       } finally {
         setIsLoading(false);
       }
     } else {
       setError("Email and password are required.");
+      setIsLoading(false);
     }
   };
 
@@ -175,7 +215,9 @@ export default function Page() {
             <button
               disabled={isLoading}
               type="submit"
-              className="w-full bg-[#f06a3d] text-white font-medium py-2 px-4 rounded-md hover:bg-[#f06a3d] focus:outline-none  focus:ring-0"
+              className={` ${
+                isLoading && "bg-gray-300 cursor-not-allowed"
+              } w-full bg-[#f06a3d]  text-white font-medium py-2 px-4 rounded-md hover:bg-[#b94c28] focus:outline-none  focus:ring-0`}
             >
               {isLoading ? (
                 <div className="flex justify-center items-center ">
@@ -198,6 +240,15 @@ export default function Page() {
             </button>
           </div>
         </form>
+        <div className="flex justify-between items-center">
+          <p className="text-sm">Forget password ?</p>
+          <Link
+            className="text-blue-400 text-sm underline"
+            href={"reset-password"}
+          >
+            Reset it
+          </Link>
+        </div>
 
         <div className="flex items-center justify-center my-4">
           <div className="w-full h-px bg-gray-300"></div>

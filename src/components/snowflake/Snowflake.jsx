@@ -46,7 +46,7 @@ export function Snowflake({ size = 10, style }) {
           lineHeight: 1,
         }}
       >
-        ❄
+        ❄️
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 export default function HomePage({ searchParams }) {
   const { stopCountdown, resetTime } = useAirlineStore();
   const [hasErrorShown, setHasErrorShown] = useState(false);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     if (searchParams.status === "failed" && !hasErrorShown) {
       toast.error(searchParams?.message);
@@ -44,23 +45,60 @@ export default function HomePage({ searchParams }) {
     enabled: true,
   });
 
+  const [showLoading, setShowLoading] = useState(loading);
+
+  useEffect(() => {
+    // Mock API request
+    setTimeout(() => {
+      setLoading(false); // Set loading to false once data is fetched
+    }, 1000); // Simulate 2 seconds of loading time
+  }, []);
+
+  // if (loading) {
+  //   return (
+  //     <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+  //       <img
+  //         src={"/ticketing.gif"}
+  //         alt="Loading..."
+  //         className="w-48 md:w-64 h-full object-contain"
+  //       />
+  //     </div>
+  //   );
+  // }
+
   return (
-    <div className={`container_section_home mx-auto max-w-7xl py-10`}>
-      <SearchPad />
-      <Services
-        servicesData={homeData?.data?.benifits}
-        homeDataLoading={homeDataLoading}
-      />
-      <Travels
-        travelsData={latestFlights?.data}
-        latestFlightsLoading={latestFlightsLoading}
-      />
-      <WishlistTravels
-        wishlistData={homeData?.data?.wishlist}
-        homeDataLoading={homeDataLoading}
-      />
-      <TravelPlanning />
-      <Faq />
-    </div>
+    <>
+      <div
+        className={`fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50 overflow-hidden transition-all duration-700 ${
+          loading
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-100"
+        }`}
+      >
+        <img
+          src="/ticketing.gif"
+          alt="Loading..."
+          className="w-64  h-full object-contain"
+        />
+      </div>
+
+      <div className={`container_section_home mx-auto max-w-7xl py-10`}>
+        <SearchPad />
+        <Services
+          servicesData={homeData?.data?.benifits}
+          homeDataLoading={homeDataLoading}
+        />
+        <Travels
+          travelsData={latestFlights?.data}
+          latestFlightsLoading={latestFlightsLoading}
+        />
+        <WishlistTravels
+          wishlistData={homeData?.data?.wishlist}
+          homeDataLoading={homeDataLoading}
+        />
+        <TravelPlanning />
+        <Faq />
+      </div>
+    </>
   );
 }

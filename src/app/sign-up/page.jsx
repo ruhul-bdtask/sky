@@ -13,12 +13,14 @@ import MessageIcon from "@/public/icons/MessageIcon";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { fetchData } from "@/utils/api";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Oval } from "react-loader-spinner";
+import "react-phone-input-2/lib/style.css";
 import Cookies from "js-cookie";
 import useAirlineStore from "../../../stores/airlineStore";
 import LoginWithGoogle from "@/components/login/LoginWithGoogle";
 import LoginWithFacebook from "@/components/login/LoginWithFacebook";
+import PhoneInput from "react-phone-input-2";
 export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +30,7 @@ export default function Page() {
   const [payload, setPayload] = useState(null);
   const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const { token, setToken, setUserData } = useAirlineStore();
   const handleClick = () => {};
@@ -44,6 +47,27 @@ export default function Page() {
     enabled: false,
   });
 
+  const mutation = useMutation({
+    mutationFn: (payload) => fetchData("/user/register", "POST", payload),
+    onSuccess: (data) => {
+      if (data?.success == true) {
+        toast.success(data?.message);
+        setIsLoading(false);
+        Cookies.set("auth-token", data?.authorization?.token);
+        setToken(data?.authorization?.token);
+        setUserData(data?.user);
+        router.push("/dashboard");
+      } else {
+        toast.error(data?.message);
+        setIsLoading(false);
+      }
+    },
+    onError: (error) => {
+      console.error("Mutation failed", error);
+      toast.error(error?.message);
+      setIsLoading(false);
+    },
+  });
   const handleSignup = (e) => {
     e.preventDefault();
 
@@ -107,26 +131,26 @@ export default function Page() {
 
     setPayload(newPayload);
 
-    if (payload) {
-      registerDataRefetch();
+    if (newPayload) {
+      setIsLoading(true);
+      mutation.mutate(newPayload);
     }
-
   };
 
-  useEffect(() => {
-    if (registerData?.success) {
-      toast.success("Registration successful.");
-      Cookies.set("auth-token", registerData?.authorization?.token);
-      setPayload(null);
-      setToken(registerData?.authorization?.token);
-      setUserData(registerData?.user);
-      router.push("/dashboard");
-    } else if (registerDataError) {
-      const errorMessage =
-        registerDataError.message || "An error occurred during registration.";
-      toast.error(errorMessage);
-    }
-  }, [registerData, registerDataError]);
+  // useEffect(() => {
+  //   if (registerData?.success) {
+  //     toast.success("Registration successful.");
+  //     Cookies.set("auth-token", registerData?.authorization?.token);
+  //     setPayload(null);
+  //     setToken(registerData?.authorization?.token);
+  //     setUserData(registerData?.user);
+  //     router.push("/dashboard");
+  //   } else if (registerDataError) {
+  //     const errorMessage =
+  //       registerDataError.message || "An error occurred during registration.";
+  //     toast.error(errorMessage);
+  //   }
+  // }, [registerData, registerDataError]);
 
   return (
     <div className="max-w-[400px] sm:max-w-[490px] top-[12%] px-8 py-4 rounded-[11px] bg-white mx-auto">
@@ -208,7 +232,7 @@ export default function Page() {
                 className="w-full border rounded-md px-3 py-2 text-sm mt-1"
               />
             </div>
-            <div>
+            {/* <div>
               <label
                 htmlFor="phone"
                 className="block text-sm font-medium text-gray-700"
@@ -222,6 +246,28 @@ export default function Page() {
                 name="phone"
                 placeholder="Enter your phone"
                 className="w-full border rounded-md px-3 py-2 text-sm mt-1"
+              />
+            </div> */}
+            <div>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Phone
+              </label>
+              <PhoneInput
+                country={"bd"} // Default country
+                value={phone}
+                onChange={(phone) => {
+                  setPhone(phone);
+                }}
+                inputProps={{
+                  name: "phone",
+                  id: "phone",
+                  required: true,
+                  className:
+                    "pl-10 w-full border rounded-md px-3 py-2 text-sm ",
+                }}
               />
             </div>
             <div>
@@ -259,11 +305,13 @@ export default function Page() {
           </div>
           <div>
             <button
-              disabled={registerDataLoading}
+              disabled={isLoading}
               type="submit"
-              className="w-full bg-[#f06a3d] text-white font-medium py-2 px-4 rounded-md hover:bg-[#f06a3d] focus:outline-none  focus:ring-0"
+              className={` ${
+                isLoading && "bg-gray-300 cursor-not-allowed"
+              } w-full bg-[#f06a3d]  text-white font-medium py-2 px-4 rounded-md hover:bg-[#b94c28] focus:outline-none  focus:ring-0`}
             >
-              {registerDataLoading ? (
+              {isLoading ? (
                 <div className="flex justify-center items-center ">
                   <Oval
                     visible={true}

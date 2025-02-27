@@ -60,6 +60,21 @@ body {
   background: #555; /* Color of the thumb on hover */
 }
 
+@keyframes closeFromBottom {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.animate-close {
+  animation: closeFromBottom 0.7s ease-in-out forwards;
+}
+
 @layer components {
   .container_section_home {
     @apply mx-auto w-full  px-4 md:px-6 lg:px-8 xl:px-0;
@@ -100,3 +115,41 @@ body {
   border: none !important; /* Remove the input wrapper's border */
   box-shadow: none !important; /* Remove any shadow */
 }
+
+
+
+/* @layer base {}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} */
+
+
+
+
+
+
+
+@layer base {}
+
+
+
+
+
+
+
+/* @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} */

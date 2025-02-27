@@ -7,6 +7,7 @@ import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import useAirlineStore from "../../../stores/airlineStore";
+import Loading from "@/components/loader/Loading";
 
 export default function Page() {
   const [user, setUser] = useState(null);
@@ -14,7 +15,14 @@ export default function Page() {
   const router = useRouter();
   const authToken = Cookies.get("auth-token");
 
-  const { setUserData, setToken, token } = useAirlineStore();
+  const {
+    setUserData,
+    setToken,
+    token,
+    savedTrips,
+    setSavedTrips,
+    setSelectedSavedTrip,
+  } = useAirlineStore();
 
   // useEffect(() => {
   //   const checkAuth = () => {
@@ -41,6 +49,11 @@ export default function Page() {
       if (!authToken) {
         Cookies.remove("auth-token");
         setToken(null);
+        if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+          setSavedTrips([]);
+          setSelectedSavedTrip({});
+        }
+
         router.push("/login");
         return;
       }
@@ -52,6 +65,10 @@ export default function Page() {
         if (decodedToken.exp && decodedToken.exp < currentTime) {
           Cookies.remove("auth-token");
           setToken(null);
+          if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+            setSavedTrips([]);
+            setSelectedSavedTrip({});
+          }
           router.push("/login");
         } else {
           setUser(decodedToken);
@@ -59,6 +76,10 @@ export default function Page() {
       } catch (error) {
         Cookies.remove("auth-token");
         setToken(null);
+        if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+          setSavedTrips([]);
+          setSelectedSavedTrip({});
+        }
         router.push("/login");
       } finally {
         setIsLoading(false);
@@ -67,6 +88,14 @@ export default function Page() {
 
     checkAuth();
   }, [router, token]);
+
+  const lastLogin = new Date(user?.iat * 1000).toLocaleString();
+  const expiration = new Date(user?.exp * 1000).toLocaleString();
+
+  const loginDetails = {
+    lastLogin,
+    expiration,
+  };
 
   const userPayload = {
     document_type: "NID",
@@ -84,43 +113,41 @@ export default function Page() {
     retry: false,
   });
 
-  if (userDataLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2">Loading...</p>
+  return (
+    <>
+      <Loading loading={userDataLoading} />
+      <div>
+        <TravelDashboard
+          refetchUserData={refetchUserData}
+          userData={userData}
+          userDataLoading={userDataLoading}
+          loginDetails={loginDetails}
+        />
+        <div className="leading-10 text-[14px] max-w-[1300px] mx-auto py-8">
+          <p className="text-[#0B7C9E] hover:underline cursor-pointer">
+            Top International Flight Routes.
+          </p>
+          <p className="text-[#565656]">
+            Cheap flights,
+            <span className="text-[#0B7C9E] hover:underline cursor-pointer">
+               hotels
+            </span>
+            , hire cars and travel deals:
+          </p>
+          <p className="text-[#565656]">
+            Ticketing searches hundreds of other travel sites at once to find
+            the best deals on airline tickets, cheap hotels, holidays and hire
+            cars.
+          </p>
+          <p className="text-[#565656]">
+            Not what you’re looking for? Find thousands of other
+            <span className="text-[#0B7C9E] hover:underline cursor-pointer">
+               hotels, flights
+            </span>
+            , car hires and package deals with Ticketing.
+          </p>
         </div>
       </div>
-    );
-  }
-
-  return (
-    <div>
-      <TravelDashboard userData={userData} userDataLoading={userDataLoading} />
-      <div className="leading-10 text-[14px] max-w-[1300px] mx-auto py-8">
-        <p className="text-[#0B7C9E] hover:underline cursor-pointer">
-          Top International Flight Routes.
-        </p>
-        <p className="text-[#565656]">
-          Cheap flights,
-          <span className="text-[#0B7C9E] hover:underline cursor-pointer">
-             hotels
-          </span>
-          , hire cars and travel deals:
-        </p>
-        <p className="text-[#565656]">
-          Ticketing searches hundreds of other travel sites at once to find the
-          best deals on airline tickets, cheap hotels, holidays and hire cars.
-        </p>
-        <p className="text-[#565656]">
-          Not what you’re looking for? Find thousands of other
-          <span className="text-[#0B7C9E] hover:underline cursor-pointer">
-             hotels, flights
-          </span>
-          , car hires and package deals with Ticketing.
-        </p>
-      </div>
-    </div>
+    </>
   );
 }

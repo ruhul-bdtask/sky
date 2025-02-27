@@ -315,7 +315,7 @@ export default function FlightFilter({ allFlights, timer }) {
 
   return (
     <div>
-      <div className="hidden w-[260px] h-[160px] bg-white rounded-lg border p-4 md:flex flex-col justify-between  ">
+      <div className="hidden md:flex w-full md:w-[260px] h-[160px] bg-white rounded-lg border p-4 flex-col justify-between  ">
         {/* <div className="">
           <h2 className="text-lg font-semibold mb-1">Our Advice</h2>
           <div className="flex items-center mb-2">
@@ -344,7 +344,7 @@ export default function FlightFilter({ allFlights, timer }) {
           <Switch />
         </div> */}
       </div>
-      <div className="hidden md:block p-4 rounded-lg w-[260px]">
+      <div className="p-10 md:p-4 rounded-lg w-full md:w-[260px]">
         <div className="pb-4">
           <span className="text-[14px] font-semibold mb-8">
             {filteredData?.length} of{" "}
@@ -752,6 +752,7 @@ export default function FlightFilter({ allFlights, timer }) {
             </AccordionItem>
           </Accordion>
         </section>
+        {/* <button className="bg-[#FC660F] py-1  px-2 rounded-lg text-white">Submit</button> */}
       </div>
     </div>
   );

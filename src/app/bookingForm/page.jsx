@@ -5,6 +5,7 @@ import BookingFormComp from "@/components/bookingFormComp/BookingFormComp";
 import { ChevronLeft, Info, Timer } from "lucide-react";
 import Link from "next/link";
 import { isExpired } from "react-jwt";
+import "react-phone-input-2/lib/style.css";
 import {
   ChevronDown,
   ChevronUp,
@@ -26,23 +27,10 @@ import { formatDateTimeForGalileo } from "@/lib/formatDateTimeForGalileo";
 import { getAirline } from "@/utils/getAirline";
 import { useAirlines } from "@/hooks/useAirlines";
 import Cookies from "js-cookie";
+import { duration } from "moment";
+import PhoneInput from "react-phone-input-2";
 
 export default function BookingForm() {
-  const [activeTab, setActiveTab] = useState("passengers");
-  const [isOpenContact, setIsOpenContact] = useState(false);
-  const [showFareRules, setShowFareRules] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const router = useRouter();
-  const [minutes, setMinutes] = useState(0);
-  const [seconds, setSeconds] = useState(0);
-  const [contactInfo, setContactInfo] = useState({
-    email: "",
-    phone: "",
-  });
-  const [openFareRules, setOpenFareRules] = useState({});
-
-  const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
-  const { airlinesData } = useAirlines();
   const {
     searchData,
     OriginDestinationInformation,
@@ -61,7 +49,59 @@ export default function BookingForm() {
     setUserData,
     timeLeft,
     startCountdown,
+    userData,
   } = useAirlineStore();
+  const [activeTab, setActiveTab] = useState("passengers");
+  const [isOpenContact, setIsOpenContact] = useState(false);
+  const [showFareRules, setShowFareRules] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
+  const router = useRouter();
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
+  const [paymentFlight, setPaymentFlight] = useState({
+    origin_airport: "",
+    destination_airport: "",
+    departure_date: "",
+    arrival_date: "",
+    departure_time: "",
+    arrival_time: "",
+    airline: "",
+    airline_logo: "",
+    flight_number: "",
+    cabin_class: "",
+    flight_duration: "",
+  });
+  const [contactInfo, setContactInfo] = useState({
+    email: "",
+    phone: "",
+  });
+
+  useEffect(() => {
+    setContactInfo({
+      email: userData?.email || "",
+      phone: userData?.phone || "",
+    });
+  }, [userData]);
+  useEffect(() => {
+    setPaymentFlight({
+      origin_airport: selectedFlight?.origin_airport_name,
+      destination_airport: selectedFlight?.destination_airport_name,
+      departure_date: selectedFlight?.departure_date,
+      arrival_date: selectedFlight?.arrival_date,
+      departure_time: selectedFlight?.departure_time,
+      arrival_time: selectedFlight?.arrival_time,
+      airline: selectedFlight?.airline_code,
+      airline_logo: selectedFlight?.airline_logo,
+      cabin_class: selectedFlight?.passenger_infos?.[0]?.cabin_class,
+      flight_duration: selectedFlight?.flight_duration,
+    });
+  }, [selectedFlight]);
+
+  const [openFareRules, setOpenFareRules] = useState({});
+
+  const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
+  const { airlinesData } = useAirlines();
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -110,12 +150,11 @@ export default function BookingForm() {
 
   // Generate pxn_title fields dynamically
   const passengerTitles = passengerData?.reduce((acc, _, index) => {
-    acc[`pxn_title_${index + 1}`] = "Mr."; // Assign title, can adjust as needed
+    acc[`pxn_title_${index + 1}`] = "Mr"; // Assign title, can adjust as needed
     return acc;
   }, {});
 
   const updatePassengerData = (index, field, value) => {
-    console.log(index, field, value);
     setPassengerData((prevData) =>
       prevData.map((passenger, i) =>
         i === index
@@ -125,6 +164,137 @@ export default function BookingForm() {
             }
           : passenger
       )
+    );
+  };
+
+  // const fillPassengerData = (index, value) => {
+  //   setPassengerData((prevData) =>
+  //     prevData.map((passenger, i) =>
+  //       i === index
+  //         ? {
+  //             ...passenger,
+  //             ...value,
+  //           }
+  //         : passenger
+  //     )
+  //   );
+  // };
+
+  const getDateLimits = (passengerType) => {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+
+    switch (passengerType) {
+      case "ADT": // Adult (11-64 years old)
+        return {
+          maxDate: new Date(currentYear - 11, 11, 31), // Latest DOB: 11 years ago
+          minDate: new Date(currentYear - 99, 0, 1), // Earliest DOB: 99 years ago
+        };
+
+      case "C04": // Kids (2-5 years old)
+        return {
+          minDate: new Date(currentYear - 5, 0, 1), // Earliest DOB: 5 years ago
+          maxDate: new Date(currentYear - 2, 11, 31), // Latest DOB: 2 years ago
+        };
+
+      case "C06": // Children (5-11 years old)
+        return {
+          minDate: new Date(currentYear - 11, 0, 1), // Earliest DOB: 11 years ago
+          maxDate: new Date(currentYear - 5, 11, 31), // Latest DOB: 5 years ago
+        };
+
+      case "INF": // Infant (under 2 years old)
+        return {
+          minDate: new Date(currentYear - 2, 0, 1), // Earliest DOB: 2 years ago
+          maxDate: today, // Latest DOB: today (newborns)
+        };
+
+      default:
+        return {
+          minDate: new Date(1900, 0, 1),
+          maxDate: today,
+        };
+    }
+  };
+
+  // const fillPassengerData = (index, value) => {
+  //   setPassengerData((prevData) =>
+  //     prevData.map((passenger, i) => {
+  //       if (i !== index) return passenger; // Only update the target passenger
+
+  //       // Extract new DOB (if available) or keep the existing one
+  //       let newDob = value?.dob || passenger?.dob;
+
+  //       // Get age range for this passenger type
+  //       const { minDate, maxDate } = getDateLimits(passenger.type);
+
+  //       // Convert existing/new DOB to Date object
+  //       let dobDate = new Date(newDob);
+
+  //       // Validate DOB range
+  //       if (dobDate < minDate) {
+  //         dobDate = new Date(minDate);
+  //         dobDate.setDate(dobDate.getDate() + 1); // Add 1 day
+  //       } else if (dobDate > maxDate) {
+  //         dobDate = new Date(maxDate);
+  //         dobDate.setDate(dobDate.getDate() + 1); // Add 1 day
+  //       }
+
+  //       return {
+  //         ...passenger,
+  //         ...value,
+  //         dob: dobDate?.toISOString(), // Store as string (ISO format)
+  //       };
+  //     })
+  //   );
+  // };
+
+  const formatDateString = (date) => {
+    if (!date) return "";
+
+    // Get year, month, and day components and create a date string in YYYY-MM-DD format
+    // This avoids timezone issues that can occur with toISOString()
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const fillPassengerData = (index, value) => {
+    setPassengerData((prevData) =>
+      prevData.map((passenger, i) => {
+        if (i !== index) return passenger; // Only update the target passenger
+
+        // Extract new DOB (if available) or keep the existing one
+        let newDob = value?.dob || passenger?.dob;
+
+        // Ensure newDob is a valid date
+        let dobDate = newDob ? new Date(newDob) : null;
+
+        if (isNaN(dobDate?.getTime())) {
+          console.warn("Invalid DOB:", newDob); // Debugging log
+          dobDate = null; // Avoid passing invalid date
+        } else {
+          // Get age range for this passenger type
+          const { minDate, maxDate } = getDateLimits(passenger.type);
+
+          // Validate DOB range if dobDate is valid
+          if (dobDate < minDate) {
+            dobDate = new Date(minDate);
+            dobDate.setDate(dobDate.getDate()); // Add 1 day
+          } else if (dobDate > maxDate) {
+            dobDate = new Date(maxDate);
+            dobDate.setDate(dobDate.getDate()); // Add 1 day
+          }
+        }
+
+        return {
+          ...passenger,
+          ...value,
+          dob: dobDate ? dobDate.toISOString() : null, // Ensure valid ISO string or null
+        };
+      })
     );
   };
 
@@ -180,52 +350,62 @@ export default function BookingForm() {
   //   }, {}),
   // };
 
-  const formatPassengerDate = (dateString) => {
-    if (!dateString) {
-      return "";
-    }
-    const date = new Date(dateString);
-    return date?.toISOString().split("T")[0]; // Extract YYYY-MM-DD
-  };
+  const formatDate = (inputDate) => {
+    if (!inputDate) return null;
 
+    // Check if the input is already in the short format
+    const shortFormatRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (shortFormatRegex.test(inputDate)) return inputDate;
+
+    // Convert full timestamp to short format
+    const date = new Date(inputDate);
+    if (isNaN(date.getTime())) return null; // Invalid date check
+
+    return date.toISOString().split("T")[0]; // Extract YYYY-MM-DD
+  };
   // // const formattedDate = formatDate("Sun Feb 02 2025 00:00:00 GMT+0600");
   // console.log(formattedDate); // "2025-02-02"
 
-  const PassengerInformation = {
+  // console.log(formatDate("2001-01-18T18:00:00.000Z")); // Output: "2001-01-18"
+  // console.log(formatDate("2001-01-01")); // Output: "2001-01-01"
+
+  const customersInfo = {
     email: contactInfo?.email,
     phone_no: contactInfo?.phone,
     pxn_type: passengerData?.map((p) => p.pxn_type),
-    first_name: passengerData?.map((p) => p.firstName),
-    last_name: passengerData?.map((p) => p.lastName),
-    dob: passengerData?.map((p) => formatPassengerDate(p.dob) || ""),
-    doc_type: passengerData?.map((p) => p.documentType || ""),
-    doc_number: passengerData?.map((p) => p.docNumber || ""),
+    first_name: passengerData?.map((p) => p.first_name),
+    last_name: passengerData?.map((p) => p.last_name),
+    dob: passengerData?.map((p) => formatDate(p.dob) || ""),
+    doc_type: passengerData?.map((p) => p.document_type || ""),
+    doc_number: passengerData?.map((p) => p.document_number || ""),
     doc_expire_date: passengerData?.map((p) =>
-      formatPassengerDate(p.doc_expire_date)
+      formatDate(p.document_expiration_date)
     ),
-    doc_issue_country: passengerData?.map((p) => p.country || ""),
-    nationality: passengerData?.map((p) => p.country || ""),
-    ...passengerData?.reduce((acc, passenger, index) => {
-      const titleKey = `pxn_title_${index + 1}`;
-      acc[titleKey] = passenger[titleKey] || "Mr.";
-      return acc;
-    }, {}),
+    doc_issue_country: passengerData?.map(
+      (p) => p.document_nationality_country || ""
+    ),
+    nationality: passengerData?.map(
+      (p) => p.document_nationality_country || ""
+    ),
   };
+  passengerData?.forEach((p, index) => {
+    customersInfo[`pxn_title_${index + 1}`] = p.pxn_title;
+  });
 
   useEffect(() => {
     // Initialize passengers with default values
     const totalPassengers = passengers?.flatMap((p) =>
       Array.from({ length: p.quantity }, () => ({
         pxn_type: p.type === "ADT" || p.type == "INF" ? p.type : "CNN",
-        pxn_title: "Mr.", // Default title
-        firstName: "",
+        pxn_title: "Mr", // Default title
+        first_name: "",
         type: p.type,
-        lastName: "",
-        documentType: "",
-        country: "",
+        last_name: "",
+        document_type: "",
+        document_nationality_country: "",
         dob: "",
-        docNumber: "",
-        doc_expire_date: "",
+        document_number: "",
+        document_expiration_date: "",
       }))
     );
 
@@ -233,7 +413,7 @@ export default function BookingForm() {
     setPassengerData((prevData) =>
       totalPassengers?.map((newPassenger, index) => ({
         ...newPassenger,
-        pxn_title: prevData?.[index]?.pxn_title || "Mr.", // Persist the existing title or set default
+        pxn_title: prevData?.[index]?.pxn_title || "Mr", // Persist the existing title or set default
       }))
     );
   }, [passengers]);
@@ -250,9 +430,21 @@ export default function BookingForm() {
       LegDescription: LegDescription,
       DirectFlightsOnly: directFlightsOnly,
       AvailableFlightsOnly: availableFlightsOnly,
-      PassengerInformation: PassengerInformation,
+      PassengerInformation: customersInfo,
     },
   };
+
+  // const {
+  //   data: bookingData,
+  //   error: bookingError,
+  //   isLoading: bookingLoading,
+  //   refetch: refetchBookingData,
+  // } = useQuery({
+  //   queryKey: ["bookingData", payload],
+  //   queryFn: () => fetchData("/gds/make-booking", "POST", payload, token),
+  //   enabled: false,
+  //
+  // });
 
   const {
     data: bookingData,
@@ -261,13 +453,32 @@ export default function BookingForm() {
     refetch: refetchBookingData,
   } = useQuery({
     queryKey: ["bookingData", payload],
-    queryFn: () => fetchData("/gds/make-booking", "POST", payload, token),
+    queryFn: async () => {
+      const response = await fetchData(
+        "/gds/make-booking",
+        "POST",
+        payload,
+        token
+      );
+      if (response?.success == true) {
+        router.push(response?.data?.redirect_url);
+        setPassengerInformation([]);
+        setContactInformation({});
+        setOriginDestinationInformation([]);
+        setSearchData([]);
+        setLegDescription([]);
+        setSelectedFlight({});
+      } else {
+        setIsBookingLoading(false);
+      }
+      return response;
+    },
     enabled: false,
   });
 
   const registerPayload = {
-    first_name: passengerInformation?.[0]?.firstName,
-    last_name: passengerInformation?.[0]?.lastName,
+    first_name: passengerInformation?.[0]?.first_name,
+    last_name: passengerInformation?.[0]?.last_name,
     email: contactInfo?.email,
     phone: contactInfo?.phone,
     verify_by: "email",
@@ -285,26 +496,16 @@ export default function BookingForm() {
 
   const handleBooking = (e) => {
     e.preventDefault();
-    const isEmailValid = validateEmail(contactInfo.email);
-    const isPhoneValid = validatePhone(contactInfo.phone);
+    setIsBookingLoading(true);
 
-    if (!isEmailValid) {
-      toast.error("Please enter a valid email address");
-    }
-    if (!isPhoneValid) {
-      toast.error("Please enter a valid phone number");
-    }
-    if (isEmailValid && isPhoneValid) {
-      if (token == null || token == undefined || token == "") {
+    if (token == null || token == undefined || token == "") {
+      refetchRegister();
+    } else {
+      if (isMyTokenExpired) {
+        setToken(null);
         refetchRegister();
       } else {
-        if (isMyTokenExpired) {
-          setToken(null);
-          refetchRegister();
-        } else {
-          refetchBookingData();
-          console.log(PassengerInformation);
-        }
+        refetchBookingData();
       }
     }
   };
@@ -320,20 +521,74 @@ export default function BookingForm() {
     }
   }, [registerData, token]);
 
-  useEffect(() => {
-    if (bookingData?.success == true) {
-      router.push(bookingData?.data?.redirect_url);
-      setPassengerInformation([]);
-      setContactInformation({});
-      setOriginDestinationInformation([]);
-      setSearchData([]);
-      setLegDescription([]);
-      setSelectedFlight({});
+  // useEffect(() => {
+  //   if (bookingData?.success == true) {
+  //     // router.push(bookingData?.data?.redirect_url);
+  //     // setPassengerInformation([]);
+  //     // setContactInformation({});
+  //     // setOriginDestinationInformation([]);
+  //     // setSearchData([]);
+  //     // setLegDescription([]);
+  //     // setSelectedFlight({});
+  //     console.log(bookingData);
+  //   } else {
+  //     setIsBookingLoading(false);
+  //   }
+  // }, [bookingData]);
+
+  // console.log(bookingData, payload, registerData);
+
+  const validatePassengers = (passengers) => {
+    const nameRegex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+    for (let i = 0; i < passengers.length; i++) {
+      const passenger = passengers[i];
+
+      if (!passenger.first_name || passenger.first_name.trim() === "") {
+        toast.error(`Passenger ${i + 1}: Please fill up First Name`);
+        return false;
+      }
+      if (!nameRegex.test(passenger.first_name)) {
+        toast.error(
+          `Passenger ${i + 1}: First Name should not contain special characters`
+        );
+        return false;
+      }
+      if (!passenger.last_name || passenger.last_name.trim() === "") {
+        toast.error(`Passenger ${i + 1}: Please fill up Last Name`);
+        return false;
+      }
+      if (!nameRegex.test(passenger.last_name)) {
+        toast.error(
+          `Passenger ${i + 1}: Last Name should not contain special characters`
+        );
+        return false;
+      }
+
+      if (!passenger.document_type || passenger.document_type.trim() === "") {
+        toast.error(`Passenger ${i + 1}: Please select Document Type`);
+        return false;
+      }
+
+      if (
+        !passenger.document_nationality_country ||
+        passenger.document_nationality_country.trim() === ""
+      ) {
+        toast.error(`Passenger ${i + 1}: Please select Country`);
+        return false;
+      }
+      if (
+        !passenger.document_number ||
+        passenger.document_number.trim() === ""
+      ) {
+        toast.error(`Passenger ${i + 1}: Please fill up Document Number`);
+        return false;
+      }
     }
-  }, [bookingData]);
+
+    return true;
+  };
 
   const handleChangeTab = (arg) => {
-    setActiveTab(arg);
     if (contactInfo?.email == "") {
       toast.error("Please enter a valid email address");
       return;
@@ -342,7 +597,26 @@ export default function BookingForm() {
       toast.error("Please enter a valid phone number");
       return;
     }
+    const isEmailValid = validateEmail(contactInfo.email);
+    // const isPhoneValid = validatePhone(contactInfo.phone);
+
+    if (!isEmailValid) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    // if (!isPhoneValid) {
+    //   toast.error("Please enter a valid phone number");
+    // }
+
+    const isValid = validatePassengers(passengerData);
+    if (!isValid) {
+      return;
+    }
+
+    console.log(passengerData, customersInfo);
+    setPassengerInformation(passengerData);
     setContactInformation(contactInfo);
+    setActiveTab(arg);
   };
 
   const toggleFareRule = (index) => {
@@ -351,6 +625,105 @@ export default function BookingForm() {
       [index]: !prevState[index], // Toggle only the clicked item
     }));
   };
+
+  if (isBookingLoading) {
+    return (
+      <div className="fixed  inset-0 flex items-center justify-center bg-white z-50">
+        <div className="w-full md:w-[750px]">
+          <div className="w-full bg-white rounded-lg shadow-lg min-h-[450px] p-4">
+            <div className="flex flex-col items-center p-6">
+              <img
+                src={"/ticketing.gif"}
+                alt="Loading..."
+                className="w-36 md:w-56 h-full object-contain"
+              />
+            </div>
+
+            {/* Confirmation Message */}
+            {/* <h2 className="text-xl font-semibold mb-6 text-center text-green-500">
+                You have Successfully Booked ticket
+              </h2> */}
+
+            {/* Booking Details */}
+
+            {/* Flight Details */}
+            {/* {data?.flights_info?.map((flight, index) => ( */}
+            <div className="w-full border border-dashed p-4 rounded-lg">
+              <div className="flex items-center gap-4 mb-4">
+                <img
+                  src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${paymentFlight?.airline}.png`}
+                  alt="Air Asia Airlines"
+                  className="rounded-full w-12 h-12"
+                />
+                {/* <div>
+                  <p className="font-medium">{flight?.airline_details}</p>
+                  <p className="text-sm text-gray-500">
+                    {paymentFlight?.flight_number}
+                  </p>
+                </div> */}
+              </div>
+
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-center">
+                  <p className="text-xl font-bold">
+                    {paymentFlight?.departure_time}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {paymentFlight?.departure_date}
+                  </p>
+                  <p className="text-sm font-medium">
+                    {paymentFlight?.origin_airport}
+                  </p>
+                </div>
+
+                <div className="flex-1 mx-4">
+                  <div className="relative">
+                    <div className="border-t-2 border-gray-300 w-full absolute top-1/2 -translate-y-1/2"></div>
+                    <div className="text-center text-sm text-gray-500">
+                      {paymentFlight?.cabin_class}
+                    </div>
+                    <div className="text-center text-xs text-gray-400">
+                      {paymentFlight?.flight_duration}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-xl font-bold">
+                    {paymentFlight?.arrival_time}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {paymentFlight?.arrival_date}
+                  </p>
+                  <p className="text-sm font-medium">
+                    {paymentFlight?.destination_airport}
+                  </p>
+                </div>
+              </div>
+              {/* 
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500">{flight?.cabin_class}</span>
+                <span className="font-bold">Tk.14,345</span>
+              </div> */}
+            </div>
+            {/* ))} */}
+
+            {/* Download Button */}
+            <div className="my-5">
+              <button
+                // href={`/ticket-copy?status=success&slack=${slack}`}
+                disabled
+                className="w-fit font-[700] text-[18px] m-auto h-[55px] bg-[#FF5B00] hover:bg-[#E65100] text-white py-2 px-4 rounded-md block"
+              >
+                {/* <Download className="w-5 h-5" /> */}
+                Ticket Copy is processing ...
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container_section_sm mx-auto p-4 max-w-7xl">
@@ -431,25 +804,24 @@ export default function BookingForm() {
                   Contact Info
                 </label>
 
-                <div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
-                    <div>
-                      <input
-                        onChange={(e) =>
-                          setContactInfo({
-                            ...contactInfo,
-                            email: e.target.value,
-                          })
-                        }
-                        type="text"
-                        id={`email`}
-                        name={`email`}
-                        value={contactInfo?.email ? contactInfo?.email : ""}
-                        placeholder="Email address"
-                        className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+                  <div>
+                    <input
+                      onChange={(e) =>
+                        setContactInfo({
+                          ...contactInfo,
+                          email: e.target.value,
+                        })
+                      }
+                      type="text"
+                      id={`email`}
+                      name={`email`}
+                      value={contactInfo?.email ? contactInfo?.email : ""}
+                      placeholder="Email address"
+                      className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
+                    />
+                  </div>
+                  {/* <div className="flex flex-col gap-4">
                       <div>
                         <input
                           onChange={(e) =>
@@ -466,16 +838,26 @@ export default function BookingForm() {
                           className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
                         />
                       </div>
-                      {/*  {Object.keys(contactInfo).length == 0 && (
-                        <div className="flex justify-center  md:justify-end ">
-                          <button
-                            onClick={handleContactInfo}
-                            className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
-                          >
-                            Save & Next
-                          </button>
-                        </div>
-                      )} */}
+                      
+                    </div> */}
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <PhoneInput
+                        country={"bd"} // Default country (Bangladesh)
+                        value={contactInfo?.phone || ""}
+                        onChange={(phone) =>
+                          setContactInfo({
+                            ...contactInfo,
+                            phone: phone,
+                          })
+                        }
+                        inputProps={{
+                          name: "phone",
+                          required: true,
+                          className:
+                            "border pl-10 border-[#9B9B9B] p-3 w-full rounded-[4px] focus:outline-none",
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -483,7 +865,9 @@ export default function BookingForm() {
               {timeLeft > 0 &&
                 passengerData?.map((passenger, index) => (
                   <BookingFormComp
+                    // handlePassengerInfo={handlePassengerInfo}
                     passengerData={passengerData}
+                    fillPassengerData={fillPassengerData}
                     updatePassengerData={updatePassengerData}
                     passenger={passenger}
                     index={index}
@@ -502,17 +886,17 @@ export default function BookingForm() {
                     Back to home
                   </Link>
                 </div>
-                {passengerInformation?.length > 0 && (
-                  <div className="p-3 border rounded-[6px]">
-                    <button
-                      onClick={() => handleChangeTab("payment")}
-                      // type="submit"
-                      className=" float-right bg-transparent text-[#717171] font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
-                    >
-                      Continue to Payment
-                    </button>
-                  </div>
-                )}
+                {/* {passengerInformation?.length > 0 && ( */}
+                <div className="p-3 bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px]">
+                  <button
+                    onClick={() => handleChangeTab("payment")}
+                    type="button"
+                    className=" float-right  text-white font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
+                  >
+                    Save & Continue to Payment
+                  </button>
+                </div>
+                {/* )} */}
               </div>
             </form>
           </>
@@ -525,13 +909,13 @@ export default function BookingForm() {
           <div className="flex justify-between items-center bg-[#F6F6F6] px-10 py-6">
             <div className="flex items-center gap-4">
               <h2 className="text-lg font-[700]">Flights</h2>
-              <span className="text-sm text-black underline">
+              {/* <span className="text-sm text-black underline">
                 All Flight Details
-              </span>
+              </span> */}
             </div>
             <div>
               <h2 className="text-[14px] ">
-                For 1 Passenger (Include fare,taxes,carrier charges)
+                For All Passenger (Exclude taxes, AIT charges)
               </h2>
             </div>{" "}
             <div>
@@ -568,7 +952,7 @@ export default function BookingForm() {
                     <img
                       src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${shd?.operating_code}.png`}
                       alt="Air Asia Airlines"
-                      className="rounded-full w-10 h-10"
+                      className="rounded-full w-10 h-10 me-2"
                     />
                     <div>
                       <h3 className="font-semibold">
@@ -576,17 +960,17 @@ export default function BookingForm() {
                       </h3>
                       <p className="text-sm text-gray-500">
                         {" "}
-                        {shd?.flight_number} | {shd?.equipment}
+                        {shd?.operating_code + " " + shd?.flight_number} |{" "}
+                        {shd?.equipment}
                       </p>
                     </div>
                     <div className="ml-auto text-right">
-                      <p className="font-semibold">Class / Fare </p>
+                      <p className="font-semibold">Class </p>
                       <p className="text-sm text-gray-500">
                         {" "}
                         {selectedFlight
                           ? selectedFlight?.passenger_infos?.[0]?.cabin_class
                           : ""}
-                        / Saver
                       </p>
                     </div>
                   </div>
@@ -637,7 +1021,7 @@ export default function BookingForm() {
                         onClick={() => toggleFareRule(index)}
                       >
                         Show fare rules
-                        {showFareRules ? (
+                        {openFareRules[index] ? (
                           <ChevronUp className="w-4 h-4 ml-1" />
                         ) : (
                           <ChevronDown className="w-4 h-4 ml-1" />
@@ -690,7 +1074,7 @@ export default function BookingForm() {
                         onClick={() => toggleFareRule(index)}
                       >
                         Hide fare rules
-                        {showFareRules ? (
+                        {openFareRules[index] ? (
                           <ChevronUp className="w-4 h-4 ml-1" />
                         ) : (
                           <ChevronDown className="w-4 h-4 ml-1" />
@@ -708,12 +1092,18 @@ export default function BookingForm() {
               {passengerInformation?.map((passenger, index) => (
                 <div key={index}>
                   <p className="mb-2 px-12 py-4">
-                    {passenger?.pxn_title} {passenger?.firstName}{" "}
-                    {passenger?.lastName} ({passenger?.pxn_type})
+                    {passenger?.pxn_title} {passenger?.first_name}{" "}
+                    {passenger?.last_name} ({passenger?.pxn_type})
                   </p>
                 </div>
               ))}
             </div>
+          </div>
+          <div className="bg-[#333333] text-white px-12 py-4 mb-6 flex justify-between items-center">
+            <span className="font-semibold text-[18px]">Tax</span>
+            <span className="text-[18px] font-semibold">
+              BDT {formatFlightFare(selectedFlight?.fare_details?.tax_fare)}
+            </span>
           </div>
           <div className="bg-[#333333] text-white px-12 py-4 mb-6 flex justify-between items-center">
             <span className="font-semibold text-[18px]">Total To be Paid</span>

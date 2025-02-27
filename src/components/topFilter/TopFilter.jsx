@@ -99,8 +99,8 @@ export default function TopFilter({
 
   return (
     <div className="relative">
-      <div className="hidden lg:block w-full h-[85px] bg-white shadow-md  overflow-hidden rounded-[10px]">
-        <div className="grid grid-cols-4 h-full">
+      <div className="w-full h-full md:h-[85px] bg-white shadow-md  overflow-hidden rounded-[10px] p-2 md:p-0">
+        <div className="grid grid-cols-2 md:grid-cols-4 h-full">
           <div className={`flex justify-center items-center relative `}>
             <div
               className="flex-1 mx-2 hover:bg-gray-200 px-3 py-2 rounded-lg cursor-pointer"
@@ -110,11 +110,12 @@ export default function TopFilter({
               <p className="text-[12px] text-gray-600">
                 Tk{" "}
                 {formatFlightFare(
-                  topSortedFlights?.cheapest?.fare_details?.total_fare
+                  topSortedFlights?.cheapest?.fare_details?.total_fare || 0
                 )}{" "}
                 •{" "}
                 {formatMinutesToHours(
-                  topSortedFlights?.cheapest?.itinerary_leg_descs?.[0]?.duration
+                  topSortedFlights?.cheapest?.itinerary_leg_descs?.[0]
+                    ?.duration || 0
                 )}
               </p>
             </div>
@@ -135,11 +136,12 @@ export default function TopFilter({
               <p className="text-[12px] text-gray-600">
                 Tk{" "}
                 {formatFlightFare(
-                  topSortedFlights?.best?.fare_details?.total_fare
+                  topSortedFlights?.best?.fare_details?.total_fare || 0
                 )}{" "}
                 •{" "}
                 {formatMinutesToHours(
-                  topSortedFlights?.best?.itinerary_leg_descs?.[0]?.duration
+                  topSortedFlights?.best?.itinerary_leg_descs?.[0]?.duration ||
+                    0
                 )}
               </p>
             </div>
@@ -158,11 +160,12 @@ export default function TopFilter({
               <p className="text-[12px] text-gray-600">
                 Tk{" "}
                 {formatFlightFare(
-                  topSortedFlights?.quickest?.fare_details?.total_fare
+                  topSortedFlights?.quickest?.fare_details?.total_fare || 0
                 )}{" "}
                 •{" "}
                 {formatMinutesToHours(
-                  topSortedFlights?.quickest?.itinerary_leg_descs?.[0]?.duration
+                  topSortedFlights?.quickest?.itinerary_leg_descs?.[0]
+                    ?.duration || 0
                 )}
               </p>
             </div>

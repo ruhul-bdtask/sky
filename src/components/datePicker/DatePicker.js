@@ -24,9 +24,6 @@ export default function DatePicker({
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const [activeButton, setActiveButton] = React.useState(null); // 'from' or 'to'
 
-
-  
-
   const handlePrevFromDate = (e) => {
     e.stopPropagation();
     if (roundDate?.from) {
@@ -72,7 +69,7 @@ export default function DatePicker({
     setActiveButton("from");
     setIsPopoverOpen(true);
     setRoundDate((prev) => ({
-      ...prev,
+      to: "",
       from: "",
     }));
   };
@@ -87,7 +84,7 @@ export default function DatePicker({
     <div className={cn("grid gap-2", className)}>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-          <div className="flex gap-2">
+          <div className="flex flex-col md:flex-row gap-2 mt-2 md:mt-0">
             {/* From Date Picker */}
             <button
               id="from-date"
@@ -134,7 +131,9 @@ export default function DatePicker({
                 <div className="absolute left-3 text-gray-400">
                   <Calender />
                 </div>
-                {roundDate.to ? formatLongDataToShort(roundDate.to) : ""}
+                {roundDate.to
+                  ? formatLongDataToShort(roundDate.to)
+                  : "Select date "}
                 <div className="flex">
                   <LuChevronLeft
                     size={20}
@@ -165,7 +164,6 @@ export default function DatePicker({
             }
             selected={roundDate}
             onSelect={(date) => {
-              console.log("activeButton", activeButton);
               if (activeButton === "from") {
                 // Directly set the from date without affecting the to date
                 setRoundDate((prev) => ({

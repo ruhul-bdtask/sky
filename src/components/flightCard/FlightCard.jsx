@@ -17,7 +17,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   FaFacebook,
+  FaHeart,
   FaLink,
+  FaRegHeart,
   FaTwitter,
   FaWhatsapp,
   FaYoutube,
@@ -62,8 +64,9 @@ export default function FlightCard({
   const [isShowFlightDetails, setIsShowFlightDetails] = useState(false);
   const { airlinesData } = useAirlines();
   const pathname = usePathname();
-  const toggleFlightDetails = (e) =>
+  const toggleFlightDetails = (e) => {
     setIsShowFlightDetails(!isShowFlightDetails);
+  };
   const [sharedInfo, setSharedInfo] = useState();
   const directFlightsOnly = false;
   const availableFlightsOnly = false;
@@ -98,7 +101,7 @@ export default function FlightCard({
       if (res?.data?.data) {
         setSelectedFlight(res?.data?.data?.sortedItineraries);
         router.push("/bookingForm");
-        setLoadingRevalidate(false);
+        // setLoadingRevalidate(false);
       } else {
         toast.error(res?.data?.message);
         setLoadingRevalidate(false);
@@ -146,7 +149,10 @@ export default function FlightCard({
     }
   }, [router]);
 
-  const handleSavedFlights = async (flight, action) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSavedFlights = async (event, flight, action) => {
+    event.stopPropagation();
     // open SaveDialog
     setIsOpenSavedDialog(true);
 
@@ -163,6 +169,7 @@ export default function FlightCard({
       toast.info("Please select a trip to save the flight");
       return;
     }
+    setLoading(true); // Start loading
 
     // getting matching flight to remove
     const matchingFlight = savedTrips
@@ -175,9 +182,7 @@ export default function FlightCard({
             fl?.flight_data?.departure_date === flight?.departure_date &&
             fl?.flight_data?.arrival_date === flight?.arrival_date &&
             fl?.flight_data?.arrival_time === flight?.arrival_time &&
-            fl?.flight_data?.departure_time === flight?.departure_time &&
-            fl?.flight_data?.air_pricing_solution_key ===
-              flight?.air_pricing_solution_key
+            fl?.flight_data?.departure_time === flight?.departure_time
         )
       )
       .find((flight) => flight !== undefined);
@@ -194,9 +199,7 @@ export default function FlightCard({
           fl?.flight_data?.departure_date === flight?.departure_date &&
           fl?.flight_data?.arrival_date === flight?.arrival_date &&
           fl?.flight_data?.arrival_time === flight?.arrival_time &&
-          fl?.flight_data?.departure_time === flight?.departure_time &&
-          fl?.flight_data?.air_pricing_solution_key ===
-            flight?.air_pricing_solution_key
+          fl?.flight_data?.departure_time === flight?.departure_time
       );
 
       if (flightExists) {
@@ -215,9 +218,7 @@ export default function FlightCard({
                 fl?.flight_data?.departure_date === flight?.departure_date &&
                 fl?.flight_data?.arrival_date === flight?.arrival_date &&
                 fl?.flight_data?.arrival_time === flight?.arrival_time &&
-                fl?.flight_data?.departure_time === flight?.departure_time &&
-                fl?.flight_data?.air_pricing_solution_key ===
-                  flight?.air_pricing_solution_key
+                fl?.flight_data?.departure_time === flight?.departure_time
               )
           ),
         };
@@ -229,6 +230,7 @@ export default function FlightCard({
       // Send DELETE request to remove the flight from the database
       if (token) {
         const payload = { flight_uid: matchingFlight.uid };
+
         const response = await fetchData(
           "/gds/remove-flight",
           "POST",
@@ -245,9 +247,12 @@ export default function FlightCard({
           if (res.success) {
             toast.success("Flight removed successfully!");
             setSavedTrips(res.data); // update the state with the modified trips
+            setIsChangeTrip(false);
+            setLoading(false);
           }
           return;
         } else {
+          setLoading(false);
           console.error(response);
           toast.error(response?.errors?.[0] ?? "An unexpected error occurred.");
           return;
@@ -259,6 +264,7 @@ export default function FlightCard({
         const payload = {
           data: [{ trip_id: selectedSavedTrip?.id, flight_data: flight }],
         };
+
         const response = await fetchData(
           "/gds/save-flights",
           "POST",
@@ -275,9 +281,12 @@ export default function FlightCard({
           if (res.success) {
             toast.success("Flight saved successfully!");
             setSavedTrips(res.data); // Update the state with the modified trips
+            setIsChangeTrip(false);
+            setLoading(false);
           }
           return;
         } else {
+          setLoading(false);
           console.error(response);
           toast.error(response?.errors?.[0] ?? "An unexpected error occurred.");
           return;
@@ -285,8 +294,11 @@ export default function FlightCard({
       }
     }
 
+    // if user has no token
     if (flightAlreadySaved) {
       setSavedTrips(updatedSavedTrips);
+      setIsChangeTrip(false);
+      setLoading(false);
     } else {
       // Add the flight to the selectedSavedTrip
       updatedSavedTrips = updatedSavedTrips.map((trip) => {
@@ -299,6 +311,8 @@ export default function FlightCard({
         return trip;
       });
       setSavedTrips(updatedSavedTrips);
+      setIsChangeTrip(false);
+      setLoading(false);
     }
   };
 
@@ -382,7 +396,8 @@ export default function FlightCard({
     };
   });
 
-  const handleShareFilter = (departure_time, arrival_time) => {
+  const handleShareFilter = (event, departure_time, arrival_time) => {
+    event.stopPropagation();
     const currentParams = new URLSearchParams(searchParams.toString());
     const newFilter = {
       departure_time,
@@ -562,11 +577,174 @@ export default function FlightCard({
       )
     );
   }, [savedTrips, flight]);
+  // && fl?.flight_data?.air_pricing_solution_key === flight?.air_pricing_solution_key
+
   return (
     <>
+      {/* Mobile */}
       <div
         onClick={toggleFlightDetails}
-        className={`w-full  bg-white rounded-[7px] shadow-md overflow-hidden ${
+        className="max-w-md mx-auto w-full  h-fit border border-white transition-all  duration-500  hover:border-black cursor-pointer bg-white rounded-[7px] shadow-md overflow-hidden  block md:hidden my-10"
+      >
+        {/* Header with airline and save button */}
+
+        {/* Cheapest tag */}
+        <div className="flex space-x-2 p-2">
+          {flight?.tags?.includes("Best") && sortCriteria === "best" && (
+            <span className="bg-[#DFF9FF] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
+              Best
+            </span>
+          )}
+          {flight?.tags?.includes("Cheapest") && sortCriteria === "best" && (
+            <span className="bg-[#CCFFE5] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
+              Cheapest
+            </span>
+          )}
+
+          {/* {flight?.tags?.includes("Quickest") &&
+                  sortCriteria === "best" && (
+                    <span className="bg-[#F9F6E6] text-black px-4 py-1 rounded-lg text-[12px] font-semibold">
+                      Quickest
+                    </span>
+                  )} */}
+        </div>
+
+        {/* Flight details */}
+        <div className="flex justify-between items-center p-4">
+          <div className="flex flex-col gap-5">
+            {flight?.itinerary_leg_descs?.map((leg, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div>
+                    <img
+                      src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${leg?.marketing_code}.png`}
+                      // src={`https://pics.avs.io/200/200/${stop?.operating_code}@2x.png`}
+                      alt="airline logo"
+                      className="w-[30px] h-[30px]"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-semibold">
+                      {formatDateTime(leg?.departure_datetime).time}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {leg?.departure_location}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col items-center flex-1">
+                    <div className="w-full flex items-center">
+                      <div className="h-[1px] flex-1 bg-gray-300"></div>
+                      <div className="text-xs text-gray-500 mx-2">
+                        {formatMinutesToHours(leg?.duration)}
+                      </div>
+                      <div className="h-[1px] flex-1 bg-gray-300"></div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col">
+                    <span className="font-semibold">
+                      {formatDateTime(leg?.arrival_datetime).time}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {leg?.arrival_location}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Return flight details */}
+
+          {/* Price section */}
+          <div className="">
+            <div>
+              <span className="text-md font-bold">
+                {" "}
+                TK.{formatFlightFare(flight?.fare_details?.total_fare)}
+              </span>
+              <p className="text-xs text-[#1A2024] text-[14px]">
+                {normalizeSeatClass(flight?.passenger_infos[0]?.cabin_class)}
+              </p>{" "}
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRevalidate();
+              }}
+              disabled={allFlightsLoading}
+              className={` bg-[#FC660F] text-white mt-2 font-semibold hover:bg-orange-600 transition duration-300 rounded-md w-full h-full `}
+            >
+              {allFlightsLoading ? (
+                <div className="flex justify-center items-center py-2">
+                  <Oval
+                    visible={true}
+                    height="10"
+                    width="10"
+                    color="#fff"
+                    secondaryColor="#fff"
+                    ariaLabel="oval-loading"
+                    wrapperStyle={{
+                      backgroundColor: "transparent",
+                    }}
+                    wrapperClass=""
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-center py-1">Select</p>
+              )}
+            </button>
+          </div>
+        </div>
+        <div className="flex justify-between items-center border-t border-gray-200 p-2">
+          <p className="text-xs">{flight?.airline_name}</p>
+          {/* <button className="flex items-center text-gray-600 px-3 py-1 rounded-md border border-gray-300">
+            <span className="mr-1">Save</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+          </button> */}
+          <button
+            className={`border px-2 py-1 flex items-center gap-2 rounded-lg `}
+            onClick={(e) =>
+              handleSavedFlights(e, flight, isSavedFlight ? "remove" : "save")
+            }
+          >
+            {/* <Heart className="w-3 h-3" /> */}
+            {loading ? (
+              <span className="animate-spin w-4 h-4 border-2 border-[#FC6610] border-t-transparent rounded-full"></span>
+            ) : isSavedFlight ? (
+              <FaHeart color="#FC6610" />
+            ) : (
+              <FaRegHeart />
+            )}
+
+            {isSavedFlight ? (
+              <p className="text-[12px] ">Saved</p>
+            ) : (
+              <p className="text-[12px]">Save</p>
+            )}
+          </button>
+        </div>
+        {isShowFlightDetails && <FlightDetails flight={flight} />}
+      </div>
+
+      {/* Web */}
+      <div
+        onClick={toggleFlightDetails}
+        className={`w-full  bg-white rounded-[7px] shadow-md overflow-hidden hidden md:block ${
           type == "shared" ? "mt-0 mb-5" : "mt-5 mb-0"
         }  h-fit border border-white transition-all  duration-500  hover:border-black cursor-pointer`}
       >
@@ -606,17 +784,23 @@ export default function FlightCard({
                     className={`text-gray-600 hover:text-gray-800 flex flex-col gap-10 `}
                   >
                     <button
-                      className={`border px-2 py-1 flex items-center gap-2 rounded-lg ${
-                        isSavedFlight ? "bg-black text-white" : "bg-transparent"
-                      }`}
-                      onClick={() =>
+                      className={`border px-2 py-1 flex items-center gap-2 rounded-lg `}
+                      onClick={(e) =>
                         handleSavedFlights(
+                          e,
                           flight,
                           isSavedFlight ? "remove" : "save"
                         )
                       }
                     >
-                      <Heart className="w-3 h-3" />
+                      {/* <Heart className="w-3 h-3" /> */}
+                      {loading ? (
+                        <span className="animate-spin w-4 h-4 border-2 border-[#FC6610] border-t-transparent rounded-full"></span>
+                      ) : isSavedFlight ? (
+                        <FaHeart color="#FC6610" />
+                      ) : (
+                        <FaRegHeart />
+                      )}
 
                       {isSavedFlight ? (
                         <p className="text-[12px] ">Saved</p>
@@ -628,8 +812,9 @@ export default function FlightCard({
                   <div className="text-gray-600 hover:text-gray-800 flex flex-col gap-10">
                     <button
                       className="border px-2 py-1 flex items-center gap-2 rounded-lg"
-                      onClick={() =>
+                      onClick={(e) =>
                         handleShareFilter(
+                          e,
                           flight?.departure_time,
                           flight?.arrival_time
                         )
@@ -793,7 +978,10 @@ export default function FlightCard({
           </div>
 
           {isShareModalOpen && (
-            <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"
+            >
               <div className="bg-white rounded-lg p-6 max-w-full md:max-w-[450px] py-8 flex flex-col gap-5">
                 <div className="flex justify-between flex-wrap">
                   <h3 className="text-xl font-semibold text-center ">

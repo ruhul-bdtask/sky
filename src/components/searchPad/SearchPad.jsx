@@ -27,6 +27,8 @@ import airImg from "@/public/images/weather.png";
 import formatLabel from "@/lib/formatLabel";
 import { Checkbox } from "../ui/checkbox";
 import UserAvatar from "@/public/icons/UserAvatar";
+import { useMutation } from "@tanstack/react-query";
+import { fetchData } from "@/utils/api";
 
 const debounce = (func, delay) => {
   let timeout;
@@ -421,39 +423,6 @@ export default function SearchPad() {
 
     return () => clearTimeout(debouncedFilter);
   }, [searchQueryDestination, airportsData]);
-  // const filteredAirportsDestination = airportsData
-  // .filter(
-  //   (airport) =>
-  //     airport.value.toLowerCase().includes(searchQueryOrigin?.toLowerCase()) ||
-  //     airport.label.toLowerCase().includes(searchQueryOrigin?.toLowerCase()) ||
-  //     airport.name.toLowerCase().includes(searchQueryOrigin?.toLowerCase())
-  // )
-  // .sort((a, b) => {
-  //   // Check if the value matches the searchQueryOrigin
-  //   const aMatchesValue = a.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
-  //   const bMatchesValue = b.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
-
-  //   // Objects with matching value should come first
-  //   if (aMatchesValue && !bMatchesValue) return -1;
-  //   if (!aMatchesValue && bMatchesValue) return 1;
-  //   return 0; // Keep the same order for other cases
-  // });
-
-  // {
-  //   "img": "/weather.png",
-  //   "name": "Hazrat Shahjalal Intl Airport",
-  //   "label": "Dhaka, Bangladesh (DAC)",
-  //   "value": "DAC"
-  // }
-
-  // Origin airport
-
-  // {
-  //   "img": "/weather.png",
-  //   "name": "Hazrat Shahjalal Intl Airport",
-  //   "label": "Dhaka, Bangladesh (DAC)",
-  //   "value": "DAC"
-  // },
 
   const [filteredAirportsDestination, setFilteredAirportsDestination] =
     useState([]);
@@ -522,29 +491,6 @@ export default function SearchPad() {
 
   const passengers = generatePassengersFromCategories(categories);
 
-
-  // useEffect(() => {
-  //   if (passengers.length > 0) {
-  //     // Map passengers back to categories
-  //     const updatedCategories = categories.map((category) => {
-  //       const passenger = passengers.find((p) => {
-  //         if (category.name === "Adults") return p.type === "ADT";
-  //         if (category.name === "Children") return p.type === "C06";
-  //         if (category.name === "Kids") return p.type === "C04";
-  //         if (category.name === "Infants on lap") return p.type === "INF";
-  //         return false;
-  //       });
-
-  //       return {
-  //         ...category,
-  //         count: passenger ? passenger.quantity : 0, // Update count
-  //       };
-  //     });
-
-  //     setCategories(updatedCategories);
-  //   }
-  // }, [passengers]);
-
   const dropdownRef = useRef(null);
   const dropdownRefDestination = useRef(null);
   const dropdownRefArrival = useRef(null);
@@ -563,32 +509,6 @@ export default function SearchPad() {
       )
     );
   };
-
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-  //       setIsPassengerOpen(false);
-  //     }
-
-  //     if (
-  //       dropdownRefDestination.current &&
-  //       !dropdownRefDestination.current.contains(event.target)
-  //     ) {
-  //       setIsOpenDestination(false);
-  //     }
-  //     if (
-  //       dropdownRefArrival.current &&
-  //       !dropdownRefArrival.current.contains(event.target)
-  //     ) {
-  //       setIsOpenArrival(false);
-  //     }
-  //   };
-
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleClickOutside);
-  //   };
-  // }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -671,49 +591,46 @@ export default function SearchPad() {
     setOriginalArrivalDate(formattedDateTimeOrigin);
   }, [oneWayDate, roundDate, selectedWay]);
 
-  // const handleSubmitRecentSearch = (item) => {
-  //   // const searchData = {
-  //   //   origin: item?.origin,
-  //   //   destination: item?.destination,
-  //   //   tripType: item?.tripType,
-  //   //   class: item?.class,
-  //   //   passengers: item?.passengers,
-  //   //   journeyDate: item?.journeyDate,
-  //   //   returnDate: item?.returnDate,
-  //   // };
-  //   setOneWayDate(item?.journeyDate);
-  //   setRoundDate({
-  //     from: item?.journeyDate,
-  //     to: item?.returnDate,
-  //   });
-  //   setSearchQueryOrigin(item?.origin);
-  //   setOriginAirport(item?.originAirport);
-  //   setDestinationAirport(item?.destinationAirport);
-  //   setSearchQueryDestination(item?.destination);
-  //   setSelectedWay(item?.tripType);
-  //   setSelectedClass(item?.class);
-  //   setPassengerInformation(item?.passengers);
-  //   setIsOpenDestination(false);
-  //   setIsOpenArrival(false);
-  // };
+  
 
   const handleSubmitRecentSearch = (item) => {
-    // Update journey and return dates
-    setOneWayDate(item?.journeyDate);
-    setRoundDate({
-      from: item?.journeyDate,
-      to: item?.returnDate,
-    });
+    if (item?.type === "multi") {
+      // Handle multi-city search
+      const updatedCities = item.legs.map((leg, index) => ({
+        id: index + 1,
+        searchQueryOrigin: leg.from,
+        searchQueryDestination: leg.to,
+        departureDate: leg.departure_date,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: leg.origin_airport || "",
+        destinationAirport: leg.destination_airport || "",
+      }));
 
-    // Update origin and destination
-    setSearchQueryOrigin(item?.origin);
-    setOriginAirport(item?.originAirport);
-    setDestinationAirport(item?.destinationAirport);
-    setSearchQueryDestination(item?.destination);
+      setCities(updatedCities); // Update the multi-city state
+    } else {
+      // Handle one-way and round-trip
+      setOneWayDate(item?.legs[0]?.departure_date);
+      setRoundDate({
+        from: item?.legs[0]?.departure_date,
+        to: item?.legs[0]?.arrival_date || null,
+      });
 
-    // Update trip type, class, and passenger info
-    setSelectedWay(item?.tripType);
-    setSelectedClass(item?.class);
+      setSearchQueryOrigin(item?.legs[0]?.from);
+      setSearchQueryDestination(item?.legs[0]?.to);
+      setOriginAirport(item?.legs[0]?.origin_airport || "");
+      setDestinationAirport(item?.legs[0]?.destination_airport || "");
+    }
+
+    // Update trip type, class, and passengers
+    setSelectedWay(
+      item?.type === "multi"
+        ? "multi_city"
+        : item?.type == "single"
+        ? "one_way"
+        : "return"
+    );
+    setSelectedClass(item?.legs[0]?.class);
     setPassengerInformation(item?.passengers);
 
     // Close dropdowns
@@ -731,7 +648,42 @@ export default function SearchPad() {
           count: matchingPassenger ? matchingPassenger.quantity : 0,
         };
       });
-      setCategories(updatedCategories); // Update the categories state
+      setCategories(updatedCategories);
+    }
+  };
+
+  const mutation = useMutation({
+    mutationFn: (payload) =>
+      fetchData("/gds/recent-searches", "POST", payload, token),
+    onSuccess: (data) => {
+      // toast.success(data?.message);
+      setRecentSearchData(data?.data);
+    },
+    onError: (error) => {
+      console.error("Mutation failed", error);
+      // toast.error(error?.message);
+    },
+  });
+
+  const mutationDelete = useMutation({
+    mutationFn: () =>
+      fetchData("/gds/recent-searches", "DELETE", undefined, token),
+    onSuccess: (data) => {
+      toast.success(data?.message);
+      setRecentSearchData([]);
+    },
+    onError: (error) => {
+      console.error("Mutation failed", error);
+      toast.error(error?.message);
+    },
+  });
+
+  const handleRecentSearchDelete = () => {
+    if (token) {
+      mutationDelete.mutate();
+    } else {
+      setRecentSearchData([]);
+      toast.success("Recent searches data deleted successfully");
     }
   };
 
@@ -797,11 +749,11 @@ export default function SearchPad() {
     //   }
     // }
 
-    if (!originalDate) {
-      toast.error("Please select a departure date.");
-
+    if (!originalDate || isNaN(new Date(originalDate).getTime())) {
+      toast.error("Please select a valid departure date.");
       return;
     }
+
     if (selectedWay !== "multi_city" && !originAirport) {
       toast.error("Please select a Departure airport.");
 
@@ -869,24 +821,69 @@ export default function SearchPad() {
       returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
     };
     setSearchData(searchData);
-    if (selectedWay !== "multi_city") {
-      const recentSearch = {
-        origin: searchQueryOrigin,
-        destination: searchQueryDestination,
-        tripType: selectedWay,
-        class: selectedClass,
-        passengers: passengers,
-        journeyDate: originalDate,
-        returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
-        originAirport: originAirport,
-        destinationAirport: destinationAirport,
-      };
 
-      const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
-        0,
-        5
-      );
-      setRecentSearchData(updatedRecentSearches);
+    const recentSearch =
+      selectedWay === "multi_city"
+        ? {
+            type: "multi",
+            legs: cities.map((city) => ({
+              from: city.searchQueryOrigin,
+              to: city.searchQueryDestination,
+              origin_airport: city.originAirport,
+              destination_airport: city.destinationAirport,
+              class: selectedClass,
+              departure_date: city.departureDate,
+              arrival_date: null, // Multi-city usually doesn't have return dates per leg
+            })),
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          }
+        : {
+            type: selectedWay === "one_way" ? "single" : "round",
+            legs: [
+              {
+                from: searchQueryOrigin,
+                to: searchQueryDestination,
+                origin_airport: originAirport,
+                destination_airport: destinationAirport,
+                class: selectedClass,
+                departure_date: originalDate,
+                arrival_date:
+                  selectedWay === "return" ? originalArrivalData : null,
+              },
+            ],
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          };
+
+    const isDuplicate = recentSearchData?.some((search) => {
+      // Check the type and the "from" and "to" values of the first leg (index 0)
+      const legsMatch =
+        search.type === recentSearch.type &&
+        search.legs[0]?.from === recentSearch.legs[0]?.from &&
+        search.legs[0]?.to === recentSearch.legs[0]?.to &&
+        search?.legs[0]?.departure_date ===
+          recentSearch?.legs[0]?.departure_date;
+
+      return legsMatch;
+    });
+
+    if (!isDuplicate) {
+      if (token) {
+        mutation.mutate(recentSearch);
+      } else {
+        const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
+          0,
+          5
+        );
+        setRecentSearchData(updatedRecentSearches);
+      }
     }
 
     setOriginQuery(searchQueryOrigin);
@@ -1266,22 +1263,6 @@ export default function SearchPad() {
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                           <Airplane />
                         </div>
-                        {/* <input
-                          value={row.searchQueryOrigin}
-                          type="text"
-                          onChange={(e) =>
-                            updateCityData(
-                              row.id,
-                              "searchQueryOrigin",
-                              e.target.value
-                            )
-                          }
-                          placeholder="From ?"
-                          className="w-full pl-10 pr-4 py-4  focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Airplane />
-                        </div> */}
                       </div>
                       {row?.isOpenOrigin ? (
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
@@ -1624,12 +1605,14 @@ export default function SearchPad() {
                               )}
                             </ul>
                           </div>
+
                           {recentSearchData?.length > 0 ? (
                             <div className="p-8">
                               <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
                                 Recent Searches
                                 <button
-                                  onClick={() => setRecentSearchData([])}
+                                  type="button"
+                                  onClick={() => handleRecentSearchDelete()}
                                   className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
                                 >
                                   Clear
@@ -1638,29 +1621,49 @@ export default function SearchPad() {
                               <ul className="space-y-4 max-h-[200px] overflow-y-auto">
                                 {recentSearchData?.map((recent, index) => (
                                   <li
+                                    key={index}
                                     onClick={() =>
                                       handleSubmitRecentSearch(recent)
                                     }
-                                    key={index}
                                     className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   >
                                     <div className="bg-[#FFF3EB] p-4 rounded-lg">
                                       <Airplane />
                                     </div>
                                     <div>
-                                      <p className="font-semibold">
-                                        {recent?.origin} - {recent?.destination}
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        {moment(recent?.journeyDate).format(
-                                          "MMMM Do, YYYY"
-                                        )}
+                                      {/* <p className="font-semibold capitalize">
+                                        {recent?.type} Trip
+                                      </p> */}
+                                      {recent?.legs.map((leg, legIndex) => (
+                                        <div key={legIndex}>
+                                          <p className="font-semibold text-[14px]">
+                                            {leg?.from} → {leg?.to}
+                                          </p>
+                                          <p className="text-xs text-gray-500">
+                                            {moment(leg?.departure_date).format(
+                                              "MMMM Do, YYYY"
+                                            )}
 
-                                        {recent?.tripType == "return" &&
-                                          ` - ${moment(
-                                            recent?.returnDate
-                                          ).format("MMMM Do, YYYY")}`}
-                                      </p>
+                                            {leg?.arrival_date && (
+                                              <>
+                                                <span> - </span>
+
+                                                {moment(
+                                                  leg?.arrival_date
+                                                ).format("MMMM Do, YYYY")}
+                                              </>
+                                            )}
+                                          </p>
+                                        </div>
+                                      ))}
+                                      {/* <p className="text-sm text-gray-500">
+                                        {recent?.passengers
+                                          ?.map(
+                                            (pax) =>
+                                              `${pax.quantity} ${pax.type}`
+                                          )
+                                          .join(", ")}
+                                      </p> */}
                                     </div>
                                   </li>
                                 ))}
@@ -1669,6 +1672,7 @@ export default function SearchPad() {
                           ) : (
                             ""
                           )}
+
                           {!token && (
                             <div className="px-8 pb-8 ">
                               <div className="space-y-4 max-h-[200px] overflow-y-auto">
@@ -1824,8 +1828,9 @@ export default function SearchPad() {
                               <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
                                 Recent Searches
                                 <button
-                                  onClick={() => setRecentSearchData([])}
-                                  className="text-[#4A8DBB] hover:text-[#3b7aa3]"
+                                  type="button"
+                                  onClick={() => handleRecentSearchDelete()}
+                                  className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
                                 >
                                   Clear
                                 </button>
@@ -1833,28 +1838,49 @@ export default function SearchPad() {
                               <ul className="space-y-4 max-h-[200px] overflow-y-auto">
                                 {recentSearchData?.map((recent, index) => (
                                   <li
+                                    key={index}
                                     onClick={() =>
                                       handleSubmitRecentSearch(recent)
                                     }
-                                    key={index}
                                     className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   >
                                     <div className="bg-[#FFF3EB] p-4 rounded-lg">
                                       <Airplane />
                                     </div>
                                     <div>
-                                      <p className="font-semibold">
-                                        {recent?.origin} - {recent?.destination}
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        {moment(recent?.journeyDate).format(
-                                          "MMMM Do, YYYY"
-                                        )}
-                                        {recent?.tripType == "return" &&
-                                          ` - ${moment(
-                                            recent?.returnDate
-                                          ).format("MMMM Do, YYYY")}`}
-                                      </p>
+                                      {/* <p className="font-semibold capitalize">
+                                        {recent?.type} Trip
+                                      </p> */}
+                                      {recent?.legs?.map((leg, legIndex) => (
+                                        <div key={legIndex}>
+                                          <p className="font-semibold text-[14px]">
+                                            {leg?.from} → {leg?.to}
+                                          </p>
+                                          <p className="text-xs text-gray-500">
+                                            {moment(leg?.departure_date).format(
+                                              "MMMM Do, YYYY"
+                                            )}
+
+                                            {leg?.arrival_date && (
+                                              <>
+                                                <span> - </span>
+
+                                                {moment(
+                                                  leg?.arrival_date
+                                                ).format("MMMM Do, YYYY")}
+                                              </>
+                                            )}
+                                          </p>
+                                        </div>
+                                      ))}
+                                      {/* <p className="text-sm text-gray-500">
+                                        {recent?.passengers
+                                          ?.map(
+                                            (pax) =>
+                                              `${pax.quantity} ${pax.type}`
+                                          )
+                                          .join(", ")}
+                                      </p> */}
                                     </div>
                                   </li>
                                 ))}
@@ -2014,12 +2040,13 @@ export default function SearchPad() {
                               </ul>
                             </div>
                             {recentSearchData?.length > 0 ? (
-                              <div className="p-8 ">
+                              <div className="p-8">
                                 <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
                                   Recent Searches
                                   <button
-                                    onClick={() => setRecentSearchData([])}
-                                    className="text-[#4A8DBB] hover:text-[#3b7aa3]"
+                                    type="button"
+                                    onClick={() => handleRecentSearchDelete()}
+                                    className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
                                   >
                                     Clear
                                   </button>
@@ -2027,29 +2054,49 @@ export default function SearchPad() {
                                 <ul className="space-y-4 max-h-[200px] overflow-y-auto">
                                   {recentSearchData?.map((recent, index) => (
                                     <li
+                                      key={index}
                                       onClick={() =>
                                         handleSubmitRecentSearch(recent)
                                       }
-                                      key={index}
                                       className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                     >
                                       <div className="bg-[#FFF3EB] p-4 rounded-lg">
                                         <Airplane />
                                       </div>
                                       <div>
-                                        <p className="font-semibold">
-                                          {recent?.origin} -{" "}
-                                          {recent?.destination}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {moment(recent?.journeyDate).format(
-                                            "MMMM Do, YYYY"
-                                          )}
-                                          {recent?.tripType == "return" &&
-                                            ` - ${moment(
-                                              recent?.returnDate
-                                            ).format("MMMM Do, YYYY")}`}
-                                        </p>
+                                        {/* <p className="font-semibold capitalize">
+                                        {recent?.type} Trip
+                                      </p> */}
+                                        {recent?.legs.map((leg, legIndex) => (
+                                          <div key={legIndex}>
+                                            <p className="font-semibold text-[14px]">
+                                              {leg?.from} → {leg?.to}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              {moment(
+                                                leg?.departure_date
+                                              ).format("MMMM Do, YYYY")}
+
+                                              {leg?.arrival_date && (
+                                                <>
+                                                  <span> - </span>
+
+                                                  {moment(
+                                                    leg?.arrival_date
+                                                  ).format("MMMM Do, YYYY")}
+                                                </>
+                                              )}
+                                            </p>
+                                          </div>
+                                        ))}
+                                        {/* <p className="text-sm text-gray-500">
+                                        {recent?.passengers
+                                          ?.map(
+                                            (pax) =>
+                                              `${pax.quantity} ${pax.type}`
+                                          )
+                                          .join(", ")}
+                                      </p> */}
                                       </div>
                                     </li>
                                   ))}
@@ -2187,12 +2234,13 @@ export default function SearchPad() {
                               </ul>
 
                               {recentSearchData?.length > 0 ? (
-                                <div className="mt-8">
+                                <div className="p-8">
                                   <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
                                     Recent Searches
                                     <button
-                                      onClick={() => setRecentSearchData([])}
-                                      className="text-[#4A8DBB] hover:text-[#3b7aa3]"
+                                      type="button"
+                                      onClick={() => handleRecentSearchDelete()}
+                                      className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
                                     >
                                       Clear
                                     </button>
@@ -2200,29 +2248,49 @@ export default function SearchPad() {
                                   <ul className="space-y-4 max-h-[200px] overflow-y-auto">
                                     {recentSearchData?.map((recent, index) => (
                                       <li
+                                        key={index}
                                         onClick={() =>
                                           handleSubmitRecentSearch(recent)
                                         }
-                                        key={index}
                                         className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                       >
                                         <div className="bg-[#FFF3EB] p-4 rounded-lg">
                                           <Airplane />
                                         </div>
                                         <div>
-                                          <p className="font-semibold">
-                                            {recent?.origin} -{" "}
-                                            {recent?.destination}
-                                          </p>
-                                          <p className="text-sm text-gray-500">
-                                            {moment(recent?.journeyDate).format(
-                                              "MMMM Do, YYYY"
-                                            )}
-                                            {recent?.tripType == "return" &&
-                                              ` - ${moment(
-                                                recent?.returnDate
-                                              ).format("MMMM Do, YYYY")}`}
-                                          </p>
+                                          {/* <p className="font-semibold capitalize">
+                                        {recent?.type} Trip
+                                      </p> */}
+                                          {recent?.legs.map((leg, legIndex) => (
+                                            <div key={legIndex}>
+                                              <p className="font-semibold text-[14px]">
+                                                {leg?.from} → {leg?.to}
+                                              </p>
+                                              <p className="text-xs text-gray-500">
+                                                {moment(
+                                                  leg?.departure_date
+                                                ).format("MMMM Do, YYYY")}
+
+                                                {leg?.arrival_date && (
+                                                  <>
+                                                    <span> - </span>
+
+                                                    {moment(
+                                                      leg?.arrival_date
+                                                    ).format("MMMM Do, YYYY")}
+                                                  </>
+                                                )}
+                                              </p>
+                                            </div>
+                                          ))}
+                                          {/* <p className="text-sm text-gray-500">
+                                        {recent?.passengers
+                                          ?.map(
+                                            (pax) =>
+                                              `${pax.quantity} ${pax.type}`
+                                          )
+                                          .join(", ")}
+                                      </p> */}
                                         </div>
                                       </li>
                                     ))}

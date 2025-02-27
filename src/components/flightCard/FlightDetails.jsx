@@ -26,6 +26,11 @@ const FlightDetails = ({ flight }) => {
   const { airportsData } = useAirports();
   const { airlinesData } = useAirlines();
 
+  const totalFlightsDuration = flight.itinerary_leg_descs.reduce(
+    (total, current) => total + (current.duration || 0),
+    0
+  );
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
@@ -36,6 +41,7 @@ const FlightDetails = ({ flight }) => {
           Depart • {formatShortDate(departure_date)}
         </strong>
         <span>{flight_duration}</span>
+        <span>{formatMinutesToHours(totalFlightsDuration)}</span>
       </div>
 
       {schedules.map((schedule) => {
@@ -57,7 +63,6 @@ const FlightDetails = ({ flight }) => {
                 )}
               </div>
             )}
-
             {/* Flight Schedule Information */}
             <div className="px-4 py-1 flex justify-between">
               <div>
@@ -70,11 +75,11 @@ const FlightDetails = ({ flight }) => {
                     alt="airline logo"
                     className="w-[30px] h-[30px]"
                   />
-                  <span>
+                  <span className="text-xs  md:text-sm">
                     {getAirline(airlinesData, schedule?.operating_code)}
                   </span>
 
-                  <div className="border border-gray-700 py-0.5 px-2 rounded focus:outline-none">
+                  <div className="border border-gray-700 py-0.5 px-2 rounded focus:outline-none text-xs  md:text-sm">
                     {schedule?.equipment}
                   </div>
                 </div>
@@ -90,7 +95,7 @@ const FlightDetails = ({ flight }) => {
                     <strong className="font-semibold ">
                       {schedule?.departure_time}
                     </strong>
-                    <span>
+                    <span className="text-xs  md:text-sm">
                       {getAirport(airportsData, schedule?.departure_airport) +
                         " " +
                         "(" +
@@ -114,7 +119,7 @@ const FlightDetails = ({ flight }) => {
                     <strong className="font-semibold">
                       {schedule?.arrival_time}
                     </strong>
-                    <span>
+                    <span className="text-xs  md:text-sm">
                       {getAirport(airportsData, schedule?.arrival_airport) +
                         " " +
                         "(" +
@@ -126,6 +131,11 @@ const FlightDetails = ({ flight }) => {
               </div>
 
               {/* Additional Facilities */}
+              <div className="hidden md:block">
+                <IconDetails schedule={schedule} />
+              </div>
+            </div>
+            <div className="flex md:hidden py-5 px-10 justify-center">
               <IconDetails schedule={schedule} />
             </div>
           </div>
