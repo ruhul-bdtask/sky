@@ -29,6 +29,7 @@ import { Checkbox } from "../ui/checkbox";
 import UserAvatar from "@/public/icons/UserAvatar";
 import { useMutation } from "@tanstack/react-query";
 import { fetchData } from "@/utils/api";
+import Loading from "../loader/Loading";
 
 const debounce = (func, delay) => {
   let timeout;
@@ -74,6 +75,7 @@ export default function SearchPad() {
   const [searchQueryOrigin, setSearchQueryOrigin] = useState();
   const [originAirport, setOriginAirport] = useState("");
   const [destinationAirport, setDestinationAirport] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const [cities, setCities] = useState([
     {
@@ -591,8 +593,6 @@ export default function SearchPad() {
     setOriginalArrivalDate(formattedDateTimeOrigin);
   }, [oneWayDate, roundDate, selectedWay]);
 
-  
-
   const handleSubmitRecentSearch = (item) => {
     if (item?.type === "multi") {
       // Handle multi-city search
@@ -695,6 +695,7 @@ export default function SearchPad() {
     setOriginQuery("");
     setDestinationQuery("");
     setTravelPlanningDate("");
+    setIsLoading(true);
 
     const originDestinationInfo = [
       {
@@ -982,8 +983,22 @@ export default function SearchPad() {
     ]);
   };
 
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+        <img
+          src={"/ticketing.gif"}
+          alt="Loading..."
+          className="w-48 md:w-64 h-full object-contain"
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
+      {/* <Loading loading={isLoading} /> */}
       <main>
         <div className=" mx-auto ">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
