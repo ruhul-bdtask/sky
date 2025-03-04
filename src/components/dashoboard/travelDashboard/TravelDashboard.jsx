@@ -255,7 +255,7 @@ export default function TravelDashboard({
                   </h1>
                   <p className="text-[15px] md:text-[20px] font-bold">
                     {" "}
-                    {userData?.data?.first_name + userData?.data?.last_name}
+                    {userData?.data?.first_name + " " +  userData?.data?.last_name}
                   </p>
                   <p className="text-[10px] md:text-[12px] font-semibold text-[#3E4346] mt-2">
                     Account Email

@@ -50,7 +50,8 @@ export default function SearchPad() {
 
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
-
+  const originInputRef = useRef(null);
+  const destinationInputRef = useRef(null);
   const {
     token,
     setSearchData,
@@ -752,42 +753,43 @@ export default function SearchPad() {
 
     if (!originalDate || isNaN(new Date(originalDate).getTime())) {
       toast.error("Please select a valid departure date.");
+      setIsLoading(false);
       return;
     }
 
     if (selectedWay !== "multi_city" && !originAirport) {
       toast.error("Please select a Departure airport.");
-
+      setIsLoading(false);
       return;
     }
     if (selectedWay !== "multi_city" && !destinationAirport) {
       toast.error("Please select a Arrival airport.");
-
+      setIsLoading(false);
       return;
     }
 
     if (selectedWay !== "multi_city" && !searchQueryOrigin) {
       toast.error("Please select a Origin location.");
-
+      setIsLoading(false);
       return;
     }
 
     if (selectedWay !== "multi_city" && !searchQueryDestination) {
       toast.error("Please select a Destination location.");
-
+      setIsLoading(false);
       return;
     }
 
     if (selectedWay === "return" && !roundDate.to) {
       toast.error("Please select a return date.");
-
+      setIsLoading(false);
       return;
     }
 
     if (selectedWay === "multi_city") {
       if (transformedData.length < 2) {
         toast.error("You must select at least 2 cities.");
-
+        setIsLoading(false);
         return;
       }
 
@@ -800,7 +802,7 @@ export default function SearchPad() {
 
       if (invalidTransformedData) {
         toast.error("One or more city data entries are invalid.");
-
+        setIsLoading(false);
         return;
       }
       // const multi_cityData = transformMultiCityToArrayStructure(
@@ -812,15 +814,55 @@ export default function SearchPad() {
       // setSearchData(multi_cityData);
     }
 
-    const searchData = {
-      origin: searchQueryOrigin,
-      destination: searchQueryDestination,
-      tripType: selectedWay,
-      class: selectedClass,
-      passengers: passengers,
-      journeyDate: originalDate,
-      returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
-    };
+    // const searchData = {
+    //   origin: searchQueryOrigin,
+    //   destination: searchQueryDestination,
+    //   tripType: selectedWay,
+    //   class: selectedClass,
+    //   passengers: passengers,
+    //   journeyDate: originalDate,
+    //   returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+    // };
+
+    const searchData =
+      selectedWay === "multi_city"
+        ? {
+            type: selectedWay,
+            legs: cities.map((city) => ({
+              from: city.searchQueryOrigin,
+              to: city.searchQueryDestination,
+              origin_airport: city.originAirport,
+              destination_airport: city.destinationAirport,
+              class: selectedClass,
+              departure_date: city.departureDate,
+              arrival_date: null, // Multi-city usually doesn't have return dates per leg
+            })),
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          }
+        : {
+            type: selectedWay,
+            legs: [
+              {
+                from: searchQueryOrigin,
+                to: searchQueryDestination,
+                origin_airport: originAirport,
+                destination_airport: destinationAirport,
+                class: selectedClass,
+                departure_date: originalDate,
+                arrival_date:
+                  selectedWay === "return" ? originalArrivalData : null,
+              },
+            ],
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          };
     setSearchData(searchData);
 
     const recentSearch =
@@ -915,7 +957,37 @@ export default function SearchPad() {
   const handleClear = () => {
     setSearchQueryOrigin("");
     setOriginAirport("");
+
+    setTimeout(() => {
+      if (originInputRef.current) {
+        originInputRef.current.focus();
+      }
+    }, 0);
   };
+
+  // const hasMounted = useRef(false); // Track component mount
+
+  // useEffect(() => {
+  //   if (!hasMounted.current) {
+  //     hasMounted.current = true; // Mark as mounted
+  //     if (!originAirport && originInputRef.current) {
+  //       originInputRef.current.focus();
+  //     }
+  //   }
+  // }, []); // Run only once on mount
+
+  // useEffect(() => {
+  //   if (!originAirport && originInputRef.current) {
+  //     originInputRef.current.focus();
+  //   }
+  // }, [originAirport]);
+
+  // useEffect(() => {
+  //   if (originAirport && !destinationAirport && destinationInputRef.current) {
+  //     destinationInputRef.current.focus();
+  //   }
+  // }, [destinationAirport, originAirport]); // Added originAirport as a dependency
+
   const handleClearMulti = (cityId) => {
     setCities((prevCities) =>
       prevCities.map((city) =>
@@ -946,6 +1018,11 @@ export default function SearchPad() {
   const handleClearArrival = () => {
     setSearchQueryDestination("");
     setDestinationAirport("");
+    setTimeout(() => {
+      if (destinationInputRef.current) {
+        destinationInputRef.current.focus();
+      }
+    }, 0);
   };
 
   const handleClearAllMultiCity = () => {
@@ -982,7 +1059,6 @@ export default function SearchPad() {
       },
     ]);
   };
-
 
   if (isLoading) {
     return (
@@ -1079,7 +1155,7 @@ export default function SearchPad() {
                 </div>
 
                 {isPassengerOpen && (
-                  <div className="absolute w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
+                  <div className="absolute w-56 md:w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10 ">
                     <div className="py-5 px-3">
                       {categories.map((category, index) => (
                         <div
@@ -1149,6 +1225,15 @@ export default function SearchPad() {
                           </div>
                         </div>
                       ))}
+                      <div className="flex justify-end w-full mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsPassengerOpen(false)}
+                          className="text-white bg-[#FC660F] text-sm py-1.5 px-3  hover:bg-[#da7b44] w-fit  rounded-lg "
+                        >
+                          Ok
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1240,6 +1325,7 @@ export default function SearchPad() {
                                 {row?.originAirport}
                               </span>
                               <span
+                                onClick={() => handleClearMulti(row.id)}
                                 className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                 onMouseEnter={(e) =>
                                   e.currentTarget.parentElement.classList.replace(
@@ -1254,9 +1340,7 @@ export default function SearchPad() {
                                   )
                                 }
                               >
-                                <FaTimes
-                                  onClick={() => handleClearMulti(row.id)}
-                                />
+                                <FaTimes />
                               </span>
                             </>
                           )}
@@ -1352,6 +1436,7 @@ export default function SearchPad() {
                                 {row?.destinationAirport}
                               </span>
                               <span
+                                onClick={() => handleClearMultiArrival(row.id)}
                                 className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                 onMouseEnter={(e) =>
                                   e.currentTarget.parentElement.classList.replace(
@@ -1366,11 +1451,7 @@ export default function SearchPad() {
                                   )
                                 }
                               >
-                                <FaTimes
-                                  onClick={() =>
-                                    handleClearMultiArrival(row.id)
-                                  }
-                                />
+                                <FaTimes />
                               </span>
                             </>
                           )}
@@ -1452,7 +1533,7 @@ export default function SearchPad() {
                       )}
                     </div>
 
-                    <div className="col-span-2 flex gap-2 justify-between">
+                    <div className="col-span-1 md:col-span-2 flex gap-2 justify-between mb-5 md:mb-0">
                       <DatePickerOneWay
                         className="w-[95%]"
                         originalDate={row.departureDate}
@@ -1544,6 +1625,7 @@ export default function SearchPad() {
                                 {originAirport}
                               </span>
                               <span
+                                onClick={handleClear}
                                 className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                 onMouseEnter={(e) =>
                                   e.currentTarget.parentElement.classList.replace(
@@ -1558,18 +1640,19 @@ export default function SearchPad() {
                                   )
                                 }
                               >
-                                <FaTimes onClick={handleClear} />
+                                <FaTimes />
                               </span>
                             </>
                           )}
                         </p>
 
                         <input
+                          ref={originInputRef}
                           value={searchQueryOrigin}
                           type="text"
                           onChange={(e) => setSearchQueryOrigin(e.target.value)}
                           placeholder="From ?"
-                          className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                          className={` hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]`}
                         />
 
                         {!originAirport && (
@@ -1579,7 +1662,7 @@ export default function SearchPad() {
                         )}
                       </div>
                       {isOpenDestination ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10  ">
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsDestination.map(
@@ -1763,6 +1846,7 @@ export default function SearchPad() {
                                 {destinationAirport}
                               </span>
                               <span
+                                onClick={handleClearArrival}
                                 className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                 onMouseEnter={(e) =>
                                   e.currentTarget.parentElement.classList.replace(
@@ -1777,12 +1861,13 @@ export default function SearchPad() {
                                   )
                                 }
                               >
-                                <FaTimes onClick={handleClearArrival} />
+                                <FaTimes />
                               </span>
                             </>
                           )}
                         </p>
                         <input
+                          ref={destinationInputRef}
                           value={searchQueryDestination}
                           type="text"
                           onChange={(e) =>
@@ -1799,7 +1884,7 @@ export default function SearchPad() {
                         )}
                       </div>
                       {isOpenArrival ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10 right-0">
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsArrival.map((arrival, index) => (
@@ -1983,6 +2068,7 @@ export default function SearchPad() {
                                   {originAirport}
                                 </span>
                                 <span
+                                  onClick={handleClear}
                                   className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                   onMouseEnter={(e) =>
                                     e.currentTarget.parentElement.classList.replace(
@@ -1997,12 +2083,13 @@ export default function SearchPad() {
                                     )
                                   }
                                 >
-                                  <FaTimes onClick={handleClear} />
+                                  <FaTimes />
                                 </span>
                               </>
                             )}
                           </p>
                           <input
+                            ref={originInputRef}
                             value={searchQueryOrigin}
                             type="text"
                             onChange={(e) =>
@@ -2178,6 +2265,7 @@ export default function SearchPad() {
                                   {destinationAirport}
                                 </span>
                                 <span
+                                  onClick={handleClearArrival}
                                   className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                   onMouseEnter={(e) =>
                                     e.currentTarget.parentElement.classList.replace(
@@ -2192,12 +2280,13 @@ export default function SearchPad() {
                                     )
                                   }
                                 >
-                                  <FaTimes onClick={handleClearArrival} />
+                                  <FaTimes />
                                 </span>
                               </>
                             )}
                           </p>
                           <input
+                            ref={destinationInputRef}
                             value={searchQueryDestination}
                             type="text"
                             onChange={(e) =>

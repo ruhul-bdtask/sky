@@ -10,9 +10,20 @@ import {
 
 import { cn } from "@/lib/utils";
 
-const DropdownMenu = DropdownMenuPrimitive.Root;
+const DropdownMenu = React.forwardRef(({ modal = false, ...props }, ref) => (
+  <DropdownMenuPrimitive.Root modal={modal} {...props} />
+));
 
-const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
+DropdownMenu.displayName = DropdownMenuPrimitive.Root.displayName;
+
+const DropdownMenuTrigger = React.forwardRef(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.Trigger
+    ref={ref}
+    className={cn("focus:outline-none", className)}
+    {...props}
+  />
+));
+DropdownMenuTrigger.displayName = DropdownMenuPrimitive.Trigger.displayName;
 
 const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 

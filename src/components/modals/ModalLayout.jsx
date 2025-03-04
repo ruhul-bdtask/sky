@@ -42,7 +42,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const [originalDate, setOriginalDate] = useState();
   const [isOpenClassPassenger, setIsOpenClassPassenger] = useState(false);
   const router = useRouter();
-
+  const originInputRef = useRef(null);
+  const destinationInputRef = useRef(null);
   const {
     token,
     setSearchData,
@@ -65,7 +66,26 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     setDestinationAirportName,
     setOriginAirportName,
   } = useAirlineStore();
-  const { origin, destination, journeyDate, tripType, returnDate } = searchData;
+  // const { origin, destination, journeyDate, tripType, returnDate } = searchData;
+
+  const tripType = searchData?.type; // "one_way", "return", or "multi_city"
+  const passengerDetails = searchData?.passengers || [];
+
+  // For one-way and return, we use the first leg
+  const firstLeg = searchData?.legs?.[0] || {};
+  const {
+    from: origin,
+    to: destination,
+    departure_date: journeyDate,
+    arrival_date: returnDate,
+    origin_airport: origin_airport,
+    destination_airport: destination_airport,
+  } = firstLeg;
+
+  const cabinClass = firstLeg?.class;
+
+  // For multi-city, extract all legs
+  const multiCityLegs = searchData?.legs || [];
 
   const [selectedWay, setSelectedWay] = useState("one_way");
   const [selectedClass, setSelectedClass] = useState("Y");
@@ -73,40 +93,68 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const [searchQueryOrigin, setSearchQueryOrigin] = useState();
   const [originAirport, setOriginAirport] = useState("");
   const [destinationAirport, setDestinationAirport] = useState("");
+  const [error, setError] = useState();
+  const [singleWayError, setSingleWayError] = useState("");
 
   useEffect(() => {
-    if (tripType && searchData?.class) {
+    if (tripType && cabinClass) {
       setSelectedWay(tripType);
-      setSelectedClass(searchData?.class);
+      setSelectedClass(cabinClass);
     }
   }, [searchData]);
 
-  const [cities, setCities] = useState([
-    {
-      id: 1,
-      searchQueryOrigin: "",
-      searchQueryDestination: "",
-      departureDate: null,
-      isOpenOrigin: false,
-      isOpenDestination: false,
-    },
-    {
-      id: 2,
-      searchQueryOrigin: "",
-      searchQueryDestination: "",
-      departureDate: null,
-      isOpenOrigin: false,
-      isOpenDestination: false,
-    },
-    {
-      id: 3,
-      searchQueryOrigin: "",
-      searchQueryDestination: "",
-      departureDate: null,
-      isOpenOrigin: false,
-      isOpenDestination: false,
-    },
-  ]);
+  const [cities, setCities] = useState([]);
+
+  // const [cities, setCities] = useState(() => {
+  //   return tripType === "multi_city"
+  //     ? searchData.legs.map((leg, index) => ({
+  //         id: index + 1,
+  //         searchQueryOrigin: leg.from || "",
+  //         searchQueryDestination: leg.to || "",
+  //         departureDate: leg.departure_date
+  //           ? new Date(leg.departure_date)
+  //           : null,
+  //         isOpenOrigin: false,
+  //         isOpenDestination: false,
+  //         originAirport: leg?.origin_airport,
+  //         destinationAirport: leg?.destination_airport,
+  //       }))
+  //     : [];
+  // });
+
+  // console.log(cities);
+
+  useEffect(() => {
+    if (selectedWay === "one_way" || selectedWay === "return") {
+      if (journeyDate) {
+        setOneWayDate(new Date(journeyDate));
+      }
+
+      if (selectedWay === "return" && journeyDate && returnDate) {
+        setRoundDate({
+          from: new Date(journeyDate),
+          to: new Date(returnDate),
+        });
+      }
+
+      setSearchQueryOrigin(origin || "DAC");
+      setSearchQueryDestination(destination || "CXB");
+    } else if (selectedWay === "multi_city" && multiCityLegs?.length > 0) {
+      // Handle multiple legs dynamically
+      const updatedCities = multiCityLegs.map((leg, index) => ({
+        id: index + 1,
+        searchQueryOrigin: leg.from || "",
+        searchQueryDestination: leg.to || "",
+        departureDate: leg.departure_date ? new Date(leg.departure_date) : null,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: leg.origin_airport || "",
+        destinationAirport: leg.destination_airport || "",
+      }));
+
+      setCities(updatedCities);
+    }
+  }, [searchData, selectedWay, journeyDate, returnDate, multiCityLegs]);
 
   const transformedData = cities.map((item, index) => ({
     DepartureDateTime: item.departureDate,
@@ -140,19 +188,19 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     return twoDaysAhead;
   });
 
-  useEffect(() => {
-    if (origin && destination && journeyDate !== "") {
-      setOneWayDate(new Date(journeyDate));
-    }
-    if (origin && destination && journeyDate && returnDate !== "") {
-      setRoundDate({
-        from: new Date(journeyDate),
-        to: new Date(returnDate),
-      });
-    }
-    setSearchQueryOrigin(origin !== "" ? origin : "DAC");
-    setSearchQueryDestination(destination !== "" ? destination : "CXB");
-  }, [origin, destination, journeyDate]);
+  // useEffect(() => {
+  //   if (origin && destination && journeyDate !== "") {
+  //     setOneWayDate(new Date(journeyDate));
+  //   }
+  //   if (origin && destination && journeyDate && returnDate !== "") {
+  //     setRoundDate({
+  //       from: new Date(journeyDate),
+  //       to: new Date(returnDate),
+  //     });
+  //   }
+  //   setSearchQueryOrigin(origin !== "" ? origin : "DAC");
+  //   setSearchQueryDestination(destination !== "" ? destination : "CXB");
+  // }, [origin, destination, journeyDate]);
 
   const handleAddCity = () => {
     setCities([
@@ -162,6 +210,10 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
         searchQueryOrigin: "",
         searchQueryDestination: "",
         departureDate: null,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: "",
+        destinationAirport: "",
       },
     ]);
   };
@@ -185,32 +237,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       )
     );
   };
-
-  // const filteredAirportsArrivalMulti = cities.map((city) =>
-  //   airportsData.filter(
-  //     (airport) =>
-  //       (airport.name
-  //         .toLowerCase()
-  //         .includes(city.searchQueryDestination.toLowerCase()) ||
-  //         airport.value
-  //           .toLowerCase()
-  //           .includes(city.searchQueryDestination.toLowerCase())) &&
-  //       airport.value !== city.searchQueryOrigin
-  //   )
-  // );
-
-  // const filteredAirportsDestinationMulti = cities.map((city) =>
-  //   airportsData.filter(
-  //     (airport) =>
-  //       (airport.name
-  //         .toLowerCase()
-  //         .includes(city.searchQueryOrigin.toLowerCase()) ||
-  //         airport.value
-  //           .toLowerCase()
-  //           .includes(city.searchQueryOrigin.toLowerCase())) &&
-  //       airport.value !== city.searchQueryDestination
-  //   )
-  // );
 
   const [filteredAirportsArrivalMulti, setFilteredAirportsArrivalMulti] =
     useState([]);
@@ -301,14 +327,11 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     { name: "Multi-city", price: 150, shortCode: "multi_city" },
   ]);
   const [categories, setCategories] = useState([
-    { name: "Adults", ageRange: "18-64", count: 1 },
-    { name: "Children", ageRange: "5-11", count: 0 },
-    { name: "Kids", ageRange: "2-5", count: 0 },
-    { name: "Infants on lap", ageRange: "under 2", count: 0 },
+    { name: "Adults", ageRange: "11-64", count: 1, type: "ADT" },
+    { name: "Children", ageRange: "5-11", count: 0, type: "C06" },
+    { name: "Kids", ageRange: "2-5", count: 0, type: "C04" },
+    { name: "Infants on lap", ageRange: "under 2", count: 0, type: "INF" },
   ]);
-
-
-
   useEffect(() => {
     // const passengerData = [
     //   { type: "ADT", quantity: 2, age: "18" },
@@ -335,8 +358,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
     setCategories(updatedCategories);
   }, [searchData]);
-
-
 
   const [classes, setClasses] = useState([
     { name: "Economy", price: 50, shortCode: "Y" },
@@ -530,17 +551,15 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
     setDestinationQuery("");
     setTravelPlanningDate("");
 
-    const searchData = {
-      origin: searchQueryOrigin,
-      destination: searchQueryDestination,
-      tripType: selectedWay,
-      class: selectedClass,
-      passengers: passengers,
-      journeyDate: originalDate,
-      returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
-    };
-
-    setSearchData(searchData);
+    // const searchData = {
+    //   origin: searchQueryOrigin,
+    //   destination: searchQueryDestination,
+    //   tripType: selectedWay,
+    //   class: selectedClass,
+    //   passengers: passengers,
+    //   journeyDate: originalDate,
+    //   returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+    // };
 
     const originDestinationInfo = [
       {
@@ -599,52 +618,8 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
 
     if (selectedWay === "multi_city") {
       if (transformedData.length < 2) {
-        toast.error("You must select at least 2 cities.");
-        setError("City selection is too few.");
-        setLoading(false);
-        return;
-      }
-
-      const invalidTransformedData = transformedData.find(
-        (item) =>
-          !item.DepartureDateTime ||
-          !item.OriginLocation?.LocationCode ||
-          !item.DestinationLocation?.LocationCode
-      );
-
-      if (invalidTransformedData) {
-        toast.error("One or more city data entries are invalid.");
-        return;
-      }
-    }
-
-    if (!originalDate) {
-      toast.error("Please select a departure date.");
-
-      return;
-    }
-
-    if (!searchQueryOrigin) {
-      toast.error("Please select a departure location.");
-
-      return;
-    }
-
-    if (!searchQueryDestination) {
-      toast.error("Please select a origin location.");
-
-      return;
-    }
-
-    if (selectedWay === "return" && !roundDate.to) {
-      toast.error("Please select a return date.");
-
-      return;
-    }
-
-    if (selectedWay === "multi_city") {
-      if (transformedData.length < 2) {
-        toast.error("You must select at least 2 cities.");
+        // toast.error("You must select at least 2 cities.");
+        setError("You must select at least 2 cities.");
 
         return;
       }
@@ -657,11 +632,111 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
       );
 
       if (invalidTransformedData) {
-        toast.error("One or more city data entries are invalid.");
+        // toast.error("One or more city data entries are invalid.");
+        setError("City data entries are invalid.");
+        return;
+      }
+    } else {
+      if (!originalDate) {
+        // toast.error("Please select a departure date.");
+        setSingleWayError("Please select a departure date.");
+        return;
+      }
+      if (!originAirport) {
+        // toast.error("Please select a departure date.");
+        setSingleWayError("Please select a origin location.");
+        return;
+      }
+      if (!destinationAirport) {
+        // toast.error("Please select a departure date.");
+        setSingleWayError("Please select a destination location.");
+        return;
+      }
+
+      if (!searchQueryOrigin) {
+        // toast.error("Please select a departure location.");
+        setSingleWayError("Please select a origin location.");
+
+        return;
+      }
+
+      if (!searchQueryDestination) {
+        // toast.error("Please select a origin location.");
+        setSingleWayError("Please select a destination location.");
+
+        return;
+      }
+
+      if (selectedWay === "return" && !roundDate.to) {
+        // toast.error("Please select a return date.");
+        setSingleWayError("Please select a return date.");
 
         return;
       }
     }
+
+    const searchData =
+      selectedWay === "multi_city"
+        ? {
+            type: selectedWay,
+            legs: cities.map((city) => ({
+              from: city.searchQueryOrigin,
+              to: city.searchQueryDestination,
+              origin_airport: city.originAirport,
+              destination_airport: city.destinationAirport,
+              class: selectedClass,
+              departure_date: city.departureDate,
+              arrival_date: null, // Multi-city usually doesn't have return dates per leg
+            })),
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          }
+        : {
+            type: selectedWay,
+            legs: [
+              {
+                from: searchQueryOrigin,
+                to: searchQueryDestination,
+                origin_airport: originAirport,
+                destination_airport: destinationAirport,
+                class: selectedClass,
+                departure_date: originalDate,
+                arrival_date:
+                  selectedWay === "return" ? originalArrivalData : null,
+              },
+            ],
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          };
+
+    setSearchData(searchData);
+
+    // if (selectedWay === "multi_city") {
+    //   if (transformedData.length < 2) {
+    //     toast.error("You must select at least 2 cities.");
+
+    //     return;
+    //   }
+
+    //   const invalidTransformedData = transformedData.find(
+    //     (item) =>
+    //       !item.DepartureDateTime ||
+    //       !item.OriginLocation?.LocationCode ||
+    //       !item.DestinationLocation?.LocationCode
+    //   );
+
+    //   if (invalidTransformedData) {
+    //     toast.error("One or more city data entries are invalid.");
+
+    //     return;
+    //   }
+    // }
     setDestinationAirportName(destinationAirport);
     setOriginAirportName(originAirport);
     setOriginQuery(searchQueryOrigin);
@@ -701,11 +776,23 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   const handleClear = () => {
     setSearchQueryOrigin("");
     setOriginAirport("");
+
+    setTimeout(() => {
+      if (originInputRef.current) {
+        originInputRef.current.focus();
+      }
+    }, 0);
   };
 
   const handleClearArrival = () => {
     setSearchQueryDestination("");
     setDestinationAirport("");
+
+    setTimeout(() => {
+      if (destinationInputRef.current) {
+        destinationInputRef.current.focus();
+      }
+    }, 0);
   };
   useEffect(() => {
     if (isModalOpen) {
@@ -763,11 +850,15 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
             isModalOpen
               ? "translate-y-0 opacity-100"
               : "-translate-y-full opacity-0"
-          } flex flex-col h-full transform transition-all duration-1000 ease-in-out`}
+          } flex flex-col  h-full transform transition-all duration-1000 ease-in-out overflow-y-scroll`}
         >
-          <div className="p-8 bg-[#ffffff] min-h-[320px] shadow-md ">
+          <div className="p-2 md:p-8 bg-[#ffffff] min-h-fit md:min-h-[320px] shadow-md ">
             <Link href={"/"} onClick={() => setIsModalOpen(false)}>
-              <Image className="mx-4 md:mx-0 w-24" alt="logo" src={logo}></Image>
+              <Image
+                className="mx-4 md:mx-0 w-24"
+                alt="logo"
+                src={logo}
+              ></Image>
             </Link>
 
             <main
@@ -806,281 +897,287 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                   {selectedWay == "multi_city" ? (
                     <>
                       {cities.map((row, index) => (
-                        <div
-                          key={row.id}
-                          className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2 items-center"
-                        >
-                          <div
-                            className="relative w-full"
-                            id={`origin-dropdown-${index}`}
-                          >
-                            <div
-                              onClick={() =>
-                                toggleField(row.id, "isOpenOrigin")
-                              }
-                            >
-                              <p
-                                className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
-                                  row?.originAirport
-                                    ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
-                                    : ""
-                                }`}
-                              >
-                                {row?.originAirport && (
-                                  <>
-                                    <span className="px-1.5 py-0.5 truncate">
-                                      {row?.originAirport}
-                                    </span>
-                                    <span
-                                      className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
-                                      onMouseEnter={(e) =>
-                                        e.currentTarget.parentElement.classList.replace(
-                                          "hover:border-black",
-                                          "border-white"
-                                        )
-                                      }
-                                      onMouseLeave={(e) =>
-                                        e.currentTarget.parentElement.classList.replace(
-                                          "border-white",
-                                          "hover:border-black"
-                                        )
-                                      }
-                                    >
-                                      <FaTimes
-                                        onClick={() => handleClearMulti(row.id)}
-                                      />
-                                    </span>
-                                  </>
-                                )}
-                              </p>
-                              <input
-                                value={row.searchQueryOrigin}
-                                type="text"
-                                onChange={(e) =>
-                                  updateCityData(
-                                    row.id,
-                                    "searchQueryOrigin",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="From ?"
-                                className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
-                              />
-
-                              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                                <Airplane />
-                              </div>
-                            </div>
-                            {row?.isOpenOrigin ? (
-                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md  absolute top-16 w-full md:w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                                <div className="p-6 ">
-                                  <ul className="space-y-4">
-                                    {filteredAirportsDestinationMulti[
-                                      row.id - 1
-                                    ].map((destination, index) => (
-                                      <li
-                                        key={index}
-                                        className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
-                                        onClick={() => {
-                                          toggleFieldClick(
-                                            row.id,
-                                            "isOpenOrigin"
-                                          ),
-                                            updateCityData(
-                                              row.id,
-                                              "searchQueryOrigin",
-                                              destination.value
-                                            );
-
-                                          updateCityData(
-                                            row.id,
-                                            "originAirport",
-                                            destination?.label
-                                          );
-                                        }}
-                                      >
-                                        <img
-                                          src={destination.img}
-                                          alt=""
-                                          className="w-[60px] h-[60px]"
-                                        />
-                                        <div className="flex-grow">
-                                          <div className="flex items-center gap-3">
-                                            <p className="font-semibold text-[16px]">
-                                              {destination.label.replace(
-                                                /\s\([^)]*\)/,
-                                                ""
-                                              )}
-                                            </p>
-                                            <span className="text-[14px]">
-                                              {destination.value}
-                                            </span>
-                                          </div>
-                                          <p className="text-sm text-gray-500">
-                                            {destination.name}
-                                          </p>
-                                        </div>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              </div>
-                            ) : (
-                              ""
-                            )}
+                        <>
+                          <div class="flex">
+                            <p className="text-sm py-1 text-[#FC660F]">
+                              Flight {`${" "}  ${index + 1}`}
+                            </p>
                           </div>
-
                           <div
-                            className="relative"
-                            id={`arrival-dropdown-${index}`}
+                            key={row.id}
+                            className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2 items-center"
                           >
                             <div
-                              onClick={() =>
-                                toggleField(row.id, "isOpenDestination")
-                              }
+                              className="relative "
+                              id={`origin-dropdown-${index}`}
                             >
-                              <p
-                                className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
-                                  row?.destinationAirport
-                                    ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
-                                    : ""
-                                }`}
+                              <div
+                                onClick={() =>
+                                  toggleField(row.id, "isOpenOrigin")
+                                }
                               >
-                                {row?.destinationAirport && (
-                                  <>
-                                    <span className="px-1.5 py-0.5 truncate">
-                                      {row?.destinationAirport}
-                                    </span>
-                                    <span
-                                      className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
-                                      onMouseEnter={(e) =>
-                                        e.currentTarget.parentElement.classList.replace(
-                                          "hover:border-black",
-                                          "border-white"
-                                        )
-                                      }
-                                      onMouseLeave={(e) =>
-                                        e.currentTarget.parentElement.classList.replace(
-                                          "border-white",
-                                          "hover:border-black"
-                                        )
-                                      }
-                                    >
-                                      <FaTimes
-                                        onClick={() =>
-                                          handleClearMultiArrival(row.id)
+                                <p
+                                  className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                                    row?.originAirport
+                                      ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                      : ""
+                                  }`}
+                                >
+                                  {row?.originAirport && (
+                                    <>
+                                      <span className="px-1.5 py-0.5 truncate">
+                                        {row?.originAirport}
+                                      </span>
+                                      <span
+                                        className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                        onMouseEnter={(e) =>
+                                          e.currentTarget.parentElement.classList.replace(
+                                            "hover:border-black",
+                                            "border-white"
+                                          )
                                         }
-                                      />
-                                    </span>
-                                  </>
-                                )}
-                              </p>
-                              <input
-                                value={row.searchQueryDestination}
-                                type="text"
-                                onChange={(e) =>
-                                  updateCityData(
-                                    row.id,
-                                    "searchQueryDestination",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="To ?"
-                                className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
-                              />
+                                        onMouseLeave={(e) =>
+                                          e.currentTarget.parentElement.classList.replace(
+                                            "border-white",
+                                            "hover:border-black"
+                                          )
+                                        }
+                                      >
+                                        <FaTimes
+                                          onClick={() =>
+                                            handleClearMulti(row.id)
+                                          }
+                                        />
+                                      </span>
+                                    </>
+                                  )}
+                                </p>
+                                <input
+                                  value={row.searchQueryOrigin}
+                                  type="text"
+                                  onChange={(e) =>
+                                    updateCityData(
+                                      row.id,
+                                      "searchQueryOrigin",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="From ?"
+                                  className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                                />
 
-                              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                                <Airplane />
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                                  <Airplane />
+                                </div>
                               </div>
-                            </div>
-                            {row?.isOpenDestination ? (
-                              <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-full md:w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                                <div className="p-6 ">
-                                  <ul className="space-y-4">
-                                    {filteredAirportsArrivalMulti[
-                                      row.id - 1
-                                    ].map((arrival, index) => (
-                                      <li
-                                        key={index}
-                                        className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
-                                        onClick={() => {
-                                          toggleFieldClick(
-                                            row.id,
-                                            "isOpenDestination"
-                                          ),
+                              {row?.isOpenOrigin ? (
+                                <div className="max-w-md mx-auto bg-white rounded-xl shadow-md  absolute top-16 w-full md:w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                                  <div className="p-6 ">
+                                    <ul className="space-y-4">
+                                      {filteredAirportsDestinationMulti[
+                                        row.id - 1
+                                      ]?.map((destination, index) => (
+                                        <li
+                                          key={index}
+                                          className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
+                                          onClick={() => {
+                                            toggleFieldClick(
+                                              row.id,
+                                              "isOpenOrigin"
+                                            ),
+                                              updateCityData(
+                                                row.id,
+                                                "searchQueryOrigin",
+                                                destination.value
+                                              );
+
                                             updateCityData(
                                               row.id,
-                                              "searchQueryDestination",
-                                              arrival.value
+                                              "originAirport",
+                                              destination?.label
                                             );
-
-                                          updateCityData(
-                                            row.id,
-                                            "destinationAirport",
-                                            arrival.label
-                                          );
-                                        }}
-                                      >
-                                        <img
-                                          src={arrival.img}
-                                          alt=""
-                                          className="w-[60px] h-[60px]"
-                                        />
-                                        <div className="flex-grow">
-                                          <div className="flex items-center gap-3">
-                                            <p className="font-semibold text-[16px]">
-                                              {arrival.label.replace(
-                                                /\s\([^)]*\)/,
-                                                ""
-                                              )}
+                                          }}
+                                        >
+                                          <img
+                                            src={destination.img}
+                                            alt=""
+                                            className="w-[60px] h-[60px]"
+                                          />
+                                          <div className="flex-grow">
+                                            <div className="flex items-center gap-3">
+                                              <p className="font-semibold text-[16px]">
+                                                {destination.label.replace(
+                                                  /\s\([^)]*\)/,
+                                                  ""
+                                                )}
+                                              </p>
+                                              <span className="text-[14px]">
+                                                {destination.value}
+                                              </span>
+                                            </div>
+                                            <p className="text-sm text-gray-500">
+                                              {destination.name}
                                             </p>
-                                            <span className="text-[14px]">
-                                              {arrival.value}
-                                            </span>
                                           </div>
-                                          <p className="text-sm text-gray-500">
-                                            {arrival.name}
-                                          </p>
-                                        </div>
-                                      </li>
-                                    ))}
-                                  </ul>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              ""
-                            )}
-                          </div>
-
-                          <div className="col-span-2 flex gap-0 md:gap-2 justify-between ">
-                            <DatePickerOneWay
-                              className="w-[95%]"
-                              originalDate={row.departureDate}
-                              oneWayDate={row.departureDate}
-                              setOneWayDate={(date) =>
-                                updateCityData(row.id, "departureDate", date)
-                              }
-                            />
-
-                            <div className="flex items-center">
-                              {index !== 0 && (
-                                <div className="flex items-center overflow-hidden">
-                                  <button
-                                    type="button"
-                                    onClick={handleDeleteCity}
-                                  >
-                                    <FaTimes size={20} />
-                                  </button>
-                                </div>
+                              ) : (
+                                ""
                               )}
                             </div>
+
+                            <div
+                              className="relative"
+                              id={`arrival-dropdown-${index}`}
+                            >
+                              <div
+                                onClick={() =>
+                                  toggleField(row.id, "isOpenDestination")
+                                }
+                              >
+                                <p
+                                  className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                                    row?.destinationAirport
+                                      ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                      : ""
+                                  }`}
+                                >
+                                  {row?.destinationAirport && (
+                                    <>
+                                      <span className="px-1.5 py-0.5 truncate">
+                                        {row?.destinationAirport}
+                                      </span>
+                                      <span
+                                        className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                        onMouseEnter={(e) =>
+                                          e.currentTarget.parentElement.classList.replace(
+                                            "hover:border-black",
+                                            "border-white"
+                                          )
+                                        }
+                                        onMouseLeave={(e) =>
+                                          e.currentTarget.parentElement.classList.replace(
+                                            "border-white",
+                                            "hover:border-black"
+                                          )
+                                        }
+                                      >
+                                        <FaTimes
+                                          onClick={() =>
+                                            handleClearMultiArrival(row.id)
+                                          }
+                                        />
+                                      </span>
+                                    </>
+                                  )}
+                                </p>
+                                <input
+                                  value={row.searchQueryDestination}
+                                  type="text"
+                                  onChange={(e) =>
+                                    updateCityData(
+                                      row.id,
+                                      "searchQueryDestination",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="To ?"
+                                  className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                                />
+
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                                  <Airplane />
+                                </div>
+                              </div>
+                              {row?.isOpenDestination ? (
+                                <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-full md:w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                                  <div className="p-6 ">
+                                    <ul className="space-y-4">
+                                      {filteredAirportsArrivalMulti[
+                                        row.id - 1
+                                      ].map((arrival, index) => (
+                                        <li
+                                          key={index}
+                                          className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
+                                          onClick={() => {
+                                            toggleFieldClick(
+                                              row.id,
+                                              "isOpenDestination"
+                                            ),
+                                              updateCityData(
+                                                row.id,
+                                                "searchQueryDestination",
+                                                arrival.value
+                                              );
+
+                                            updateCityData(
+                                              row.id,
+                                              "destinationAirport",
+                                              arrival.label
+                                            );
+                                          }}
+                                        >
+                                          <img
+                                            src={arrival.img}
+                                            alt=""
+                                            className="w-[60px] h-[60px]"
+                                          />
+                                          <div className="flex-grow">
+                                            <div className="flex items-center gap-3">
+                                              <p className="font-semibold text-[16px]">
+                                                {arrival.label.replace(
+                                                  /\s\([^)]*\)/,
+                                                  ""
+                                                )}
+                                              </p>
+                                              <span className="text-[14px]">
+                                                {arrival.value}
+                                              </span>
+                                            </div>
+                                            <p className="text-sm text-gray-500">
+                                              {arrival.name}
+                                            </p>
+                                          </div>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+
+                            <div className="col-span-1 md:col-span-2 flex gap-0 md:gap-2 justify-between w-full">
+                              <DatePickerOneWay
+                                className="w-[95%]"
+                                originalDate={row.departureDate}
+                                oneWayDate={row.departureDate}
+                                setOneWayDate={(date) =>
+                                  updateCityData(row.id, "departureDate", date)
+                                }
+                              />
+
+                              <div className="flex items-center">
+                                {index !== 0 && (
+                                  <div className="flex items-center overflow-hidden">
+                                    <button
+                                      type="button"
+                                      onClick={handleDeleteCity}
+                                    >
+                                      <FaTimes size={20} />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div class=" flex">
-                            <p>Flight </p> <p> {index + 1}</p>
-                          </div>
-                        </div>
+                        </>
                       ))}
-                      <div className="flex justify-between items-center w-[97.5%]">
+                      <div className="flex justify-between items-center w-full flex-wrap">
                         <button
                           type="button"
                           className="text-blue-600 font-semibold"
@@ -1091,15 +1188,156 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                         {/* <button type="button" className="text-gray-500">
                           clear all
                         </button> */}
-
-                        <button
-                          className="rounded-[10px] bg-[#FC660F] w-[54px] h-[50px] hover:bg-[#d67136]"
-                          type="submit"
-                        >
-                          <div className="flex justify-center items-center w-full">
-                            <SearchIcon />
+                        {/* {error && (
+                          <>
+                            <p className="text-red-400 text-sm">{error}</p>
+                          </>
+                        )} */}
+                        <div className="flex items-center gap-2 w-full md:w-auto mt-5 md:mt-0 ">
+                          <div className="col-span-2 w-[70%]">
+                            <div className="relative" ref={dropdownRef}>
+                              <div
+                                onClick={() =>
+                                  setIsOpenClassPassenger(!isOpenClassPassenger)
+                                }
+                              >
+                                <div className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black  focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5] cursor-pointer">
+                                  {totalPassengers}{" "}
+                                  {totalPassengers !== 1
+                                    ? "Travelers"
+                                    : "Adult"}
+                                  ,{" "}
+                                  {selectedClass == "Y"
+                                    ? "Economy"
+                                    : selectedClass == "P"
+                                    ? "Premium Economy"
+                                    : selectedClass == "C"
+                                    ? "Business"
+                                    : "First class"}
+                                </div>
+                              </div>
+                              {isOpenClassPassenger ? (
+                                <div className="absolute min-w-56 md:w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
+                                  <div className=" ">
+                                    <div className="py-5 px-3">
+                                      {categories.map((category, index) => (
+                                        <div
+                                          key={category.name}
+                                          className="px-4 py-2 flex items-center justify-between"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <p className="text-sm  text-gray-900">
+                                              {category.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              {category.ageRange}
+                                            </p>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                updateCount(index, -1)
+                                              }
+                                              disabled={
+                                                category?.name == "Adults"
+                                                  ? category.count === 1
+                                                  : category.count === 0
+                                              }
+                                              className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
+                                              aria-label={`Decrease ${category.name}`}
+                                            >
+                                              <svg
+                                                className="w-3 h-3"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M20 12H4"
+                                                />
+                                              </svg>
+                                            </button>
+                                            <span className="text-gray-900 w-8 text-center">
+                                              {category.count}
+                                            </span>
+                                            <button
+                                              onClick={() =>
+                                                updateCount(index, 1)
+                                              }
+                                              type="button"
+                                              disabled={totalPassengers === 7}
+                                              className="inline-flex items-center justify-center w-5 h-5 text-black bg-white border  rounded-[6px] hover:bg-gray-50 focus:outline-none hover:border hover:border-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                              aria-label={`Increase ${category.name}`}
+                                            >
+                                              <svg
+                                                className="w-5 h-5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                                />
+                                              </svg>
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2 w-full flex-wrap p-4">
+                                    {classes?.map((cls, index) => (
+                                      <div
+                                        key={index}
+                                        onClick={() =>
+                                          setSelectedClass(cls?.shortCode)
+                                        }
+                                        className={`border p-2 rounded-lg hover:bg-gray-200 transition-all duration-300 ${
+                                          selectedClass == cls?.shortCode
+                                            ? "bg-[#F0F3F5]"
+                                            : ""
+                                        } cursor-pointer`}
+                                      >
+                                        <span className="">{cls?.name}</span>
+                                      </div>
+                                    ))}{" "}
+                                    <div className="flex justify-end w-full mt-2">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setIsOpenClassPassenger(false)
+                                        }
+                                        className="text-white bg-[#FC660F] text-sm py-1.5 px-3  hover:bg-[#da7b44] w-fit  rounded-lg "
+                                      >
+                                        Ok
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                ""
+                              )}
+                            </div>
                           </div>
-                        </button>
+
+                          <button
+                            className="rounded-[10px] bg-[#FC660F] p-4 w-full md:w-[54px] h-full md:h-[50px] hover:bg-[#d67136]"
+                            type="submit"
+                          >
+                            <div className="flex justify-center items-center w-full">
+                              <SearchIcon />
+                            </div>
+                          </button>
+                        </div>
                       </div>
                       {/* <p className="text-gray-500 text-sm text-right mt-2">
                   Direct flights only
@@ -1127,6 +1365,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                       {originAirport}
                                     </span>
                                     <span
+                                      onClick={handleClear}
                                       className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                       onMouseEnter={(e) =>
                                         e.currentTarget.parentElement.classList.replace(
@@ -1141,12 +1380,13 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                         )
                                       }
                                     >
-                                      <FaTimes onClick={handleClear} />
+                                      <FaTimes />
                                     </span>
                                   </>
                                 )}
                               </p>
                               <input
+                                ref={originInputRef}
                                 value={searchQueryOrigin}
                                 type="text"
                                 onChange={(e) =>
@@ -1267,6 +1507,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                       {destinationAirport}
                                     </span>
                                     <span
+                                      onClick={handleClearArrival}
                                       className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                       onMouseEnter={(e) =>
                                         e.currentTarget.parentElement.classList.replace(
@@ -1281,12 +1522,13 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                         )
                                       }
                                     >
-                                      <FaTimes onClick={handleClearArrival} />
+                                      <FaTimes />
                                     </span>
                                   </>
                                 )}
                               </p>
                               <input
+                                ref={destinationInputRef}
                                 value={searchQueryDestination}
                                 type="text"
                                 onChange={(e) =>
@@ -1505,6 +1747,17 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                         <span className="">{cls?.name}</span>
                                       </div>
                                     ))}
+                                    <div className="flex justify-end w-full mt-2">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setIsOpenClassPassenger(false)
+                                        }
+                                        className="text-white bg-[#FC660F] text-sm py-1.5 px-3  hover:bg-[#da7b44] w-fit  rounded-lg "
+                                      >
+                                        Ok
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               ) : (
@@ -1550,6 +1803,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                         {originAirport}
                                       </span>
                                       <span
+                                        onClick={handleClear}
                                         className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                         onMouseEnter={(e) =>
                                           e.currentTarget.parentElement.classList.replace(
@@ -1564,12 +1818,13 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                           )
                                         }
                                       >
-                                        <FaTimes onClick={handleClear} />
+                                        <FaTimes />
                                       </span>
                                     </>
                                   )}
                                 </p>
                                 <input
+                                  ref={originInputRef}
                                   value={searchQueryOrigin}
                                   type="text"
                                   onChange={(e) =>
@@ -1686,6 +1941,7 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                         {destinationAirport}
                                       </span>
                                       <span
+                                        onClick={handleClearArrival}
                                         className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
                                         onMouseEnter={(e) =>
                                           e.currentTarget.parentElement.classList.replace(
@@ -1700,12 +1956,13 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                           )
                                         }
                                       >
-                                        <FaTimes onClick={handleClearArrival} />
+                                        <FaTimes />
                                       </span>
                                     </>
                                   )}
                                 </p>
                                 <input
+                                  ref={destinationInputRef}
                                   value={searchQueryDestination}
                                   type="text"
                                   onChange={(e) =>
@@ -1924,6 +2181,17 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                                             </span>
                                           </div>
                                         ))}
+                                        <div className="flex justify-end w-full mt-2">
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              setIsOpenClassPassenger(false)
+                                            }
+                                            className="text-white bg-[#FC660F] text-sm py-1.5 px-3  hover:bg-[#da7b44] w-fit  rounded-lg "
+                                          >
+                                            Ok
+                                          </button>
+                                        </div>
                                       </div>
                                     </div>
                                   ) : (
@@ -1947,10 +2215,15 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
                     </>
                   )}
                 </form>
+                {singleWayError && (
+                  <>
+                    <p className="text-red-400 text-sm">{singleWayError}</p>
+                  </>
+                )}
               </div>
             </main>
           </div>
-          k
+
           <div
             className="flex-grow w-full h-fit"
             onClick={() => setIsModalOpen(false)}
