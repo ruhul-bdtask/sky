@@ -18,7 +18,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
-import { FaExchangeAlt } from "react-icons/fa";
+import { FaExchangeAlt, FaLongArrowAltRight } from "react-icons/fa";
 import { LuChevronsLeftRight } from "react-icons/lu";
 import { MdOutlineArrowRightAlt } from "react-icons/md";
 import { ToastContainer, toast } from "react-toastify";
@@ -75,7 +75,25 @@ export default function Header() {
     setTravelPlanningDate,
     setSelectedFlight,
   } = useAirlineStore();
-  const { destination, origin, journeyDate, returnDate, tripType } = searchData;
+
+  const tripType = searchData?.type; // "one_way", "return", or "multi_city"
+  const passengerDetails = searchData?.passengers || [];
+
+  // For one-way and return, we use the first leg
+  const firstLeg = searchData?.legs?.[0] || {};
+  const {
+    from: origin,
+    to: destination,
+    departure_date: journeyDate,
+    arrival_date: returnDate,
+    origin_airport: origin_airport,
+    destination_airport: destination_airport,
+  } = firstLeg;
+
+  const cabinClass = firstLeg?.class;
+
+  // For multi-city, extract all legs
+  const multiCityLegs = searchData?.legs || [];
 
   const [formData, setFormData] = useState({
     destination: "",
@@ -720,7 +738,7 @@ export default function Header() {
             </a>
           </div>
           <div>
-            {pathname == "/search-result" && searchData?.tripType && (
+            {pathname == "/search-result" && tripType && (
               <div
                 className="w-full items-center gap-1 flex md:hidden"
                 onClick={() => setIsModalOpen(true)}
@@ -728,7 +746,13 @@ export default function Header() {
                 <div className="">
                   <div className="flex items-center gap-2">
                     <div className="font-semibold">
-                      {origin} - {destination}
+                      {tripType === "multi_city" ? (
+                        <p>Multi city</p>
+                      ) : (
+                        <>
+                          {origin} - {destination}
+                        </>
+                      )}
                     </div>
                     <Pencil size={15} className="text-black" />
                   </div>
@@ -752,32 +776,57 @@ export default function Header() {
             )}
           </div>
           <div>
-            {pathname == "/search-result" && searchData?.tripType && (
+            {pathname === "/search-result" && tripType && (
               <div
-                className="w-full  items-center  gap-1 hidden md:flex"
+                className="w-full items-center gap-1 hidden md:flex cursor-pointer"
                 onClick={() => setIsModalOpen(true)}
               >
+                {/* Trip Type */}
                 <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer hover:bg-gray-300 transition-all border-[#d9e2e8] border">
-                  {tripType == "one_way"
+                  {tripType === "one_way"
                     ? "One way"
-                    : tripType == "return"
+                    : tripType === "return"
                     ? "Return"
                     : "Multi city"}
                 </div>
 
-                <div className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm cursor-pointer  transition-all flex items-center gap-4 border-[#d9e2e8] border">
-                  <div>{originAirportName}</div>
-                  <FaExchangeAlt
-                    className="hover:bg-gray-300 p-1 rounded-md"
-                    size={20}
-                  />
-                  <div>{destinationAirportName}</div>
-                </div>
+                {/* If One-way or Return, Show Single Route */}
+                {tripType !== "multi_city" ? (
+                  <div className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm cursor-pointer transition-all flex items-center gap-4 border-[#d9e2e8] border">
+                    <div>{origin_airport}</div>
+                    <FaExchangeAlt
+                      className="hover:bg-gray-300 p-1 rounded-md"
+                      size={20}
+                    />
+                    <div>{destination_airport}</div>
+                  </div>
+                ) : (
+                  // If Multi-City, Show Multiple Legs
+                  <div className="flex  gap-2">
+                    {multiCityLegs?.map((leg, index) => (
+                      <div
+                        key={index}
+                        className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm flex items-center gap-4 border-[#d9e2e8] border"
+                      >
+                        <div>{leg.from}</div>
+                        <FaLongArrowAltRight
+                          className="hover:bg-gray-300 p-1 rounded-md"
+                          size={20}
+                        />
+                        <div>{leg.to}</div>
+                        {/* <span className="text-gray-500">
+                          ({formatLongDataToShort(leg.departure_date)})
+                        </span> */}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-3">
+                {/* Dates */}
+                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer transition-all border-[#d9e2e8] border flex items-center gap-3">
                   {formatLongDataToShort(journeyDate)}{" "}
                   <LuChevronsLeftRight size={20} />
-                  {tripType == "return" && (
+                  {tripType === "return" && (
                     <>
                       <div className="border-l-2 border-gray-100 h-5"></div>
                       {formatLongDataToShort(returnDate)}{" "}
@@ -786,21 +835,24 @@ export default function Header() {
                   )}
                 </div>
 
-                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-4">
+                {/* Passenger Count & Class */}
+                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer transition-all border-[#d9e2e8] border flex items-center gap-4">
                   <span>
                     {totalPassengers}{" "}
                     {totalPassengers !== 1 ? "Travelers" : "Adult"}
                   </span>{" "}
                   <span>
-                    {searchData?.class == "Y"
+                    {cabinClass === "Y"
                       ? "Economy"
-                      : searchData?.class == "P"
+                      : cabinClass === "P"
                       ? "Premium Economy"
-                      : searchData?.class == "C"
+                      : cabinClass === "C"
                       ? "Business"
                       : "First class"}
                   </span>
                 </div>
+
+                {/* Search Button */}
                 <button
                   className="rounded-[10px] bg-[#FC660F] w-[50px] h-[50px] hover:bg-[#d67136]"
                   type="submit"
@@ -812,6 +864,7 @@ export default function Header() {
               </div>
             )}
           </div>
+
           <div className="flex items-center gap-4">
             <div className="relative">
               <button

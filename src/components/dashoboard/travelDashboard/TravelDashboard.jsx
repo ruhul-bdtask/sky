@@ -8,25 +8,27 @@ import Payment from "../payment/Payment";
 import Notifications from "../notifications/Notifications";
 import Airplane from "@/public/icons/Airplane";
 import accountImg from "@/public/images/accountImg.png";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import { fetchData } from "@/utils/api";
 import Link from "next/link";
 import Loading from "@/components/loader/Loading";
 import LoadingFixed from "@/components/loader/LoadingFixed";
+import { formatDateForAccountRecentSearch } from "@/lib/formatDateForAccountRecentSearch";
 
 export default function TravelDashboard({
   userData,
   userDataLoading,
   loginDetails,
+  refetchUserData,
 }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isOpen, setIsOpen] = useState(false);
@@ -50,6 +52,24 @@ export default function TravelDashboard({
       setIsOpen(false);
     },
   });
+
+  const {
+    data: recentSearchData,
+    isLoading: recentSearchDataLoading,
+    refetch: recentSearchDataRefetch,
+  } = useQuery({
+    queryKey: ["recent-search", token],
+    queryFn: () => fetchData("/gds/recent-searches", "GET", undefined, token),
+    enabled: true,
+    retry: false,
+  });
+
+  useEffect(() => {
+    // Check if the current route is the dashboard page
+    if (userData) {
+      Cookies.set("fromRoute", ""); // Clear the cookie when on the dashboard page
+    }
+  }, [userData]); // Depend on the pathname to trigger the effect on route change
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -85,6 +105,24 @@ export default function TravelDashboard({
       </div>
     );
   }
+
+  const totalPassengers = (passengers) => {
+    console.log(passengers);
+    return passengers?.reduce(
+      (total, passenger) => total + passenger.quantity,
+      0
+    );
+  };
+
+  const classDefine = (code) => {
+    const classes = {
+      Y: "Economy",
+      P: "Premium Economy",
+      C: "Business",
+      F: "First Class",
+    };
+    return classes[code];
+  };
 
   const tabContent = {
     dashboard: (
@@ -123,45 +161,79 @@ export default function TravelDashboard({
           </div>
         </section>
 
-        <section>
+        {recentSearchData?.data?.length > 0 && (
           <h2 className="text-xl font-semibold mb-4">Recent searches</h2>
-          <div className="border overflow-hidden  mx-auto">
-            {/* First search item */}
-            <div className="flex items-center justify-between py-4  w-[95%] mx-auto">
-              <div className="flex gap-4">
-                <Airplane />
-                <p className="font-semibold">DAC Dhaka → CCU Kolkata</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Sat, 10/05 - Sun, 10/13</p>
-              </div>
-              <p className="text-sm text-gray-600">1 traveler, economy</p>
-            </div>
+        )}
+        {recentSearchData?.data?.map((recent, index) => (
+          <div key={index}>
+            <div className="border overflow-hidden  mx-auto">
+              {recent?.legs?.map((leg, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between py-4  w-[95%] mx-auto"
+                >
+                  <div className="flex gap-4">
+                    <Airplane />
+                    <p className="font-semibold">
+                      {leg?.origin_airport} - {leg?.destination_airport}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">
+                      {formatDateForAccountRecentSearch(leg?.departure_date)}{" "}
+                      {recent?.type == "round" &&
+                        `- ${formatDateForAccountRecentSearch(
+                          leg?.arrival_date
+                        )}`}
+                    </p>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {totalPassengers(recent?.passengers) === 1
+                      ? totalPassengers(recent?.passengers) + " " + "Traveler"
+                      : totalPassengers(recent?.passengers) + " " + "Travelers"}
+                    , {classDefine(leg?.class)}
+                  </p>
+                </div>
+              ))}
+              {/* First search item */}
 
-            {/* Second search item */}
-            <div className="flex items-center justify-between py-4 border-t w-[95%] mx-auto">
-              <div className="flex gap-4">
-                <Airplane />
-                <p className="font-semibold">DAC Dhaka → CCU Kolkata</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Sat, 10/05 - Sun, 10/13</p>
-              </div>
-              <p className="text-sm text-gray-600">1 traveler, economy</p>
+              {/* Second search item */}
+              {/* <div className="flex items-center justify-between py-4 border-t w-[95%] mx-auto">
+                <div className="flex gap-4">
+                  <Airplane />
+                  <p className="font-semibold">DAC Dhaka → CCU Kolkata</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">
+                    Sat, 10/05 - Sun, 10/13
+                  </p>
+                </div>
+                <p className="text-sm text-gray-600">1 traveler, economy</p>
+              </div> */}
             </div>
           </div>
-          <button className="text-sm text-gray-600 mt-5 hover:underline">
-            See all search history
-          </button>
-        </section>
+          // <button className="text-sm text-gray-600 mt-5 hover:underline">
+          //   See all search history
+          // </button>
+        ))}
       </>
     ),
-    account: <Account userData={userData} userDataLoading={userDataLoading} />,
+    account: (
+      <Account
+        userData={userData}
+        userDataLoading={userDataLoading}
+        refetchUserData={refetchUserData}
+      />
+    ),
     preferences: (
       <Preferences userData={userData} userDataLoading={userDataLoading} />
     ),
     travelers: (
-      <Travelers userData={userData} userDataLoading={userDataLoading} />
+      <Travelers
+        userData={userData}
+        userDataLoading={userDataLoading}
+        refetchUserData={refetchUserData}
+      />
     ),
     payment: <Payment userData={userData} userDataLoading={userDataLoading} />,
     notifications: (
@@ -183,7 +255,7 @@ export default function TravelDashboard({
                   </h1>
                   <p className="text-[15px] md:text-[20px] font-bold">
                     {" "}
-                    {userData?.data?.first_name + userData?.data?.last_name}
+                    {userData?.data?.first_name + " " +  userData?.data?.last_name}
                   </p>
                   <p className="text-[10px] md:text-[12px] font-semibold text-[#3E4346] mt-2">
                     Account Email
@@ -285,9 +357,9 @@ export default function TravelDashboard({
                 "dashboard",
                 "account",
                 "preferences",
-                "travelers",
-                "payment",
-                "notifications",
+                "travelers"
+                // "payment",
+                // "notifications",
               ].map((tab) => (
                 <button
                   key={tab}

@@ -30,7 +30,6 @@ export default function Page({ searchParams }) {
 
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
-  
 
   const { travelPlanningDate, originQuery, destinationQuery } = searchParams;
 
@@ -195,10 +194,10 @@ export default function Page({ searchParams }) {
     { name: "Multi-city", price: 150, shortCode: "multi_city" },
   ]);
   const [categories, setCategories] = useState([
-    { name: "Adults", ageRange: "18-64", count: 1 },
-    { name: "Children", ageRange: "5-11", count: 0 },
-    { name: "Kids", ageRange: "2-5", count: 0 },
-    { name: "Infants on lap", ageRange: "under 2", count: 0 },
+    { name: "Adults", ageRange: "11-64", count: 1, type: "ADT" },
+    { name: "Children", ageRange: "5-11", count: 0, type: "C06" },
+    { name: "Kids", ageRange: "2-5", count: 0, type: "C04" },
+    { name: "Infants on lap", ageRange: "under 2", count: 0, type: "INF" },
   ]);
   const [classes, setClasses] = useState([
     { name: "Economy", price: 50, shortCode: "Y" },
@@ -240,21 +239,21 @@ export default function Page({ searchParams }) {
 
     const adults = categories.find((cat) => cat.name === "Adults");
     if (adults && adults.count > 0) {
-      passengers.push({ type: "ADT", quantity: adults.count });
+      passengers.push({ type: "ADT", quantity: adults.count, age: "18" });
     }
 
     const children = categories.find((cat) => cat.name === "Children");
     if (children && children.count > 0) {
-      passengers.push({ type: "C06", quantity: children.count });
+      passengers.push({ type: "C06", quantity: children.count, age: "6" });
     }
     const kids = categories.find((kid) => kid.name === "Kids");
     if (kids && kids.count > 0) {
-      passengers.push({ type: "C04", quantity: kids.count });
+      passengers.push({ type: "C04", quantity: kids.count, age: "4" });
     }
 
     const infants = categories.find((cat) => cat.name === "Infants on lap");
     if (infants && infants.count > 0) {
-      passengers.push({ type: "INF", quantity: infants.count });
+      passengers.push({ type: "INF", quantity: infants.count, age: "1" });
     }
 
     return passengers;
@@ -379,7 +378,7 @@ export default function Page({ searchParams }) {
         },
         RPH: "1",
       });
-    } 
+    }
 
     setOriginDestinationInformation(originDestinationInfo);
 
@@ -926,9 +925,7 @@ export default function Page({ searchParams }) {
                                     key={index}
                                     className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                     onClick={() => {
-                                      setSearchQueryDestination(
-                                        origin.value
-                                      );
+                                      setSearchQueryDestination(origin.value);
                                       setOriginAirport(origin.name);
                                       setIsOpenDestination(false);
                                     }}
@@ -981,8 +978,7 @@ export default function Page({ searchParams }) {
                                     </div>
                                     <div>
                                       <p className="font-semibold">
-                                        {recent?.origin} -{" "}
-                                        {recent?.destination}
+                                        {recent?.origin} - {recent?.destination}
                                       </p>
                                       <p className="text-sm text-gray-500">
                                         {moment(recent?.journeyDate).format(
@@ -1047,26 +1043,28 @@ export default function Page({ searchParams }) {
                         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10">
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
-                              {filteredAirportsArrival.map((destination, index) => (
-                                <li
-                                  key={index}
-                                  className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                  onClick={() => {
-                                    setSearchQueryArrival(destination.value);
-                                    setDestinationAirport(destination.name);
-                                    setIsOpenArrival(false);
-                                  }}
-                                >
-                                  <div className="flex-grow">
-                                    <p className="font-semibold">
-                                      {destination.name}, {destination.value}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      {destination.label}
-                                    </p>
-                                  </div>
-                                </li>
-                              ))}
+                              {filteredAirportsArrival.map(
+                                (destination, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                    onClick={() => {
+                                      setSearchQueryArrival(destination.value);
+                                      setDestinationAirport(destination.name);
+                                      setIsOpenArrival(false);
+                                    }}
+                                  >
+                                    <div className="flex-grow">
+                                      <p className="font-semibold">
+                                        {destination.name}, {destination.value}
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        {destination.label}
+                                      </p>
+                                    </div>
+                                  </li>
+                                )
+                              )}
                             </ul>
                           </div>
                           {recentSearchData?.length > 0 ? (
@@ -1104,8 +1102,7 @@ export default function Page({ searchParams }) {
                                     </div>
                                     <div>
                                       <p className="font-semibold">
-                                        {recent?.origin} -{" "}
-                                        {recent?.destination}
+                                        {recent?.origin} - {recent?.destination}
                                       </p>
                                       <p className="text-sm text-gray-500">
                                         {moment(recent?.journeyDate).format(
@@ -1181,16 +1178,13 @@ export default function Page({ searchParams }) {
                                       key={index}
                                       className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
                                       onClick={() => {
-                                        setSearchQueryDestination(
-                                          origin.value
-                                        );
+                                        setSearchQueryDestination(origin.value);
                                         setIsOpenDestination(false);
                                       }}
                                     >
                                       <div className="flex-grow">
                                         <p className="font-semibold">
-                                          {origin.name},{" "}
-                                          {origin.value}
+                                          {origin.name}, {origin.value}
                                         </p>
                                         <p className="text-sm text-gray-500">
                                           {origin.label}
@@ -1292,13 +1286,16 @@ export default function Page({ searchParams }) {
                                       key={index}
                                       className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
                                       onClick={() => {
-                                        setSearchQueryArrival(destination.value);
+                                        setSearchQueryArrival(
+                                          destination.value
+                                        );
                                         setIsOpenArrival(false);
                                       }}
                                     >
                                       <div className="flex-grow">
                                         <p className="font-semibold">
-                                          {destination.name}, {destination.value}
+                                          {destination.name},{" "}
+                                          {destination.value}
                                         </p>
                                         <p className="text-sm text-gray-500">
                                           {destination.label}

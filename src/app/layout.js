@@ -3,6 +3,7 @@ import "./globals.css";
 import { SidebarProvider } from "../context/sidebar-context";
 import "react-datetime/css/react-datetime.css";
 import "react-loading-skeleton/dist/skeleton.css";
+import "react-phone-input-2/lib/style.css";
 import Providers from "./Providers";
 import "react-date-picker/dist/DatePicker.css";
 import "react-calendar/dist/Calendar.css";

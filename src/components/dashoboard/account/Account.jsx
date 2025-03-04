@@ -1,12 +1,228 @@
 import Image from "next/image";
-import React from "react";
-import google from "@/public/images/google.png";
-import trip from "@/public/images/trip-seats.png";
+import React, { useEffect, useState } from "react";
 import accountImg from "@/public/images/accountImg.png";
-import Link from "next/link";
-import { Switch } from "@/components/ui/switch";
+import "react-phone-input-2/lib/style.css";
+import PhoneInput from "react-phone-input-2";
+import Select from "react-select";
+import DatePicker from "react-date-picker";
+import moment from "moment";
+import { useMutation } from "@tanstack/react-query";
+import { fetchData } from "@/utils/api";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import useAirlineStore from "../../../../stores/airlineStore";
+import Loading from "@/components/loader/Loading";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
-export default function Account({ userData, userDataLoading }) {
+export default function Account({
+  userData,
+  userDataLoading,
+  refetchUserData,
+}) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const { token } = useAirlineStore();
+  const [passwords, setPasswords] = useState({
+    old_password: "",
+    new_password: "",
+  });
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  const toggleOldPasswordVisibility = () => {
+    setShowOldPassword((prev) => !prev);
+  };
+
+  const toggleNewPasswordVisibility = () => {
+    setShowNewPassword((prev) => !prev);
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswords((prevPasswords) => ({
+      ...prevPasswords,
+      [name]: value,
+    }));
+  };
+
+  const customStyles = {
+    valueContainer: (base) => ({
+      ...base,
+      height: "100%", // Ensure it fills the control height
+      display: "flex",
+      alignItems: "center",
+      padding: "0 5px", // Adds spacing inside the select
+    }),
+    input: (base) => ({
+      ...base,
+      height: "100%",
+      margin: 0,
+      padding: 0, // Ensures no extra padding
+      "&:focus": {
+        textAlign: "left", // Keep text left-aligned on focus
+      },
+    }),
+    singleValue: (base) => ({
+      ...base,
+      display: "flex",
+      alignItems: "center",
+      color: "#333", // Ensures the text color is readable
+    }),
+    placeholder: (base, state) => ({
+      ...base,
+      display: "flex",
+      alignItems: "center",
+      color: "#999",
+      display: state.isFocused ? "none" : "flex",
+      transition: "opacity 0.2s ease-in-out", // Smooth transition effect
+    }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      padding: "8px", // Adjusts the dropdown icon spacing
+    }),
+    indicatorsContainer: (base) => ({
+      ...base,
+      height: "100%", // Ensures consistent height
+      alignItems: "center",
+    }),
+  };
+
+  const [profileInfo, setProfileInfo] = useState({
+    user_id: "",
+    first_name: "",
+    last_name: "",
+    phone: "",
+    address: "",
+    postal_code: "",
+    city: "",
+    country: "",
+    postal_code: "",
+    date_of_birth: "",
+    gender: "",
+  });
+
+  useEffect(() => {
+    if (userData?.data) {
+      setProfileInfo({
+        ...profileInfo,
+        user_id: userData?.data?.id,
+        first_name: userData?.data?.first_name,
+        last_name: userData?.data?.last_name,
+        phone: userData?.data?.phone,
+        address: userData?.data?.address,
+        postal_code: userData?.data?.postal_code,
+        city: userData?.data?.city,
+        country: userData?.data?.country,
+        date_of_birth: userData?.data?.date_of_birth,
+        postal_code: userData?.data?.postal_code,
+        gender: userData?.data?.gender,
+      });
+    }
+  }, [userData]);
+
+  const handleChange = (e) => {
+    let name, value;
+
+    if (e?.target) {
+      // Handling normal input fields
+      name = e.target.name;
+      value = e.target.value;
+    } else {
+      // Handling Select and PhoneInput (which pass value directly)
+      name = e.name;
+      value = e.value;
+    }
+
+    setProfileInfo((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  const genders = [
+    { value: "male", label: "Male", name: "Male" },
+    { value: "female", label: "Female", name: "Female" },
+    { value: "others", label: "Others", name: "Others" },
+  ];
+
+  const formatDateString = (date) => {
+    if (!date) return "";
+
+    // Get year, month, and day components and create a date string in YYYY-MM-DD format
+    // This avoids timezone issues that can occur with toISOString()
+    const year = date?.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const mutation = useMutation({
+    mutationFn: (payload) =>
+      fetchData("/user/update-profile", "POST", payload, token),
+    onSuccess: (data) => {
+      setIsLoading(false);
+      toast.success(data?.message);
+      refetchUserData();
+      if (data?.error == 30001) {
+        router.push("/login");
+      }
+    },
+    onError: (error) => {
+      setIsLoading(false);
+      console.error("Mutation failed", error);
+      toast.error(error?.message);
+    },
+  });
+
+  const passwordMutation = useMutation({
+    mutationFn: (payload) =>
+      fetchData("/user/change-password", "POST", payload, token),
+    onSuccess: (data) => {
+      if (data?.success == true) {
+        setIsLoading(false);
+        toast.success(data?.message);
+        setPasswords({
+          old_password: "",
+          new_password: "",
+        });
+      }
+      refetchUserData();
+      if (data?.error == 30001) {
+        router.push("/login");
+      }
+    },
+    onError: (error) => {
+      setIsLoading(false);
+      console.error("Mutation failed", error);
+      toast.error(error?.message);
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    mutation.mutate(profileInfo);
+  };
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    passwordMutation.mutate(passwords);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+        <img
+          src={"/ticketing.gif"}
+          alt="Loading..."
+          className="w-48 md:w-64 h-full object-contain"
+        />
+      </div>
+    );
+  }
+
   return (
     <section>
       <div className=" mx-auto ">
@@ -14,110 +230,202 @@ export default function Account({ userData, userDataLoading }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border rounded-[6px]">
           <div>
             <section className="bg-white rounded-lg  p-6 mb-6 ">
-              <h2 className="text-xl font-semibold mb-4">Preferences</h2>
-              <div className="space-y-7">
+              <h2 className="text-xl font-semibold mb-4">Account</h2>
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <div>
                   <label
-                    htmlFor="name"
+                    htmlFor="first_name"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Your name
+                    First name
                   </label>
-                  <div className="flex items-center border p-2">
+                  <div className="flex items-center border p-1.5 rounded-md">
                     <input
                       type="text"
-                      id="name"
-                      name="name"
-                      value={
-                        userData?.data?.first_name +
-                        " " +
-                        userData?.data?.last_name
-                      }
+                      id="first_name"
+                      name="first_name"
+                      value={profileInfo?.first_name}
+                      onChange={handleChange}
                       className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
                     />
-                    <button className="ml-2 text-teal-600 hover:text-teal-800">
-                      Edit
-                    </button>
                   </div>
                 </div>
                 <div>
                   <label
-                    htmlFor="displayName"
+                    htmlFor="last_name"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Display name
+                    Last name
                   </label>
-                  <div className="flex items-center border p-2">
+                  <div className="flex items-center border p-1.5 rounded-md">
                     <input
                       type="text"
-                      id="displayName"
-                      name="displayName"
-                      value={userData?.data?.first_name}
+                      id="last_name"
+                      name="last_name"
+                      value={profileInfo?.last_name}
+                      onChange={handleChange}
                       className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
                     />
-                    <button className="ml-2 text-teal-600 hover:text-teal-800">
-                      Add{" "}
-                    </button>
                   </div>
                 </div>
                 <div>
                   <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700"
                   >
-                    Email address
+                    Phone
                   </label>
-                  <div className="flex items-center border p-2">
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={userData?.data?.email}
-                      readOnly
-                      className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
-                    />
-                    <button className="ml-2 text-teal-600 hover:text-teal-800">
-                      Edit{" "}
-                    </button>
-                  </div>
+                  <PhoneInput
+                    country={"bd"} // Default country
+                    value={profileInfo?.phone}
+                    onChange={(value) => handleChange({ name: "phone", value })}
+                    inputProps={{
+                      name: "phone",
+                      id: "phone",
+                      required: true,
+                      className:
+                        "pl-10 w-full border rounded-md px-3 py-2 text-sm ",
+                    }}
+                  />
                 </div>
-                {/* <div>
-                  <label
-                    htmlFor="email-site"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Email site
-                  </label>
-                  <div className="flex items-center border p-2">
-                    <input
-                      type="text"
-                      id="email-site"
-                      name="email-site"
-                      value={userData?.data?.home_airport}
-                      readOnly
-                      className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
-                    />
-                    <button className="ml-2 text-teal-600 hover:text-teal-800">
-                      Edit{" "}
-                    </button>
-                  </div>
-                </div> */}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Social connections
+                  <label
+                    htmlFor="gender"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Date of birth
                   </label>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Link your accounts with Tickteing
-                  </p>
-                  <button className="bg-[#15844B] text-white px-3 py-2 rounded-[2px] text-[10px] font-medium hover:bg-green-700 ">
-                    <div className="flex items-center gap-2">
-                      <Image alt="google" src={google}></Image>
-                      <p>Linked</p>
-                    </div>
-                  </button>
+                  <div className="w-full border border-gray-300 rounded-[5px] focus:outline-none">
+                    <DatePicker
+                      onChange={(date) => {
+                        handleChange({
+                          // new Date(date).toLocaleDateString()
+                          // moment(date).toISOString()
+
+                          name: "date_of_birth",
+                          value: formatDateString(date),
+                        }); // Update passenger data
+                      }}
+                      value={
+                        profileInfo.date_of_birth
+                          ? moment
+                              .utc(profileInfo.date_of_birth)
+                              .startOf("day")
+                              .toDate() // Force UTC date part only
+                          : ""
+                      }
+                      maxDate={new Date()}
+                      format="dd-MM-yyyy"
+                      className="w-full p-1  focus:outline-none" // Ensure border styles here
+                      calendarClassName="rounded-md shadow-lg border-gray-200"
+                      clearIcon={null} // Removes the clear icon for a cleaner design
+                    />
+                  </div>
                 </div>
-              </div>
+                <div>
+                  <label
+                    htmlFor="gender"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Gender
+                  </label>
+                  <Select
+                    styles={customStyles}
+                    options={genders}
+                    isSearchable={true}
+                    isClearable={true}
+                    value={genders.find(
+                      (option) => option?.label === profileInfo?.gender
+                    )}
+                    onChange={(selectedOption) =>
+                      handleChange({
+                        name: "gender",
+                        value: selectedOption?.label,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="city"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    City
+                  </label>
+                  <div className="flex items-center border p-1.5 rounded-md">
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      value={profileInfo?.city}
+                      onChange={handleChange}
+                      className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label
+                    htmlFor="postal_code"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Postal code
+                  </label>
+                  <div className="flex items-center border p-1.5 rounded-md">
+                    <input
+                      type="text"
+                      id="postal_code"
+                      name="postal_code"
+                      value={profileInfo?.postal_code}
+                      onChange={handleChange}
+                      className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label
+                    htmlFor="country"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Country
+                  </label>
+                  <div className="flex items-center border p-1.5 rounded-md">
+                    <input
+                      type="text"
+                      id="country"
+                      name="country"
+                      value={profileInfo?.country}
+                      onChange={handleChange}
+                      className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Address
+                  </label>
+                  <div className="flex items-center border p-1.5 rounded-md">
+                    <textarea
+                      type="text"
+                      id="address"
+                      name="address"
+                      value={profileInfo?.address}
+                      onChange={handleChange}
+                      className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="text-white bg-[#FC660F] text-sm py-1.5 px-3 rounded-sm hover:bg-[#da7b44]"
+                >
+                  Save
+                </button>
+              </form>
             </section>
           </div>
 
@@ -129,141 +437,77 @@ export default function Account({ userData, userDataLoading }) {
             />
           </div>
         </div>
-        {/* <section className="bg-white rounded-[6px] shadow-sm p-6 border my-4">
-          <h2 className="text-[16px] font-semibold mb-4">Passkeys</h2>
+        <section className="bg-white rounded-[6px] shadow-sm p-6 border my-4">
+          <h2 className="text-[16px] font-semibold mb-4">Change Password</h2>
           <p className="text-[14px] text-black mb-4">
-            Passkeys are easy to set up and let you securely sign into your
-            Ticketing account using your fingerprint, face, or screen lock.
+            Change your old password
           </p>
-          <button className="bg-[#363F45] text-white px-3 py-2 rounded-[2px] text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-            Add Passkeys
-          </button>
-        </section>
-        <section className="mb-8">
-          <div
-            className="px-6 py-8"
-            style={{
-              backgroundImage: `url(${trip.src})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          >
-            <div className="bg-gray-100 bg-opacity-70 p-2 rounded-lg">
-              <p className="mb-2 text-[24px] font-semibold">
-                Connect your inbox
-              </p>
-              <p className="text-[14px] text-black mb-4">
-                Automatically import bookings from your Gmail or Outlook account
-                to new or existing trips (no email forwarding required).
-                Organise your travel effortlessly.
-              </p>
-              <button className="bg-[#363F45] text-white text-[14px] font-semibold px-4 py-2 rounded">
-                Connect
+
+          <form onSubmit={handlePasswordSubmit}>
+            <div className="mb-4 relative">
+              <label
+                htmlFor="old_password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Old Password
+              </label>
+              <input
+                type={showOldPassword ? "text" : "password"}
+                id="old_password"
+                name="old_password"
+                onChange={handlePasswordChange}
+                required
+                className="w-full px-3 py-2 text-sm border rounded-md shadow-sm focus:ring-[#363F45] focus:border-[#363F45] focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={toggleOldPasswordVisibility}
+                className="absolute right-3 bottom-0 transform -translate-y-1/2 text-gray-500"
+              >
+                {showOldPassword ? (
+                  <AiOutlineEyeInvisible size={20} />
+                ) : (
+                  <AiOutlineEye size={20} />
+                )}
               </button>
             </div>
-          </div>
-        </section>
-        <section className="rounded-[6px] shadow-sm p-6 border my-4 space-y-4">
-          <div className="border-b pb-5">
-            <h2 className="text-[16px] font-semibold mb-4">
-              Authorized senders
-            </h2>
-            <p className="text-[14px] text-black mb-4">
-              Forward booking receipts from these accounts manually to
-              trips@Ticketing.co.in to add them to your trips. There will be no
-              automatic syncing of receipts.
-            </p>
-            <p className="text-[16px] pb-3">myname123456@gmail.com(you)</p>
-            <button className="bg-[#363F45] text-white px-3 py-1 rounded-[2px] text-sm font-medium hover:bg-gray-700 ">
-              Add an email
-            </button>
-          </div>
-          <div className="border-b pb-5">
-            <h2 className="text-[16px] font-semibold mb-4">
-              Automatically share trips
-            </h2>
-            <p className="text-[14px] text-black mb-4">
-              We&apos;ll share every trip you create with these emails.
-            </p>
-            <button className="bg-[#363F45] text-white px-3 py-1 rounded-[2px] text-sm font-medium hover:bg-gray-700 ">
-              Add an email
-            </button>
-          </div>
-          <div>
-            <h2 className="text-[16px] font-semibold mb-2">
-              Trips calendar feed
-            </h2>
-            <p className="text-[14px] text-black mb-4">
-              This feed address shows all your Trips
-            </p>
-            <p className="bg-[#F3F5F7] text-[12px] cursor-pointer inline-block p-1">
-              https://www.ticketing.co.in/trips/ical/uf/SYhGZjr4JYY/5F$$RNBV/calendar.ics
-            </p>
-            <Link href={"#"}>
-              <p className="text-[#0B7C9E] text-[14px] pt-4 ">
-                {" "}
-                Reset this link Read instructions
-              </p>
-            </Link>
-          </div>
-        </section>
-        <section className="bg-white rounded-[6px] shadow-sm px-10 py-6 border my-4 flex items-center justify-between">
-          <div className="px-10">
-            <h2 className="text-[16px] font-semibold mb-1">
-              Your usage information
-            </h2>
-            <p className="text-[14px] text-black mb-4">
-              Usage information helps us improve your Ticketing experience. Want
-              to check yours?
-            </p>
-          </div>
-          <button className="bg-[#363F45] text-white  rounded-[2px] text-[14px] font-medium hover:bg-gray-700 w-[105px] h-[27px]">
-            Check usage
-          </button>
-        </section>
-        <section className="rounded-[6px] shadow-sm p-6 border my-4 space-y-4">
-          <div className="border-b pb-4">
-            <h2 className="text-[14px] font-semibold mb-4">
-              Your choices over personal information
-            </h2>
 
-            <p className="text-[9px] text-black mb-4">
-              We share your personal information to allow third parties to
-              provide marketing and offers relevant to you. You can modify how
-              your information is shared for these purposes below. Learn more
-            </p>
+            <div className="mb-4 relative">
+              <label
+                htmlFor="new_password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                New Password
+              </label>
+              <input
+                type={showNewPassword ? "text" : "password"}
+                id="new_password"
+                name="new_password"
+                onChange={handlePasswordChange}
+                required
+                className="w-full px-3 py-2 text-sm border rounded-md shadow-sm focus:ring-[#363F45] focus:border-[#363F45] focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={toggleNewPasswordVisibility}
+                className="absolute right-3 bottom-0 transform -translate-y-1/2 text-gray-500"
+              >
+                {showNewPassword ? (
+                  <AiOutlineEyeInvisible size={20} />
+                ) : (
+                  <AiOutlineEye size={20} />
+                )}
+              </button>
+            </div>
 
-            <div className="flex justify-between items-center">
-              <span className="text-[10px]">
-                Sharing with our group companies Learn more
-              </span>
-              <p className="flex items-center gap-2">
-                <Switch className="bg-[#0B7B99]" /> on
-              </p>
-            </div>
-          </div>
-          <div className="border-b pb-4">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px]">
-                Sharing with travel partners Learn more
-              </span>
-              <p className="flex items-center gap-2">
-                <Switch /> on
-              </p>
-            </div>
-          </div>
-          <div className="">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px]">
-                Sharing with our business partners {" "}
-                <span className="underline">Learn more</span>
-              </span>
-              <p className="flex items-center gap-2">
-                <Switch /> on
-              </p>
-            </div>
-          </div>
-        </section> */}
+            <button
+              type="submit"
+              className="bg-[#363F45] text-white px-3 py-2 rounded-[2px] text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+              Update Password
+            </button>
+          </form>
+        </section>
       </div>
     </section>
   );

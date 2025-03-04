@@ -1,5 +1,5 @@
 "use client";
-import { Plane } from "lucide-react";
+import { Plane, Ticket } from "lucide-react";
 import React from "react";
 import Image from "next/image";
 import sky from "@/public/images/sky.png";
@@ -17,9 +17,12 @@ export default function SavedTripsList({ booking, airlinesData }) {
                 alt="Airplane wing over clouds"
                 className="w-[284px] h-full object-cover"
               />
-              <div className="absolute top-8 left-8 bg-[#EAF4FD] rounded-[5px] p-1 flex ">
-                <Plane className="w-5 h-5 text-black" />
-                <span>Flight</span>
+              <div className="absolute top-8 left-8 bg-[#EAF4FD] rounded-[5px] p-1 flex items-center gap-1">
+                <Ticket className="w-5 h-5 text-black" />
+                <span>
+                  {" "}
+                  <p className="text-sm text-green-400 font-semibold">Saved</p>
+                </span>
               </div>
             </div>
             <div className="p-4 sm:w-2/3 flex flex-col justify-between">
@@ -56,9 +59,9 @@ export default function SavedTripsList({ booking, airlinesData }) {
             <p className="text-white text-sm">
               It&apos;s not too late, book again with us.
             </p>
-            <button className="bg-[#EAF4FD] text-[#151515] px-3 py-1 rounded-md text-sm font-semibold">
+            {/* <button className="bg-[#EAF4FD] text-[#151515] px-3 py-1 rounded-md text-sm font-semibold">
               Book Again
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

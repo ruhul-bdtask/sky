@@ -33,7 +33,7 @@ export default function Page({ searchParams }) {
     refetch: refetchBookingData,
   } = useQuery({
     queryKey: ["ticketData", payload],
-    queryFn: () => fetchData("/gds/reservation-info", "POST", payload),
+    queryFn: () => fetchData("/gds/reservation-info", "POST", payload, token),
     enabled: false,
   });
 
@@ -76,7 +76,11 @@ export default function Page({ searchParams }) {
   return (
     <>
       <Loading loading={loading} />
-      <BookingSuccess data={bookingData?.data} slack={searchParams?.slack} message={searchParams?.ticket_issue} />
+      <BookingSuccess
+        data={bookingData?.data}
+        slack={searchParams?.slack}
+        message={searchParams?.ticket_issue}
+      />
     </>
   );
 }
