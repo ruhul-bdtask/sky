@@ -2,6 +2,8 @@
 // app/components/Header.js
 import { useSidebar } from "@/context/sidebar-context";
 import { formatFlightFare } from "@/lib/formatFlightFare";
+import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
+import { formatShortDate } from "@/lib/formatShortDate";
 import { formatTripDate } from "@/lib/formatTripDate";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import ActiveIcon from "@/public/icons/ActiveIcon";
@@ -12,29 +14,24 @@ import mobileLogo from "@/public/images/mobileLogo.jpg";
 import weather from "@/public/images/weather.png";
 import { fetchData } from "@/utils/api";
 import Cookies from "js-cookie";
-import { Menu, Pencil, SearchIcon, UserRound, X } from "lucide-react";
+import { Heart, Menu, Pencil, SearchIcon, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
+import { BiSolidUser } from "react-icons/bi";
 import { FaExchangeAlt, FaLongArrowAltRight } from "react-icons/fa";
 import { LuChevronsLeftRight } from "react-icons/lu";
 import { MdOutlineArrowRightAlt } from "react-icons/md";
-import { ToastContainer, toast } from "react-toastify";
+import { isExpired } from "react-jwt";
+import { Bounce, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useAirlineStore from "../../../stores/airlineStore";
 import TripDatePicker from "../datePicker/TripDatePicker";
 import ModalLayout from "../modals/ModalLayout";
 import PopupBtn from "./PopupBtn";
 import SearchDestination from "./SearchDestination";
-import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
-import { Bounce } from "react-toastify";
-import { isExpired } from "react-jwt";
-import { useQuery } from "@tanstack/react-query";
-import { BiSolidUser } from "react-icons/bi";
-import { formatShortDate } from "@/lib/formatShortDate";
-import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
 
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
@@ -915,8 +912,8 @@ export default function Header() {
                             <div className="flex items-center gap-4">
                               <Image
                                 alt="image"
-                                width={80}
-                                height={80}
+                                width={70}
+                                height={70}
                                 src={weather}
                               ></Image>
                               <div>
@@ -951,11 +948,19 @@ export default function Header() {
                           </div>
 
                           <div className="p-4">
-                            {savedTrips?.length > 0 && (
+                            {selectedSavedTrip?.flights?.length > 0 ? (
                               <h4 className="mb-4 text-md font-semibold">
                                 Saved Flights (
                                 {selectedSavedTrip?.flights?.length})
                               </h4>
+                            ) : (
+                              <div className="flex flex-col text-center items-center p-5 space-y-3">
+                                <Heart size={60} />
+                                <div className="text-gray-950">
+                                  It doesn&apos;t hurt to heart. Save results to
+                                  Trips to decide on later.
+                                </div>
+                              </div>
                             )}
 
                             {groupedFlights?.map((data, index) => (
@@ -983,9 +988,9 @@ export default function Header() {
                                 {/* =================Flights list================= */}
                                 {data?.flights?.map((flight, index) => (
                                   <div
-                                    // onClick={() =>
-                                    //   handleRedirect(flight?.flight_data)
-                                    // }
+                                    onClick={() =>
+                                      handleRedirect(flight?.flight_data)
+                                    }
                                     className="flex flex-col p-4 border-b cursor-pointer"
                                     key={index}
                                   >
