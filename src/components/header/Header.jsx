@@ -983,9 +983,9 @@ export default function Header() {
                                 {/* =================Flights list================= */}
                                 {data?.flights?.map((flight, index) => (
                                   <div
-                                    // onClick={() =>
-                                    //   handleRedirect(flight?.flight_data)
-                                    // }
+                                    onClick={() =>
+                                      handleRedirect(flight?.flight_data)
+                                    }
                                     className="flex flex-col p-4 border-b cursor-pointer"
                                     key={index}
                                   >
