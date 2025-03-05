@@ -43,7 +43,6 @@ export default function BookingFormComp({
   //     alignItems: "center", // Center the selected value vertically
   //   }),
   // };
-  console.log(passenger);
   const customStyles = {
     control: (base, state) => ({
       ...base,

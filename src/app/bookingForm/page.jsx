@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import BookingFormComp from "@/components/bookingFormComp/BookingFormComp";
-import { ChevronLeft, Info, Timer } from "lucide-react";
+import { ChevronLeft, Circle, Info, Timer } from "lucide-react";
 import Link from "next/link";
 import { isExpired } from "react-jwt";
 import "react-phone-input-2/lib/style.css";
@@ -16,7 +16,7 @@ import {
 import BookingConfirmationModal from "@/components/bookingConfirmationModal/BookingModal";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/utils/api";
 import { useRouter } from "next/navigation";
 import { Oval } from "react-loader-spinner";
@@ -29,6 +29,13 @@ import { useAirlines } from "@/hooks/useAirlines";
 import Cookies from "js-cookie";
 import { duration } from "moment";
 import PhoneInput from "react-phone-input-2";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ImSpinner6 } from "react-icons/im";
 
 export default function BookingForm() {
   const {
@@ -57,8 +64,11 @@ export default function BookingForm() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [fareRules, setFareRules] = useState();
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
+  const [selectedFareRuleKey, setSelectedFareRuleKey] = useState(null);
   const [paymentFlight, setPaymentFlight] = useState({
     origin_airport: "",
     destination_airport: "",
@@ -98,7 +108,7 @@ export default function BookingForm() {
     });
   }, [selectedFlight]);
 
-  const [openFareRules, setOpenFareRules] = useState({});
+  const [openFareRules, setOpenFareRules] = useState(false);
 
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const { airlinesData } = useAirlines();
@@ -626,6 +636,89 @@ export default function BookingForm() {
     }));
   };
 
+  const mutation = useMutation({
+    mutationFn: (payload) =>
+      fetchData("/gds/getFareRules", "POST", payload, null),
+    onSuccess: (data) => {
+      if (data?.success == true) {
+        setIsLoading(false);
+        // toast.success(data?.message);
+        setFareRules(data?.data?.FareRule?.children?.FareRuleLong);
+      } else {
+        toast.error(data?.message);
+        setIsLoading(false);
+      }
+    },
+    onError: (error) => {
+      setIsLoading(false);
+      console.error("Mutation failed", error);
+      toast.error(error?.message);
+    },
+  });
+  const handleFareRules = (fareRuleKey) => {
+    setOpenFareRules((prev) => !prev); // Toggle state
+    setSelectedFareRuleKey(fareRuleKey); // Store the fare rule key
+  };
+
+  useEffect(() => {
+    if (openFareRules && selectedFareRuleKey) {
+      const payload = { FareInfoRef: "", FareRuleKey: selectedFareRuleKey };
+      mutation.mutate(payload);
+    }
+  }, [openFareRules, selectedFareRuleKey]);
+
+  const fareCategories = [
+    { number: 1, name: "Eligibility" },
+    { number: 2, name: "Day/Time" },
+    { number: 3, name: "Seasonality" },
+    { number: 4, name: "Flight Application" },
+    { number: 5, name: "Advance Reservation/Ticketing" },
+    { number: 6, name: "Minimum Stay" },
+    { number: 7, name: "Maximum Stay" },
+    { number: 8, name: "Stopovers" },
+    { number: 9, name: "Transfers" },
+    { number: 10, name: "Combinability" },
+    { number: 11, name: "Blackout Dates" },
+    { number: 12, name: "Surcharges" },
+    { number: 13, name: "Accompanied Travel" },
+    { number: 14, name: "Travel Restrictions" },
+    { number: 15, name: "Sales Restrictions" },
+    { number: 16, name: "Penalties" },
+    { number: 17, name: "HIP/Mileage Exceptions" },
+    { number: 18, name: "Ticket Endorsements" },
+    { number: 19, name: "Children Discounts" },
+    { number: 20, name: "Tour Discounts" },
+    { number: 21, name: "Agent Discounts" },
+    { number: 22, name: "Other Discounts" },
+    { number: 23, name: "Miscellaneous Fare Tags" },
+    { number: 25, name: "Fare By Rule" },
+    { number: 26, name: "Groups" },
+    { number: 27, name: "Tours" },
+    { number: 28, name: "Visit Another Country" },
+    { number: 29, name: "Deposits" },
+    { number: 31, name: "Voluntary Changes" },
+    { number: 33, name: "Voluntary Refunds" },
+    { number: 35, name: "Negotiated Fares" },
+    { number: 50, name: "Application" },
+  ];
+  const groupRulesByCategory = (rules, fareRules) => {
+    return rules?.reduce((acc, rule) => {
+      const categoryId = rule?.attributes.Category;
+      const category = fareRules.find(
+        (fareRule) => fareRule.number.toString() === categoryId
+      );
+      if (category) {
+        if (!acc[category.name]) {
+          acc[category.name] = [];
+        }
+        acc[category.name]?.push(rule);
+      }
+      return acc;
+    }, {});
+  };
+
+  const groupedRules = groupRulesByCategory(fareRules, fareCategories);
+
   if (isBookingLoading) {
     return (
       <div className="fixed  inset-0 flex items-center justify-center bg-white z-50">
@@ -1012,79 +1105,115 @@ export default function BookingForm() {
                       </p>
                     </div>
                   </div>
-
-                  {!openFareRules[index] && (
-                    <div className="flex justify-center absolute right-[41%] ">
-                      <button
-                        type="button"
-                        className="flex items-center text-black  rounded-full border py-2 px-5 bg-white z-10"
-                        onClick={() => toggleFareRule(index)}
-                      >
-                        Show fare rules
-                        {openFareRules[index] ? (
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1" />
-                        )}
-                      </button>
-                    </div>
-                  )}
                 </div>
-
-                {openFareRules[index] && (
-                  <div className="mt-4 p-12 bg-gray-50 rounded-md relative">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="flex items-start">
-                        <Luggage className="w-5 h-5 mr-2 text-gray-600" />
-                        <p className="text-sm">Checked baggage 40 kg</p>
-                      </div>
-                      <div className="flex items-start">
-                        <RefreshCw className="w-5 h-5 mr-2 text-gray-600" />
-                        <p className="text-sm">
-                          Change fee: USD 55.00
-                          <br />
-                          No - Show penalty : USD 155.00
-                        </p>
-                      </div>
-                      <div className="flex items-start">
-                        <DollarSign className="w-5 h-5 mr-2 text-gray-600" />
-                        <p className="text-sm">
-                          Refund Fee : USD 80.00 before Departure
-                          <br />
-                          Not permitted after departure
-                          <br />
-                          No - Show penalty USD 180.00
-                          <br />
-                          Before Departure
-                          <br />
-                          Not Permitted after departure
-                        </p>
-                      </div>
-                      <a
-                        href="#"
-                        className="text-[#343535] hover:text-blue-800 text-sm mt-2 flex items-end underline"
-                      >
-                        View detailed fare conditions
-                      </a>
-                    </div>
-                    <div className="flex justify-center absolute right-[41%] -bottom-4 ">
-                      <button
-                        type="button"
-                        className="flex items-center text-black  rounded-full border py-2 px-5 bg-white"
-                        onClick={() => toggleFareRule(index)}
-                      >
-                        Hide fare rules
-                        {openFareRules[index] ? (
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
+            <div className="flex justify-center  ">
+              <button
+                type="button"
+                className="flex items-center text-black  rounded-full border py-2 px-5 bg-white z-10"
+                onClick={() =>
+                  handleFareRules(selectedFlight?.fare_infos?.[0]?.FareRuleKey)
+                }
+              >
+                {openFareRules ? "Hide " : "Show "}
+                fare rules
+                {openFareRules ? (
+                  <ChevronUp className="w-4 h-4 ml-1" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                )}
+              </button>
+            </div>
+
+            {openFareRules && (
+              <div className="px-2 md:px-12 pb-12   rounded-md relative">
+                {isLoading ? (
+                  <div className="flex justify-center items-center">
+                    <ImSpinner6 className="animate-spin" size={20} />
+                  </div>
+                ) : (
+                  <div>
+                    <Accordion type="single" collapsible className="">
+                      {Object.keys(groupedRules).map((categoryName, index) => (
+                        <AccordionItem
+                          key={index}
+                          value={categoryName}
+                          className="my-5"
+                        >
+                          <AccordionTrigger className="font-bold text-black text-lg cursor-pointer bg-[#F6F6F6]  p-2 rounded-md">
+                            {categoryName}
+                          </AccordionTrigger>
+                          <AccordionContent className="max-h-[400px] overflow-auto">
+                            <ul>
+                              {groupedRules[categoryName].map(
+                                (rule, ruleIndex) => (
+                                  <li
+                                    className="text-xs"
+                                    key={ruleIndex}
+                                    dangerouslySetInnerHTML={{
+                                      __html: rule.value.replace(/\n/g, "<br>"),
+                                    }}
+                                  />
+                                )
+                              )}
+                            </ul>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </div>
+                )}
+                {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="flex items-start">
+                    <Luggage className="w-5 h-5 mr-2 text-gray-600" />
+                    <p className="text-sm">Checked baggage 40 kg</p>
+                  </div>
+                  <div className="flex items-start">
+                    <RefreshCw className="w-5 h-5 mr-2 text-gray-600" />
+                    <p className="text-sm">
+                      Change fee: USD 55.00
+                      <br />
+                      No - Show penalty : USD 155.00
+                    </p>
+                  </div>
+                  <div className="flex items-start">
+                    <DollarSign className="w-5 h-5 mr-2 text-gray-600" />
+                    <p className="text-sm">
+                      Refund Fee : USD 80.00 before Departure
+                      <br />
+                      Not permitted after departure
+                      <br />
+                      No - Show penalty USD 180.00
+                      <br />
+                      Before Departure
+                      <br />
+                      Not Permitted after departure
+                    </p>
+                  </div>
+                  <a
+                    href="#"
+                    className="text-[#343535] hover:text-blue-800 text-sm mt-2 flex items-end underline"
+                  >
+                    View detailed fare conditions
+                  </a>
+                </div> */}
+                {/* <div className="flex justify-center absolute right-[41%] -bottom-4 ">
+                  <button
+                    type="button"
+                    className="flex items-center text-black  rounded-full border py-2 px-5 bg-white"
+                    onClick={() => setOpenFareRules(!openFareRules)}
+                  >
+                    Hide fare rules
+                    {openFareRules ? (
+                      <ChevronUp className="w-4 h-4 ml-1" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 ml-1" />
+                    )}
+                  </button>
+                </div> */}
+              </div>
+            )}
             <div className="pt-8">
               <h2 className="text-lg font-semibold mb-4 bg-[#F6F6F6] px-12 py-4">
                 Passengers
