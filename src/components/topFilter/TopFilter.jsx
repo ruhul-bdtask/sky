@@ -227,7 +227,7 @@ export default function TopFilter({
               }`}
               onClick={() => handleChangeOtherSort("earliestTakeOff")}
             >
-              Earliest take-off ({searchData?.legs[0]?.to})
+              Earliest take-off ({searchData?.legs[0]?.from})
             </li>
             <li
               className={`hover:bg-gray-200 transition-all text-sm text-gray-900 px-4 py-2 cursor-pointer ${
