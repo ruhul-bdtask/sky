@@ -186,38 +186,16 @@ const TicketCopy = ({ searchParams, authToken }) => {
                   >
                     <span
                       style={{
-                        marginRight: "1rem",
+                        marginRight: "0.5rem",
                         textTransform: "uppercase",
                       }}
                     >
                       {bookingData?.data?.journey_start}
+                      {","}
+                    </span>
 
-                      <small
-                        style={{
-                          marginRight: "2px",
-                          marginLeft: "5px",
-                        }}
-                      >
-                        <i
-                          class="fa fa-caret-right"
-                          style={{ fontSize: "20px" }}
-                        ></i>
-                      </small>
-                      {bookingData?.data?.journey_end}
-                    </span>
-                    TRIP TO
                     <span
                       style={{
-                        marginLeft: "12px",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {bookingData?.data?.last_airport}
-                    </span>
-                    {","}
-                    <span
-                      style={{
-                        marginLeft: "12px",
                         textTransform: "uppercase",
                       }}
                     >
