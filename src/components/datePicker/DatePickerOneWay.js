@@ -76,6 +76,7 @@ export default function DatePickerOneWay({
         </PopoverTrigger>
         <PopoverContent className="w-auto bg-white p-0" align="start">
           <Calendar
+            fromDate={new Date()}
             mode="single"
             selected={oneWayDate}
             onSelect={(date) => {

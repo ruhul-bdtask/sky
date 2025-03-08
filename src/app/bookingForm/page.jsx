@@ -36,6 +36,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ImSpinner6 } from "react-icons/im";
+import LoginModal from "@/components/authModal/LoginModal";
+import RegisterModal from "@/components/authModal/RegisterModal";
 
 export default function BookingForm() {
   const {
@@ -65,6 +67,10 @@ export default function BookingForm() {
   const [isBookingLoading, setIsBookingLoading] = useState(false);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [isModal, setIsModal] = useState(false);
+  const [isLoginModal, setIsLoginModal] = useState(false);
+  const [isRegisterModal, setIsRegisterModal] = useState(false);
   const [fareRules, setFareRules] = useState();
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
@@ -90,7 +96,7 @@ export default function BookingForm() {
   useEffect(() => {
     setContactInfo({
       email: userData?.email || "",
-      phone: userData?.phone || "",
+      phone: userData?.phone || contactInfo.phone || "",
     });
   }, [userData]);
   useEffect(() => {
@@ -470,7 +476,7 @@ export default function BookingForm() {
         payload,
         token
       );
-      if (response?.success == true) {
+      if (response?.success == true && response?.data?.redirect_url) {
         router.push(response?.data?.redirect_url);
         setPassengerInformation([]);
         setContactInformation({});
@@ -480,56 +486,55 @@ export default function BookingForm() {
         setSelectedFlight({});
       } else {
         setIsBookingLoading(false);
+        toast.error("Something went wrong");
       }
       return response;
     },
     enabled: false,
   });
 
-  const registerPayload = {
-    first_name: passengerInformation?.[0]?.first_name,
-    last_name: passengerInformation?.[0]?.last_name,
-    email: contactInfo?.email,
-    phone: contactInfo?.phone,
-    verify_by: "email",
-  };
-  const {
-    data: registerData,
-    error: registerError,
-    isLoading: registerLoading,
-    refetch: refetchRegister,
-  } = useQuery({
-    queryKey: ["register", registerPayload],
-    queryFn: () => fetchData("/user/minimal-register", "POST", registerPayload),
-    enabled: false,
-  });
+  // const registerPayload = {
+  //   first_name: passengerInformation?.[0]?.first_name,
+  //   last_name: passengerInformation?.[0]?.last_name,
+  //   email: contactInfo?.email,
+  //   phone: contactInfo?.phone,
+  //   verify_by: "email",
+  // };
+  // const {
+  //   data: registerData,
+  //   error: registerError,
+  //   isLoading: registerLoading,
+  //   refetch: refetchRegister,
+  // } = useQuery({
+  //   queryKey: ["register", registerPayload],
+  //   queryFn: () => fetchData("/user/minimal-register", "POST", registerPayload),
+  //   enabled: false,
+  // });
 
   const handleBooking = (e) => {
     e.preventDefault();
     setIsBookingLoading(true);
 
-    if (token == null || token == undefined || token == "") {
-      refetchRegister();
-    } else {
-      if (isMyTokenExpired) {
-        setToken(null);
-        refetchRegister();
-      } else {
-        refetchBookingData();
-      }
+    // if (token == null || token == undefined || token == "") {
+    //   refetchRegister();
+    // } else {
+    if (!isMyTokenExpired) {
+      refetchBookingData();
     }
+
+    // }
   };
 
-  useEffect(() => {
-    if (registerData?.success == true) {
-      setToken(registerData?.authorization?.token);
-      Cookies.set("auth-token", token);
-      setUserData(registerData?.user);
-      if (token) {
-        refetchBookingData();
-      }
-    }
-  }, [registerData, token]);
+  // useEffect(() => {
+  //   if (registerData?.success == true) {
+  //     setToken(registerData?.authorization?.token);
+  //     Cookies.set("auth-token", token);
+  //     setUserData(registerData?.user);
+  //     if (token) {
+  //       refetchBookingData();
+  //     }
+  //   }
+  // }, [registerData, token]);
 
   // useEffect(() => {
   //   if (bookingData?.success == true) {
@@ -598,35 +603,64 @@ export default function BookingForm() {
     return true;
   };
 
+  const emailMutation = useMutation({
+    mutationFn: ({ email }) =>
+      fetchData("/user/checkClientExist", "POST", { email }, null),
+    onSuccess: (data, variables) => {
+      if (data?.success) {
+        setEmailChecking(false);
+
+        // Update state upon successful mutation
+        if (data?.data?.isExist === true) {
+          setIsLoginModal(true);
+          setIsModal(true);
+          // setPassengerInformation(passengerData);
+          // setContactInformation(contactInfo);
+          // setActiveTab(variables.arg);
+        } else {
+          setIsLoginModal(false);
+          setIsModal(true);
+        }
+      } else {
+        setEmailChecking(false);
+        toast.error(data?.message);
+      }
+    },
+    onError: (error) => {
+      setEmailChecking(false);
+      toast.error(error?.message || "An error occurred");
+    },
+  });
+
   const handleChangeTab = (arg) => {
-    if (contactInfo?.email == "") {
+    if (!contactInfo?.email) {
       toast.error("Please enter a valid email address");
       return;
     }
-    if (contactInfo?.phone == "") {
+    if (!contactInfo?.phone) {
       toast.error("Please enter a valid phone number");
       return;
     }
-    const isEmailValid = validateEmail(contactInfo.email);
-    // const isPhoneValid = validatePhone(contactInfo.phone);
-
-    if (!isEmailValid) {
+    if (!validateEmail(contactInfo.email)) {
       toast.error("Please enter a valid email address");
       return;
     }
-    // if (!isPhoneValid) {
-    //   toast.error("Please enter a valid phone number");
-    // }
-
+    if (!validatePassengers(passengerData)) {
+      return;
+    }
     const isValid = validatePassengers(passengerData);
     if (!isValid) {
       return;
     }
 
-    console.log(passengerData, customersInfo);
-    setPassengerInformation(passengerData);
-    setContactInformation(contactInfo);
-    setActiveTab(arg);
+    if (!token) {
+      setEmailChecking(true);
+      emailMutation.mutate({ email: contactInfo.email, arg });
+    } else {
+      setPassengerInformation(passengerData);
+      setContactInformation(contactInfo);
+      setActiveTab(arg);
+    }
   };
 
   const toggleFareRule = (index) => {
@@ -909,9 +943,11 @@ export default function BookingForm() {
                       type="text"
                       id={`email`}
                       name={`email`}
+                      disabled={token ? true : false}
+                      readOnly={token ? true : false}
                       value={contactInfo?.email ? contactInfo?.email : ""}
                       placeholder="Email address"
-                      className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
+                      className={`border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none `}
                     />
                   </div>
                   {/* <div className="flex flex-col gap-4">
@@ -986,13 +1022,45 @@ export default function BookingForm() {
                     type="button"
                     className=" float-right  text-white font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
                   >
-                    Save & Continue to Payment
+                    {emailChecking
+                      ? "Email checking ......................."
+                      : "Save & Continue to Payment"}
                   </button>
                 </div>
                 {/* )} */}
               </div>
             </form>
           </>
+          {/*  setPassengerInformation(passengerData);
+      setContactInformation(contactInfo);
+      setActiveTab(arg); */}
+          {isLoginModal ? (
+            <LoginModal
+              defaultMail={contactInfo.email}
+              // setIsLoginModal={setIsLoginModal}
+              setPassengerInformation={setPassengerInformation}
+              passengerData={passengerData}
+              setContactInformation={setContactInformation}
+              contactInfo={contactInfo}
+              setActiveTab={setActiveTab}
+              arg={"payment"}
+              open={isModal}
+              setOpen={setIsModal}
+            />
+          ) : (
+            <RegisterModal
+              defaultPhone={contactInfo?.phone}
+              defaultMail={contactInfo.email}
+              setPassengerInformation={setPassengerInformation}
+              passengerData={passengerData}
+              setContactInformation={setContactInformation}
+              contactInfo={contactInfo}
+              setActiveTab={setActiveTab}
+              arg={"payment"}
+              open={isModal}
+              setOpen={setIsModal}
+            />
+          )}
         </>
       )}
 
@@ -1244,6 +1312,7 @@ export default function BookingForm() {
 
           <div className="flex justify-between items-center">
             <button
+              type="button"
               onClick={() => setActiveTab("passengers")}
               className="text-[#626262] hover:text-blue-800 underline"
             >
@@ -1255,7 +1324,7 @@ export default function BookingForm() {
                 // onClick={handleConfirmModal}
                 className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
               >
-                {registerLoading || bookingLoading ? (
+                { bookingLoading ? (
                   <div className="flex justify-center items-center ">
                     <Oval
                       visible={true}

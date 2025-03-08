@@ -232,22 +232,7 @@ export default function Page() {
                 className="w-full border rounded-md px-3 py-2 text-sm mt-1"
               />
             </div>
-            {/* <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Phone
-              </label>
-              <input
-                onChange={(e) => setPhone(e.target.value)}
-                type="text"
-                id="phone"
-                name="phone"
-                placeholder="Enter your phone"
-                className="w-full border rounded-md px-3 py-2 text-sm mt-1"
-              />
-            </div> */}
+
             <div>
               <label
                 htmlFor="phone"
