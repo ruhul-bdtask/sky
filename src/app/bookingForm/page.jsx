@@ -1112,7 +1112,7 @@ export default function BookingForm() {
                   /> */}
                     <img
                       src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${shd?.operating_code}.png`}
-                      alt="Air Asia Airlines"
+                      alt="Airline"
                       className="rounded-full w-10 h-10 me-2"
                     />
                     <div>
@@ -1324,7 +1324,7 @@ export default function BookingForm() {
                 // onClick={handleConfirmModal}
                 className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
               >
-                { bookingLoading ? (
+                {bookingLoading ? (
                   <div className="flex justify-center items-center ">
                     <Oval
                       visible={true}

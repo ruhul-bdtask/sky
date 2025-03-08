@@ -1884,7 +1884,7 @@ export default function SearchPad() {
                         )}
                       </div>
                       {isOpenArrival ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10 right-0">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10   right-0 md:right-auto">
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsArrival.map((arrival, index) => (
@@ -2302,7 +2302,7 @@ export default function SearchPad() {
                           )}
                         </div>
                         {isOpenArrival ? (
-                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10 right-0">
+                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10 right-0 md:right-auto">
                             <div className="p-6 max-h-[300px] overflow-y-auto">
                               <ul className="space-y-4">
                                 {filteredAirportsArrival.map(

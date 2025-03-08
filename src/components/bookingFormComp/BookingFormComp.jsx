@@ -11,6 +11,7 @@ import Link from "next/link";
 import { FaArrowRightToBracket } from "react-icons/fa6";
 const countryOptions = require("../../../public/utils/countries.json");
 import { IoIosArrowDown } from "react-icons/io";
+import Cookies from "js-cookie";
 
 export default function BookingFormComp({
   index,
@@ -144,6 +145,13 @@ export default function BookingFormComp({
     retry: false,
   });
 
+  useEffect(() => {
+    // Check if the current route is the dashboard page
+    if (userData) {
+      Cookies.set("fromRoute", ""); // Clear the cookie when on the dashboard page
+    }
+  }, [userData]);
+
   const options = userData?.data?.media?.map((passenger) => ({
     label: `${passenger.pxn_title} ${passenger.first_name} ${
       passenger.last_name
@@ -200,7 +208,6 @@ export default function BookingFormComp({
 
     return `${year}-${month}-${day}`;
   };
-
 
   useEffect(() => {
     if (!passenger?.dob) {
@@ -283,6 +290,7 @@ export default function BookingFormComp({
                       <Link
                         className="text-[#FC660F] flex items-center gap-2"
                         href={"/login"}
+                        onClick={() => Cookies.set("fromRoute", "/bookingForm")}
                       >
                         <p>Login to select existing traveler</p>{" "}
                         <FaArrowRightToBracket />
@@ -349,7 +357,7 @@ export default function BookingFormComp({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="w-full">
                   <label htmlFor="">Document Expiry</label>
-                 
+
                   <div
                     className="w-full border-2 border-gray-300 rounded-[4px] focus:outline-none" // Ensure border styles here
                   >
@@ -406,11 +414,10 @@ export default function BookingFormComp({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="w-full">
                   <label htmlFor="">Date of birth</label>
-                 
+
                   <div
                     className="w-full border-2 border-gray-300 rounded-[4px] focus:outline-none" // Ensure border styles here
                   >
-                    
                     <DatePicker
                       onChange={(date) =>
                         updatePassengerData(

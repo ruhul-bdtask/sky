@@ -56,7 +56,12 @@ export default function Page() {
         Cookies.set("auth-token", data?.authorization?.token);
         setToken(data?.authorization?.token);
         setUserData(data?.user);
-        router.push("/dashboard");
+        const fromRoute = Cookies.get("fromRoute");
+        if (fromRoute == "/bookingForm") {
+          router.push("/bookingForm");
+        } else {
+          router.push("/dashboard");
+        }
       } else {
         toast.error(data?.message);
         setIsLoading(false);
