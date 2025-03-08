@@ -1,23 +1,43 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import travelBg from "@/public/images/wishlist-travel-2.png";
+
+import { addDays, set } from "date-fns";
 import { ArrowLeftRightIcon } from "lucide-react";
+import Image from "next/image";
 import Airplane from "@/public/icons/Airplane";
+import Calender from "@/public/icons/Calender";
 import SearchIcon from "@/public/icons/SearchIcon";
-import useAirlineStore from "../../../stores/airlineStore";
+import Link from "next/link";
+
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import airportsData from "../../../public/utils/airports.json";
 import moment from "moment";
 import { FaTimes } from "react-icons/fa";
+import airImg from "@/public/images/weather.png";
+import formatLabel from "@/lib/formatLabel";
+import UserAvatar from "@/public/icons/UserAvatar";
+import { useMutation } from "@tanstack/react-query";
+import { fetchData } from "@/utils/api";
 import DatePickerOneWay from "@/components/datePicker/DatePickerOneWay";
 import DatePicker from "@/components/datePicker/DatePicker";
+import useAirlineStore from "../../../stores/airlineStore";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const debounce = (func, delay) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+};
 
 export default function Page({ searchParams }) {
   const [isPassengerOpen, setIsPassengerOpen] = useState(false);
@@ -30,10 +50,19 @@ export default function Page({ searchParams }) {
 
   const [originalDate, setOriginalDate] = useState();
   const router = useRouter();
-
-  const { travelPlanningDate, originQuery, destinationQuery } = searchParams;
+  const originInputRef = useRef(null);
+  const destinationInputRef = useRef(null);
 
   const {
+    originQuery,
+    destinationQuery,
+    originAir,
+    destinationAir,
+    travelPlanningDate,
+  } = searchParams;
+
+  const {
+    token,
     setSearchData,
     setOriginDestinationInformation,
     setSelectedFlight,
@@ -45,51 +74,77 @@ export default function Page({ searchParams }) {
     setOriginQuery,
     setDestinationQuery,
     setTravelPlanningDate,
+    setOriginAirportName,
+    setDestinationAirportName,
   } = useAirlineStore();
 
-  const [searchQueryArrival, setSearchQueryArrival] = useState();
   const [searchQueryDestination, setSearchQueryDestination] = useState();
+  const [searchQueryOrigin, setSearchQueryOrigin] = useState();
   const [originAirport, setOriginAirport] = useState("");
   const [destinationAirport, setDestinationAirport] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const [cities, setCities] = useState([
     {
       id: 1,
+      searchQueryOrigin: "",
       searchQueryDestination: "",
-      searchQueryArrival: "",
       departureDate: null,
       isOpenOrigin: false,
       isOpenDestination: false,
+      originAirport: "",
+      destinationAirport: "",
     },
     {
       id: 2,
+      searchQueryOrigin: "",
       searchQueryDestination: "",
-      searchQueryArrival: "",
       departureDate: null,
       isOpenOrigin: false,
       isOpenDestination: false,
+      originAirport: "",
+      destinationAirport: "",
     },
     {
       id: 3,
+      searchQueryOrigin: "",
       searchQueryDestination: "",
-      searchQueryArrival: "",
       departureDate: null,
       isOpenOrigin: false,
       isOpenDestination: false,
+      originAirport: "",
+      destinationAirport: "",
     },
   ]);
 
   const transformedData = cities.map((item, index) => ({
     DepartureDateTime: item.departureDate,
     OriginLocation: {
-      LocationCode: item.searchQueryDestination,
+      LocationCode: item.searchQueryOrigin,
       LocationType: "A",
     },
     DestinationLocation: {
-      LocationCode: item.searchQueryArrival,
+      LocationCode: item.searchQueryDestination,
       LocationType: "A",
     },
     RPH: 0,
   }));
+
+  function transformMultiCityToArrayStructure(
+    multiCityData,
+    passengers,
+    travelClass
+  ) {
+    return {
+      destination: multiCityData.map((leg) => leg.OriginLocation.LocationCode),
+      arrival: multiCityData.map((leg) => leg.DestinationLocation.LocationCode),
+      tripType: "multi_city",
+      class: travelClass,
+      passengers: passengers,
+      journeyDate: multiCityData.map((leg) => leg.DepartureDateTime),
+      returnDate: "", // Not applicable for multi-city trips
+    };
+  }
 
   const [roundDate, setRoundDate] = useState(() => {
     const twoDaysAhead = new Date();
@@ -111,19 +166,37 @@ export default function Page({ searchParams }) {
   });
 
   useEffect(() => {
-    if (originQuery && destinationQuery && travelPlanningDate !== "") {
+    if (
+      originQuery !== "" &&
+      destinationQuery !== "" &&
+      travelPlanningDate !== "" &&
+      originAir !== "" &&
+      destinationAir !== ""
+    ) {
+      setOriginAirport(originAir);
+      setDestinationAirport(destinationAir);
+      setSearchQueryOrigin(originQuery);
+      setSearchQueryDestination(destinationQuery);
       setOneWayDate(new Date(travelPlanningDate));
     }
-  }, [originQuery, destinationQuery, travelPlanningDate]);
+  }, [
+    originQuery,
+    destinationQuery,
+    travelPlanningDate,
+    originAir,
+    destinationAir,
+  ]);
 
   const handleAddCity = () => {
     setCities([
       ...cities,
       {
         id: cities.length + 1,
+        searchQueryOrigin: "",
         searchQueryDestination: "",
-        searchQueryArrival: "",
         departureDate: null,
+        originAirport: "",
+        destinationAirport: "",
       },
     ]);
   };
@@ -143,50 +216,141 @@ export default function Page({ searchParams }) {
   const toggleField = (id, field) => {
     setCities((prevCities) =>
       prevCities.map((city) =>
+        city.id === id ? { ...city, [field]: true } : city
+      )
+    );
+  };
+  const toggleFieldClick = (id, field) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
         city.id === id ? { ...city, [field]: !city[field] } : city
       )
     );
   };
 
-  const filteredAirportsArrivalMulti = cities.map((city) =>
-    airportsData.filter(
-      (airport) =>
-        (airport.name
-          .toLowerCase()
-          .includes(city.searchQueryArrival.toLowerCase()) ||
-          airport.value
-            .toLowerCase()
-            .includes(city.searchQueryArrival.toLowerCase())) &&
-        airport.value !== city.searchQueryDestination
-    )
-  );
+  // const filteredAirportsArrivalMulti = cities.map((city) =>
+  //   airportsData.filter(
+  //     (airport) =>
+  //       (airport.name
+  //         .toLowerCase()
+  //         .includes(city.searchQueryDestination.toLowerCase()) ||
+  //         airport.value
+  //           .toLowerCase()
+  //           .includes(city.searchQueryDestination.toLowerCase())) &&
+  //       airport.value !== city.searchQueryOrigin
+  //   )
+  // );
 
-  const filteredAirportsDestinationMulti = cities.map((city) =>
-    airportsData.filter(
-      (airport) =>
-        (airport.name
-          .toLowerCase()
-          .includes(city.searchQueryDestination.toLowerCase()) ||
-          airport.value
-            .toLowerCase()
-            .includes(city.searchQueryDestination.toLowerCase())) &&
-        airport.value !== city.searchQueryArrival
-    )
-  );
+  const [filteredAirportsArrivalMulti, setFilteredAirportsArrivalMulti] =
+    useState([]);
 
   useEffect(() => {
-    if (Object.keys(userData).length > 0) {
-      setSearchQueryDestination(
-        userData?.home_airport?.match(/\((.*?)\)/)?.[1]
+    const debouncedFilter = debounce(() => {
+      const updatedArrivalMultiCityAirports = cities.map((city) =>
+        city.searchQueryDestination.length >= 2
+          ? airportsData
+              .filter(
+                (airport) =>
+                  (airport.name
+                    .toLowerCase()
+                    .includes(city.searchQueryDestination.toLowerCase()) ||
+                    airport.value
+                      .toLowerCase()
+                      .includes(city.searchQueryDestination.toLowerCase())) &&
+                  airport.value !== city.searchQueryOrigin
+              )
+              .sort((a, b) => {
+                const aMatchesValue =
+                  a.value.toLowerCase() ===
+                  city.searchQueryDestination.toLowerCase();
+                const bMatchesValue =
+                  b.value.toLowerCase() ===
+                  city.searchQueryDestination.toLowerCase();
+
+                if (aMatchesValue && !bMatchesValue) return -1;
+                if (!aMatchesValue && bMatchesValue) return 1;
+                return 0;
+              })
+          : []
       );
-      setSearchQueryArrival(
-        userData?.secondary_airports?.[0]?.match(/\((.*?)\)/)?.[1]
+
+      setFilteredAirportsArrivalMulti(updatedArrivalMultiCityAirports);
+    }, 300);
+
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [cities, airportsData]);
+
+  const [
+    filteredAirportsDestinationMulti,
+    setFilteredAirportsDestinationMulti,
+  ] = useState([]);
+
+  useEffect(() => {
+    const debouncedFilter = debounce(() => {
+      const updatedMultiCityAirports = cities?.map((city) =>
+        city.searchQueryOrigin.length >= 2
+          ? airportsData
+              .filter(
+                (airport) =>
+                  airport.name
+                    .toLowerCase()
+                    .includes(city.searchQueryOrigin.toLowerCase()) ||
+                  airport.value
+                    .toLowerCase()
+                    .includes(city.searchQueryOrigin.toLowerCase())
+              )
+              .sort((a, b) => {
+                const aMatchesValue =
+                  a.value.toLowerCase() ===
+                  city.searchQueryOrigin.toLowerCase();
+                const bMatchesValue =
+                  b.value.toLowerCase() ===
+                  city.searchQueryOrigin.toLowerCase();
+
+                if (aMatchesValue && !bMatchesValue) return -1;
+                if (!aMatchesValue && bMatchesValue) return 1;
+                return 0;
+              })
+          : []
       );
-    } else {
-      setSearchQueryDestination(originQuery !== "" ? originQuery : "DAC");
-      setSearchQueryArrival(destinationQuery !== "" ? destinationQuery : "CXB");
-    }
-  }, [userData]);
+
+      setFilteredAirportsDestinationMulti(updatedMultiCityAirports);
+    }, 300);
+
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [cities, airportsData]);
+
+  // const filteredAirportsDestinationMulti = cities.map((city) =>
+  //   airportsData.filter(
+  //     (airport) =>
+  //       (airport.name
+  //         .toLowerCase()
+  //         .includes(city.searchQueryOrigin.toLowerCase()) ||
+  //         airport.value
+  //           .toLowerCase()
+  //           .includes(city.searchQueryOrigin.toLowerCase())) &&
+  //       airport.value !== city.searchQueryDestination
+  //   )
+  // );
+  // useEffect(() => {
+  //   if (Object?.keys(userData)?.length > 0 && userData?.home_airport) {
+  //     setSearchQueryOrigin(userData?.home_airport?.match(/\((.*?)\)/)?.[1]);
+  //     setOriginAirport(formatLabel(userData?.home_airport));
+  //     setSearchQueryDestination(
+  //       userData?.secondary_airports?.[0]?.match(/\((.*?)\)/)?.[1]
+  //     );
+  //     setDestinationAirport(formatLabel(userData?.secondary_airports?.[0]));
+  //   } else {
+  //     setOriginAirport("Dhaka (DAC)");
+  //     setDestinationAirport("Cox's Bazar (CXB)");
+  //     setSearchQueryOrigin("DAC");
+  //     setSearchQueryDestination("CXB");
+  //   }
+  // }, [userData]);
 
   const [ways, setWays] = useState([
     { name: "One-way", price: 50, shortCode: "one_way" },
@@ -206,33 +370,124 @@ export default function Page({ searchParams }) {
     { name: "First Class", price: 150, shortCode: "F" },
   ]);
 
-  const filteredAirportsArrival = airportsData.filter(
-    (airport) =>
-      (airport.name.toLowerCase().includes(searchQueryArrival?.toLowerCase()) ||
-        airport.value
-          .toLowerCase()
-          .includes(searchQueryArrival?.toLowerCase()) ||
-        airport.label
-          .toLowerCase()
-          .includes(searchQueryArrival?.toLowerCase())) &&
-      airport.name.toLowerCase() !== searchQueryDestination?.toLowerCase() &&
-      airport.value.toLowerCase() !== searchQueryDestination?.toLowerCase()
-  );
+  // const filteredAirportsArrival = airportsData.filter(
+  //   (airport) =>
+  //     (airport.name
+  //       .toLowerCase()
+  //       .includes(searchQueryDestination?.toLowerCase()) ||
+  //       airport.value
+  //         .toLowerCase()
+  //         .includes(searchQueryDestination?.toLowerCase()) ||
+  //       airport.label
+  //         .toLowerCase()
+  //         .includes(searchQueryDestination?.toLowerCase())) &&
+  //     airport.name.toLowerCase() !== searchQueryOrigin?.toLowerCase() &&
+  //     airport.value.toLowerCase() !== searchQueryOrigin?.toLowerCase()
+  // );
 
-  const filteredAirportsDestination = airportsData.filter(
-    (airport) =>
-      (airport.name
-        .toLowerCase()
-        .includes(searchQueryDestination?.toLowerCase()) ||
+  // const filteredAirportsArrival = airportsData.filter((airport) => {
+  //   const destinationQuery = searchQueryDestination?.toLowerCase() || "";
+  //   const originQuery = searchQueryOrigin?.toLowerCase() || "";
+
+  //   // If no destination query is provided, return no airports
+  //   if (!destinationQuery) {
+  //     return false;
+  //   }
+
+  //   return (
+  //     airport.name.toLowerCase().includes(destinationQuery) ||
+  //     airport.value.toLowerCase().includes(destinationQuery) ||
+  //     airport.label.toLowerCase().includes(destinationQuery)
+  //   );
+  // });
+
+  const [filteredAirportsArrival, setFilteredAirportsArrival] = useState([]);
+
+  // const airDestinationData = airportsData.filter(
+  //   (airport) =>
+  //     airport.value.toLowerCase().includes(destinationQuery) || // Check short code
+  //     airport.label.toLowerCase().includes(destinationQuery) || // Check label
+  //     airport.name.toLowerCase().includes(destinationQuery) // Check name
+  // );
+
+  const airDestinationData = airportsData
+    .filter(
+      (airport) =>
         airport.value
           .toLowerCase()
           .includes(searchQueryDestination?.toLowerCase()) ||
         airport.label
           .toLowerCase()
-          .includes(searchQueryDestination?.toLowerCase())) &&
-      airport.name.toLowerCase() !== searchQueryArrival?.toLowerCase() &&
-      airport.value.toLowerCase() !== searchQueryArrival?.toLowerCase()
-  );
+          .includes(searchQueryDestination?.toLowerCase()) ||
+        airport.name
+          .toLowerCase()
+          .includes(searchQueryDestination?.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Check if the value matches the searchQueryDestination
+      const aMatchesValue =
+        a.value.toLowerCase() === searchQueryDestination?.toLowerCase();
+      const bMatchesValue =
+        b.value.toLowerCase() === searchQueryDestination?.toLowerCase();
+
+      // Objects with matching value should come first
+      if (aMatchesValue && !bMatchesValue) return -1;
+      if (!aMatchesValue && bMatchesValue) return 1;
+      return 0; // Keep the same order for other cases
+    });
+  useEffect(() => {
+    const debouncedFilter = debounce(() => {
+      if (searchQueryDestination?.length >= 2) {
+        setFilteredAirportsArrival(airDestinationData);
+      } else {
+        setFilteredAirportsArrival([]);
+      }
+    }, 300);
+
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [searchQueryDestination, airportsData]);
+
+  const [filteredAirportsDestination, setFilteredAirportsDestination] =
+    useState([]);
+
+  const airOriginData = airportsData
+    .filter(
+      (airport) =>
+        airport.value
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.label
+          .toLowerCase()
+          .includes(searchQueryOrigin?.toLowerCase()) ||
+        airport.name.toLowerCase().includes(searchQueryOrigin?.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Check if the value matches the searchQueryOrigin
+      const aMatchesValue =
+        a.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
+      const bMatchesValue =
+        b.value.toLowerCase() === searchQueryOrigin?.toLowerCase();
+
+      // Objects with matching value should come first
+      if (aMatchesValue && !bMatchesValue) return -1;
+      if (!aMatchesValue && bMatchesValue) return 1;
+      return 0; // Keep the same order for other cases
+    });
+
+  useEffect(() => {
+    const debouncedFilter = debounce(() => {
+      if (searchQueryOrigin?.length >= 2) {
+        setFilteredAirportsDestination(airOriginData);
+      } else {
+        setFilteredAirportsDestination([]);
+      }
+    }, 300);
+    debouncedFilter();
+
+    return () => clearTimeout(debouncedFilter);
+  }, [searchQueryOrigin, airportsData]);
 
   const generatePassengersFromCategories = (categories) => {
     const passengers = [];
@@ -258,6 +513,7 @@ export default function Page({ searchParams }) {
 
     return passengers;
   };
+
   const passengers = generatePassengersFromCategories(categories);
 
   const dropdownRef = useRef(null);
@@ -281,6 +537,7 @@ export default function Page({ searchParams }) {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Handling clicks outside the passenger, destination, and arrival dropdowns
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsPassengerOpen(false);
       }
@@ -291,19 +548,49 @@ export default function Page({ searchParams }) {
       ) {
         setIsOpenDestination(false);
       }
+
       if (
         dropdownRefArrival.current &&
         !dropdownRefArrival.current.contains(event.target)
       ) {
         setIsOpenArrival(false);
       }
+
+      // Handling clicks outside city-specific dropdowns (origin, destination, arrival)
+      setCities((prevCities) =>
+        prevCities.map((city, index) => {
+          const originDropdownRef = document.getElementById(
+            `origin-dropdown-${index}`
+          );
+          const arrivalDropdownRef = document.getElementById(
+            `arrival-dropdown-${index}`
+          );
+
+          let updatedCity = { ...city };
+
+          // Close destination dropdown if clicked outside
+          if (originDropdownRef && !originDropdownRef.contains(event.target)) {
+            updatedCity.isOpenOrigin = false;
+          }
+
+          // Close arrival dropdown if clicked outside
+          if (
+            arrivalDropdownRef &&
+            !arrivalDropdownRef.contains(event.target)
+          ) {
+            updatedCity.isOpenDestination = false;
+          }
+          return updatedCity;
+        })
+      );
     };
 
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [cities]);
 
   useEffect(() => {
     const dateToUse = selectedWay === "one_way" ? oneWayDate : roundDate?.from;
@@ -329,6 +616,100 @@ export default function Page({ searchParams }) {
     setOriginalArrivalDate(formattedDateTimeOrigin);
   }, [oneWayDate, roundDate, selectedWay]);
 
+  const handleSubmitRecentSearch = (item) => {
+    if (item?.type === "multi") {
+      // Handle multi-city search
+      const updatedCities = item.legs.map((leg, index) => ({
+        id: index + 1,
+        searchQueryOrigin: leg.from,
+        searchQueryDestination: leg.to,
+        departureDate: leg.departure_date,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: leg.origin_airport || "",
+        destinationAirport: leg.destination_airport || "",
+      }));
+
+      setCities(updatedCities); // Update the multi-city state
+    } else {
+      // Handle one-way and round-trip
+      setOneWayDate(item?.legs[0]?.departure_date);
+      setRoundDate({
+        from: item?.legs[0]?.departure_date,
+        to: item?.legs[0]?.arrival_date || null,
+      });
+
+      setSearchQueryOrigin(item?.legs[0]?.from);
+      setSearchQueryDestination(item?.legs[0]?.to);
+      setOriginAirport(item?.legs[0]?.origin_airport || "");
+      setDestinationAirport(item?.legs[0]?.destination_airport || "");
+    }
+
+    // Update trip type, class, and passengers
+    setSelectedWay(
+      item?.type === "multi"
+        ? "multi_city"
+        : item?.type == "single"
+        ? "one_way"
+        : "return"
+    );
+    setSelectedClass(item?.legs[0]?.class);
+    setPassengerInformation(item?.passengers);
+
+    // Close dropdowns
+    setIsOpenDestination(false);
+    setIsOpenArrival(false);
+
+    // Sync categories based on passengers
+    if (item?.passengers && Array.isArray(item.passengers)) {
+      const updatedCategories = categories.map((category) => {
+        const matchingPassenger = item.passengers.find(
+          (passenger) => passenger.type === category.type
+        );
+        return {
+          ...category,
+          count: matchingPassenger ? matchingPassenger.quantity : 0,
+        };
+      });
+      setCategories(updatedCategories);
+    }
+  };
+
+  const mutation = useMutation({
+    mutationFn: (payload) =>
+      fetchData("/gds/recent-searches", "POST", payload, token),
+    onSuccess: (data) => {
+      // toast.success(data?.message);
+      setRecentSearchData(data?.data);
+    },
+    onError: (error) => {
+      console.error("Mutation failed", error);
+      // toast.error(error?.message);
+    },
+  });
+
+  const mutationDelete = useMutation({
+    mutationFn: () =>
+      fetchData("/gds/recent-searches", "DELETE", undefined, token),
+    onSuccess: (data) => {
+      toast.success(data?.message);
+      setRecentSearchData([]);
+    },
+    onError: (error) => {
+      console.error("Mutation failed", error);
+      toast.error(error?.message);
+    },
+  });
+
+  const handleRecentSearchDelete = () => {
+    if (token) {
+      mutationDelete.mutate();
+    } else {
+      setRecentSearchData([]);
+      toast.success("Recent searches data deleted successfully");
+    }
+  };
+
   const handleSubmitSearch = (e) => {
     e.preventDefault();
     setSelectedFlight({});
@@ -337,28 +718,17 @@ export default function Page({ searchParams }) {
     setOriginQuery("");
     setDestinationQuery("");
     setTravelPlanningDate("");
-
-    const searchData = {
-      origin: searchQueryDestination,
-      destination: searchQueryArrival,
-      tripType: selectedWay,
-      class: selectedClass,
-      passengers: passengers,
-      journeyDate: originalDate,
-      returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
-    };
-
-    setSearchData(searchData);
+    setIsLoading(true);
 
     const originDestinationInfo = [
       {
         DepartureDateTime: originalDate,
         OriginLocation: {
-          LocationCode: searchQueryDestination,
+          LocationCode: searchQueryOrigin,
           LocationType: "A",
         },
         DestinationLocation: {
-          LocationCode: searchQueryArrival,
+          LocationCode: searchQueryDestination,
           LocationType: "A",
         },
         RPH: "0",
@@ -369,11 +739,11 @@ export default function Page({ searchParams }) {
       originDestinationInfo.push({
         DepartureDateTime: originalArrivalData,
         OriginLocation: {
-          LocationCode: searchQueryArrival,
+          LocationCode: searchQueryDestination,
           LocationType: "A",
         },
         DestinationLocation: {
-          LocationCode: searchQueryDestination,
+          LocationCode: searchQueryOrigin,
           LocationType: "A",
         },
         RPH: "1",
@@ -382,58 +752,66 @@ export default function Page({ searchParams }) {
 
     setOriginDestinationInformation(originDestinationInfo);
 
-    const updatedRecentSearches = [searchData, ...recentSearchData].slice(0, 5);
-    setRecentSearchData(updatedRecentSearches);
+    // if (selectedWay === "multi_city") {
+    //   if (transformedData.length < 2) {
+    //     toast.error("You must select at least 2 cities.");
+    //     setError("City selection is too few.");
+    //     setLoading(false);
+    //     return;
+    //   }
 
-    if (selectedWay === "multi_city") {
-      if (transformedData.length < 2) {
-        toast.error("You must select at least 2 cities.");
-        setError("City selection is too few.");
-        setLoading(false);
-        return;
-      }
+    //   const invalidTransformedData = transformedData.find(
+    //     (item) =>
+    //       !item.DepartureDateTime ||
+    //       !item.OriginLocation?.LocationCode ||
+    //       !item.DestinationLocation?.LocationCode
+    //   );
 
-      const invalidTransformedData = transformedData.find(
-        (item) =>
-          !item.DepartureDateTime ||
-          !item.OriginLocation?.LocationCode ||
-          !item.DestinationLocation?.LocationCode
-      );
+    //   if (invalidTransformedData) {
+    //     toast.error("One or more city data entries are invalid.");
+    //     return;
+    //   }
+    // }
 
-      if (invalidTransformedData) {
-        toast.error("One or more city data entries are invalid.");
-        return;
-      }
-    }
-
-    if (!originalDate) {
-      toast.error("Please select a departure date.");
-
+    if (!originalDate || isNaN(new Date(originalDate).getTime())) {
+      toast.error("Please select a valid departure date.");
+      setIsLoading(false);
       return;
     }
 
-    if (!searchQueryDestination) {
-      toast.error("Please select a departure location.");
-
+    if (selectedWay !== "multi_city" && !originAirport) {
+      toast.error("Please select a Departure airport.");
+      setIsLoading(false);
+      return;
+    }
+    if (selectedWay !== "multi_city" && !destinationAirport) {
+      toast.error("Please select a Arrival airport.");
+      setIsLoading(false);
       return;
     }
 
-    if (!searchQueryArrival) {
-      toast.error("Please select a destination location.");
+    if (selectedWay !== "multi_city" && !searchQueryOrigin) {
+      toast.error("Please select a Origin location.");
+      setIsLoading(false);
+      return;
+    }
 
+    if (selectedWay !== "multi_city" && !searchQueryDestination) {
+      toast.error("Please select a Destination location.");
+      setIsLoading(false);
       return;
     }
 
     if (selectedWay === "return" && !roundDate.to) {
       toast.error("Please select a return date.");
-
+      setIsLoading(false);
       return;
     }
 
     if (selectedWay === "multi_city") {
       if (transformedData.length < 2) {
         toast.error("You must select at least 2 cities.");
-
+        setIsLoading(false);
         return;
       }
 
@@ -446,10 +824,138 @@ export default function Page({ searchParams }) {
 
       if (invalidTransformedData) {
         toast.error("One or more city data entries are invalid.");
-
+        setIsLoading(false);
         return;
       }
+      // const multi_cityData = transformMultiCityToArrayStructure(
+      //   transformedData,
+      //   passengers,
+      //   selectedClass
+      // );
+
+      // setSearchData(multi_cityData);
     }
+
+    // const searchData = {
+    //   origin: searchQueryOrigin,
+    //   destination: searchQueryDestination,
+    //   tripType: selectedWay,
+    //   class: selectedClass,
+    //   passengers: passengers,
+    //   journeyDate: originalDate,
+    //   returnDate: selectedWay == "one_way" ? "" : originalArrivalData,
+    // };
+
+    const searchData =
+      selectedWay === "multi_city"
+        ? {
+            type: selectedWay,
+            legs: cities.map((city) => ({
+              from: city.searchQueryOrigin,
+              to: city.searchQueryDestination,
+              origin_airport: city.originAirport,
+              destination_airport: city.destinationAirport,
+              class: selectedClass,
+              departure_date: city.departureDate,
+              arrival_date: null, // Multi-city usually doesn't have return dates per leg
+            })),
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          }
+        : {
+            type: selectedWay,
+            legs: [
+              {
+                from: searchQueryOrigin,
+                to: searchQueryDestination,
+                origin_airport: originAirport,
+                destination_airport: destinationAirport,
+                class: selectedClass,
+                departure_date: originalDate,
+                arrival_date:
+                  selectedWay === "return" ? originalArrivalData : null,
+              },
+            ],
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          };
+    setSearchData(searchData);
+
+    const recentSearch =
+      selectedWay === "multi_city"
+        ? {
+            type: "multi",
+            legs: cities.map((city) => ({
+              from: city.searchQueryOrigin,
+              to: city.searchQueryDestination,
+              origin_airport: city.originAirport,
+              destination_airport: city.destinationAirport,
+              class: selectedClass,
+              departure_date: city.departureDate,
+              arrival_date: null, // Multi-city usually doesn't have return dates per leg
+            })),
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          }
+        : {
+            type: selectedWay === "one_way" ? "single" : "round",
+            legs: [
+              {
+                from: searchQueryOrigin,
+                to: searchQueryDestination,
+                origin_airport: originAirport,
+                destination_airport: destinationAirport,
+                class: selectedClass,
+                departure_date: originalDate,
+                arrival_date:
+                  selectedWay === "return" ? originalArrivalData : null,
+              },
+            ],
+            passengers: passengers.map((pax) => ({
+              age: pax.age.toString(),
+              type: pax.type,
+              quantity: pax.quantity,
+            })),
+          };
+
+    const isDuplicate = recentSearchData?.some((search) => {
+      // Check the type and the "from" and "to" values of the first leg (index 0)
+      const legsMatch =
+        search.type === recentSearch.type &&
+        search.legs[0]?.from === recentSearch.legs[0]?.from &&
+        search.legs[0]?.to === recentSearch.legs[0]?.to &&
+        search?.legs[0]?.departure_date ===
+          recentSearch?.legs[0]?.departure_date;
+
+      return legsMatch;
+    });
+
+    if (!isDuplicate) {
+      if (token) {
+        mutation.mutate(recentSearch);
+      } else {
+        const updatedRecentSearches = [recentSearch, ...recentSearchData].slice(
+          0,
+          5
+        );
+        setRecentSearchData(updatedRecentSearches);
+      }
+    }
+
+    setOriginQuery(searchQueryOrigin);
+    setDestinationQuery(searchQueryDestination);
+    // setTravelPlanningDate(originalDate);
+    setDestinationAirportName(destinationAirport);
+    setOriginAirportName(originAirport);
 
     const queryString = new URLSearchParams({
       search: JSON.stringify(searchData),
@@ -463,26 +969,136 @@ export default function Page({ searchParams }) {
   };
 
   const handleSwap = () => {
-    const temp = searchQueryDestination;
-    setSearchQueryDestination(searchQueryArrival);
-    setSearchQueryArrival(temp);
+    const tempLocation = originAirport;
+    const temp = searchQueryOrigin;
+    setSearchQueryOrigin(searchQueryDestination);
+    setOriginAirport(destinationAirport);
+    setDestinationAirport(tempLocation);
+    setSearchQueryDestination(temp);
+  };
+  const handleClear = () => {
+    setSearchQueryOrigin("");
+    setOriginAirport("");
+
+    setTimeout(() => {
+      if (originInputRef.current) {
+        originInputRef.current.focus();
+      }
+    }, 0);
   };
 
-  const handleClear = () => {
-    setSearchQueryDestination("");
-    setOriginAirport("");
+  // const hasMounted = useRef(false); // Track component mount
+
+  // useEffect(() => {
+  //   if (!hasMounted.current) {
+  //     hasMounted.current = true; // Mark as mounted
+  //     if (!originAirport && originInputRef.current) {
+  //       originInputRef.current.focus();
+  //     }
+  //   }
+  // }, []); // Run only once on mount
+
+  // useEffect(() => {
+  //   if (!originAirport && originInputRef.current) {
+  //     originInputRef.current.focus();
+  //   }
+  // }, [originAirport]);
+
+  // useEffect(() => {
+  //   if (originAirport && !destinationAirport && destinationInputRef.current) {
+  //     destinationInputRef.current.focus();
+  //   }
+  // }, [destinationAirport, originAirport]); // Added originAirport as a dependency
+
+  const handleClearMulti = (cityId) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === cityId
+          ? {
+              ...city,
+              searchQueryOrigin: "",
+              originAirport: "",
+            }
+          : city
+      )
+    );
+  };
+  const handleClearMultiArrival = (cityId) => {
+    setCities((prevCities) =>
+      prevCities.map((city) =>
+        city.id === cityId
+          ? {
+              ...city,
+              searchQueryDestination: "",
+              destinationAirport: "",
+            }
+          : city
+      )
+    );
   };
 
   const handleClearArrival = () => {
-    setSearchQueryArrival("");
+    setSearchQueryDestination("");
     setDestinationAirport("");
+    setTimeout(() => {
+      if (destinationInputRef.current) {
+        destinationInputRef.current.focus();
+      }
+    }, 0);
   };
+
+  const handleClearAllMultiCity = () => {
+    setCities([
+      {
+        id: 1,
+        searchQueryOrigin: "",
+        searchQueryDestination: "",
+        departureDate: null,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: "",
+        destinationAirport: "",
+      },
+      {
+        id: 2,
+        searchQueryOrigin: "",
+        searchQueryDestination: "",
+        departureDate: null,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: "",
+        destinationAirport: "",
+      },
+      {
+        id: 3,
+        searchQueryOrigin: "",
+        searchQueryDestination: "",
+        departureDate: null,
+        isOpenOrigin: false,
+        isOpenDestination: false,
+        originAirport: "",
+        destinationAirport: "",
+      },
+    ]);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#FF6810] z-50">
+        <img
+          src={"/ticketing.gif"}
+          alt="Loading..."
+          className="w-48 md:w-64 h-full object-contain"
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-travelBg">
-      <main
-        className={`container_section_home mx-auto  max-w-7xl py-10 h-screen `}
-      >
-        <div className=" mx-auto bg-white p-5 rounded-lg">
+    <div className="bg-travelBg h-screen pt-10">
+      {/* <Loading loading={isLoading} /> */}
+      <main>
+        <div className=" mx-auto  bg-white max-w-7xl p-10 rounded-xl">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
             Where do you want to go?
           </h1>
@@ -522,8 +1138,10 @@ export default function Page({ searchParams }) {
                       <DropdownMenuItem
                         key={index}
                         onClick={() => setSelectedWay(way?.shortCode)}
-                        className={`px-5 py-2 ${
-                          selectedWay == way?.shortCode ? "bg-[#F0F3F5]" : ""
+                        className={`px-5 py-2 hover:bg-[#F0F3F5] ${
+                          selectedWay == way?.shortCode
+                            ? "bg-[#F0F3F5] font-bold"
+                            : ""
                         } cursor-pointer`}
                       >
                         {way?.name}
@@ -559,7 +1177,7 @@ export default function Page({ searchParams }) {
                 </div>
 
                 {isPassengerOpen && (
-                  <div className="absolute w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10">
+                  <div className="absolute w-56 md:w-80 right-0 left-0 origin-top-right bg-white rounded-[11px] shadow-xl z-10 ">
                     <div className="py-5 px-3">
                       {categories.map((category, index) => (
                         <div
@@ -629,6 +1247,15 @@ export default function Page({ searchParams }) {
                           </div>
                         </div>
                       ))}
+                      <div className="flex justify-end w-full mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsPassengerOpen(false)}
+                          className="text-white bg-[#FC660F] text-sm py-1.5 px-3  hover:bg-[#da7b44] w-fit  rounded-lg "
+                        >
+                          Ok
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -670,8 +1297,10 @@ export default function Page({ searchParams }) {
                       <DropdownMenuItem
                         key={index}
                         onClick={() => setSelectedClass(cls?.shortCode)}
-                        className={`px-5 py-2 ${
-                          selectedClass == cls?.shortCode ? "bg-[#F0F3F5]" : ""
+                        className={`px-5 py-2 hover:bg-[#F0F3F5] ${
+                          selectedClass == cls?.shortCode
+                            ? "bg-[#F0F3F5] font-bold"
+                            : ""
                         } cursor-pointer`}
                       >
                         {cls?.name}
@@ -688,8 +1317,167 @@ export default function Page({ searchParams }) {
                     key={row.id}
                     className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2 items-center"
                   >
-                    <div className="relative" ref={dropdownRefDestination}>
+                    <div className="relative" id={`origin-dropdown-${index}`}>
                       <div onClick={() => toggleField(row.id, "isOpenOrigin")}>
+                        {/* <p
+                          className={`text-[14px] absolute right-6 truncate left-[40px] top-1/2 transform -translate-y-1/2 ${
+                            row?.originAirport == "" ||
+                            row?.originAirport == undefined ||
+                            row.searchQueryOrigin == "" ||
+                            row.searchQueryOrigin == undefined
+                              ? ""
+                              : "border border-white bg-white px-1 py-0.5 hover:border-black rounded-md transition-all duration-300"
+                          }`}
+                        >
+                          {row?.originAirport !== "" ? row?.originAirport : ""}
+                          <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
+                            <FaTimes onClick={() => handleClearMulti(row.id)} />
+                          </span>
+                        </p> */}
+                        <p
+                          className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            row?.originAirport
+                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              : ""
+                          }`}
+                        >
+                          {row?.originAirport && (
+                            <>
+                              <span className="px-1.5 py-0.5 truncate">
+                                {row?.originAirport}
+                              </span>
+                              <span
+                                onClick={() => handleClearMulti(row.id)}
+                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                onMouseEnter={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "hover:border-black",
+                                    "border-white"
+                                  )
+                                }
+                                onMouseLeave={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "border-white",
+                                    "hover:border-black"
+                                  )
+                                }
+                              >
+                                <FaTimes />
+                              </span>
+                            </>
+                          )}
+                        </p>
+                        <input
+                          value={row.searchQueryOrigin}
+                          type="text"
+                          onChange={(e) =>
+                            updateCityData(
+                              row.id,
+                              "searchQueryOrigin",
+                              e.target.value
+                            )
+                          }
+                          placeholder="From ?"
+                          className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                        />
+
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                          <Airplane />
+                        </div>
+                      </div>
+                      {row?.isOpenOrigin ? (
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
+                          <div className="p-6 ">
+                            <ul className="space-y-4">
+                              {filteredAirportsDestinationMulti[row.id - 1].map(
+                                (destination, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
+                                    onClick={() => {
+                                      toggleFieldClick(row.id, "isOpenOrigin"),
+                                        updateCityData(
+                                          row.id,
+                                          "searchQueryOrigin",
+                                          destination.value
+                                        );
+
+                                      updateCityData(
+                                        row.id,
+                                        "originAirport",
+                                        destination?.label
+                                      );
+                                    }}
+                                  >
+                                    <img
+                                      src={destination.img}
+                                      alt=""
+                                      className="w-[60px] h-[60px]"
+                                    />
+                                    <div className="flex-grow">
+                                      <div className="flex items-center gap-3">
+                                        <p className="font-semibold text-[16px]">
+                                          {destination.label.replace(
+                                            /\s\([^)]*\)/,
+                                            ""
+                                          )}
+                                        </p>
+                                        <span className="text-[14px]">
+                                          {destination.value}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-gray-500">
+                                        {destination.name}
+                                      </p>
+                                    </div>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+                      ) : (
+                        ""
+                      )}
+                    </div>
+
+                    <div className="relative" id={`arrival-dropdown-${index}`}>
+                      <div
+                        onClick={() => toggleField(row.id, "isOpenDestination")}
+                      >
+                        <p
+                          className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            row?.destinationAirport
+                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              : ""
+                          }`}
+                        >
+                          {row?.destinationAirport && (
+                            <>
+                              <span className="px-1.5 py-0.5 truncate">
+                                {row?.destinationAirport}
+                              </span>
+                              <span
+                                onClick={() => handleClearMultiArrival(row.id)}
+                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                onMouseEnter={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "hover:border-black",
+                                    "border-white"
+                                  )
+                                }
+                                onMouseLeave={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "border-white",
+                                    "hover:border-black"
+                                  )
+                                }
+                              >
+                                <FaTimes />
+                              </span>
+                            </>
+                          )}
+                        </p>
                         <input
                           value={row.searchQueryDestination}
                           type="text"
@@ -700,74 +1488,11 @@ export default function Page({ searchParams }) {
                               e.target.value
                             )
                           }
-                          placeholder="From ?"
-                          className="w-full pl-10 pr-4 py-4  focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Airplane />
-                        </div>
-                      </div>
-                      {row?.isOpenOrigin ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                          <div className="p-6 ">
-                            <ul className="space-y-4">
-                              {filteredAirportsDestinationMulti[row.id - 1].map(
-                                (origin, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
-                                    onClick={() => {
-                                      toggleField(row.id, "isOpenOrigin"),
-                                        updateCityData(
-                                          row.id,
-                                          "searchQueryDestination",
-                                          origin.value
-                                        );
-                                      setIsOpenDestination(false);
-                                      updateCityData(row.id, "originAirport", {
-                                        label: origin.label,
-                                        value: origin.value,
-                                        code: origin.name,
-                                      });
-                                    }}
-                                  >
-                                    <div className="flex-grow">
-                                      <p className="font-semibold">
-                                        {origin.name}, {origin.value}
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        {origin.label}
-                                      </p>
-                                    </div>
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          </div>
-                        </div>
-                      ) : (
-                        ""
-                      )}
-                    </div>
-
-                    <div className="relative" ref={dropdownRefArrival}>
-                      <div
-                        onClick={() => toggleField(row.id, "isOpenDestination")}
-                      >
-                        <input
-                          value={row.searchQueryArrival}
-                          type="text"
-                          onChange={(e) =>
-                            updateCityData(
-                              row.id,
-                              "searchQueryArrival",
-                              e.target.value
-                            )
-                          }
                           placeholder="To ?"
-                          className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                          className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                         />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
                           <Airplane />
                         </div>
                       </div>
@@ -776,35 +1501,47 @@ export default function Page({ searchParams }) {
                           <div className="p-6 ">
                             <ul className="space-y-4">
                               {filteredAirportsArrivalMulti[row.id - 1].map(
-                                (destination, index) => (
+                                (arrival, index) => (
                                   <li
                                     key={index}
-                                    className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
+                                    className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                     onClick={() => {
-                                      toggleField(row.id, "isOpenDestination"),
+                                      toggleFieldClick(
+                                        row.id,
+                                        "isOpenDestination"
+                                      ),
                                         updateCityData(
                                           row.id,
-                                          "searchQueryArrival",
-                                          destination.value
+                                          "searchQueryDestination",
+                                          arrival.value
                                         );
-                                      setIsOpenArrival(false);
+
                                       updateCityData(
                                         row.id,
                                         "destinationAirport",
-                                        {
-                                          code: destination.name,
-                                          value: destination.value,
-                                          label: destination.label,
-                                        }
+                                        arrival.label
                                       );
                                     }}
                                   >
+                                    <img
+                                      src={arrival.img}
+                                      alt=""
+                                      className="w-[60px] h-[60px]"
+                                    />
                                     <div className="flex-grow">
-                                      <p className="font-semibold">
-                                        {destination.name}, {destination.value}
-                                      </p>
+                                      <div className="flex items-center gap-3">
+                                        <p className="font-semibold text-[16px]">
+                                          {arrival.label.replace(
+                                            /\s\([^)]*\)/,
+                                            ""
+                                          )}
+                                        </p>
+                                        <span className="text-[14px]">
+                                          {arrival.value}
+                                        </span>
+                                      </div>
                                       <p className="text-sm text-gray-500">
-                                        {destination.label}
+                                        {arrival.name}
                                       </p>
                                     </div>
                                   </li>
@@ -818,9 +1555,10 @@ export default function Page({ searchParams }) {
                       )}
                     </div>
 
-                    <div className="col-span-2 flex gap-2 justify-between">
+                    <div className="col-span-1 md:col-span-2 flex gap-2 justify-between mb-5 md:mb-0">
                       <DatePickerOneWay
                         className="w-[95%]"
+                        originalDate={row.departureDate}
                         oneWayDate={row.departureDate}
                         setOneWayDate={(date) =>
                           updateCityData(row.id, "departureDate", date)
@@ -866,7 +1604,11 @@ export default function Page({ searchParams }) {
                   >
                     + Add another flight
                   </button>
-                  <button type="button" className="text-gray-500">
+                  <button
+                    type="button"
+                    className="text-gray-500"
+                    onClick={handleClearAllMultiCity}
+                  >
                     clear all
                   </button>
 
@@ -887,69 +1629,111 @@ export default function Page({ searchParams }) {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-4  gap-2 relative">
                   <div className="col-span-2 flex gap-1 ">
-                    <div className="relative" ref={dropdownRefDestination}>
-                      <div
-                        onClick={() => setIsOpenDestination(!isOpenDestination)}
-                      >
-                        <p className="absolute right-5 truncate left-[40px] top-1/2 transform -translate-y-1/2  ">
-                          {originAirport !== ""
-                            ? originAirport + " " + searchQueryDestination
-                            : searchQueryDestination}
+                    <div
+                      className="relative w-full"
+                      ref={dropdownRefDestination}
+                    >
+                      <div onClick={() => setIsOpenDestination(true)}>
+                        <p
+                          className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            originAirport
+                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              : ""
+                          }`}
+                        >
+                          {originAirport && (
+                            <>
+                              <span className="px-1.5 py-0.5 truncate">
+                                {originAirport}
+                              </span>
+                              <span
+                                onClick={handleClear}
+                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                onMouseEnter={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "hover:border-black",
+                                    "border-white"
+                                  )
+                                }
+                                onMouseLeave={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "border-white",
+                                    "hover:border-black"
+                                  )
+                                }
+                              >
+                                <FaTimes />
+                              </span>
+                            </>
+                          )}
                         </p>
+
                         <input
-                          value={
-                            originAirport !== "" ? "" : searchQueryDestination
-                          }
+                          ref={originInputRef}
+                          value={searchQueryOrigin}
                           type="text"
-                          onChange={(e) =>
-                            setSearchQueryDestination(e.target.value)
-                          }
-                          // placeholder="From ?"
-                          className="w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                          onChange={(e) => setSearchQueryOrigin(e.target.value)}
+                          placeholder="From ?"
+                          className={` hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]`}
                         />
 
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Airplane />
-                        </div>
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
-                          <FaTimes onClick={handleClear} />
-                        </div>
+                        {!originAirport && (
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                            <Airplane />
+                          </div>
+                        )}
                       </div>
                       {isOpenDestination ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10  ">
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsDestination.map(
-                                (origin, index) => (
+                                (destination, index) => (
                                   <li
                                     key={index}
-                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-lg"
                                     onClick={() => {
-                                      setSearchQueryDestination(origin.value);
-                                      setOriginAirport(origin.name);
+                                      setSearchQueryOrigin(destination.value);
+                                      setOriginAirport(destination.label);
                                       setIsOpenDestination(false);
                                     }}
                                   >
+                                    <img
+                                      src={destination.img}
+                                      alt=""
+                                      className="w-[60px] h-[60px]"
+                                    />
                                     <div className="flex-grow">
-                                      <p className="font-semibold">
-                                        {origin.name}, {origin.value}
-                                      </p>
+                                      <div className="flex items-center gap-3">
+                                        <p className="font-semibold text-[16px]">
+                                          {destination.label.replace(
+                                            /\s\([^)]*\)/,
+                                            ""
+                                          )}
+                                        </p>
+                                        <span className="text-[14px]">
+                                          {destination.value}
+                                        </span>
+                                      </div>
                                       <p className="text-sm text-gray-500">
-                                        {origin.label}
+                                        {destination.name}
                                       </p>
                                     </div>
+                                    <Checkbox className="bg-white rounded-[4px] shadow-none border border-gray-400" />
                                   </li>
                                 )
                               )}
                             </ul>
                           </div>
+
                           {recentSearchData?.length > 0 ? (
                             <div className="p-8">
-                              <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                              <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
                                 Recent Searches
                                 <button
-                                  onClick={() => setRecentSearchData([])}
-                                  className="text-orange-500 hover:text-orange-600"
+                                  type="button"
+                                  onClick={() => handleRecentSearchDelete()}
+                                  className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
                                 >
                                   Clear
                                 </button>
@@ -958,33 +1742,48 @@ export default function Page({ searchParams }) {
                                 {recentSearchData?.map((recent, index) => (
                                   <li
                                     key={index}
-                                    className="flex items-center space-x-4"
+                                    onClick={() =>
+                                      handleSubmitRecentSearch(recent)
+                                    }
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   >
-                                    <div className="bg-gray-100 p-2 rounded-full">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-gray-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
+                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                      <Airplane />
                                     </div>
                                     <div>
-                                      <p className="font-semibold">
-                                        {recent?.origin} - {recent?.destination}
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        {moment(recent?.journeyDate).format(
-                                          "MMMM Do, YYYY"
-                                        )}
-                                      </p>
+                                      {/* <p className="font-semibold capitalize">
+                                        {recent?.type} Trip
+                                      </p> */}
+                                      {recent?.legs?.map((leg, legIndex) => (
+                                        <div key={legIndex}>
+                                          <p className="font-semibold text-[14px]">
+                                            {leg?.from} → {leg?.to}
+                                          </p>
+                                          <p className="text-xs text-gray-500">
+                                            {moment(leg?.departure_date).format(
+                                              "MMMM Do, YYYY"
+                                            )}
+
+                                            {leg?.arrival_date && (
+                                              <>
+                                                <span> - </span>
+
+                                                {moment(
+                                                  leg?.arrival_date
+                                                ).format("MMMM Do, YYYY")}
+                                              </>
+                                            )}
+                                          </p>
+                                        </div>
+                                      ))}
+                                      {/* <p className="text-sm text-gray-500">
+                                        {recent?.passengers
+                                          ?.map(
+                                            (pax) =>
+                                              `${pax.quantity} ${pax.type}`
+                                          )
+                                          .join(", ")}
+                                      </p> */}
                                     </div>
                                   </li>
                                 ))}
@@ -992,6 +1791,34 @@ export default function Page({ searchParams }) {
                             </div>
                           ) : (
                             ""
+                          )}
+
+                          {!token && (
+                            <div className="px-8 pb-8 ">
+                              <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                <Link
+                                  href={"/login"}
+                                  // onClick={() =>
+                                  //   handleSubmitRecentSearch(recent)
+                                  // }
+
+                                  className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                >
+                                  <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                    <UserAvatar />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-[#FC660F]">
+                                      {/* {recent?.origin} - {recent?.destination} */}
+                                      Sign In / Sign Up
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      Access your searches on any device
+                                    </p>
+                                  </div>
+                                </Link>
+                              </div>
+                            </div>
                           )}
                         </div>
                       ) : (
@@ -1001,114 +1828,181 @@ export default function Page({ searchParams }) {
                     <button
                       type="button"
                       onClick={handleSwap}
-                      className="py-3 px-4 bg-gray-100 rounded-md"
+                      className="py-3 px-4 bg-[#F0F3F5] rounded-md hover:bg-[#d9e2e8]"
                     >
-                      <ArrowLeftRightIcon size={25} className="text-gray-600" />
+                      <ArrowLeftRightIcon
+                        size={25}
+                        strokeWidth={3}
+                        className="text-black"
+                      />
                     </button>
-                    <div className="relative" ref={dropdownRefArrival}>
-                      <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
-                        {/* <input
-                          value={searchQueryArrival}
-                          type="text"
-                          onChange={(e) =>
-                            setSearchQueryArrival(e.target.value)
-                          }
-                          placeholder="To ?"
-                          className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        /> */}
-                        <p className="absolute right-5 truncate left-[40px] top-1/2 transform -translate-y-1/2  ">
-                          {destinationAirport !== ""
-                            ? destinationAirport + " " + searchQueryArrival
-                            : searchQueryArrival}
+                    <div className="relative w-full" ref={dropdownRefArrival}>
+                      <div onClick={() => setIsOpenArrival(true)}>
+                        {/* <p
+                          className={`text-[14px] absolute right-6 truncate  top-1/2 transform -translate-y-1/2  max-w-fit pe-6 ${
+                            destinationAirport == "" ||
+                            destinationAirport == undefined
+                              ? // ||
+                                // searchQueryDestination == undefined ||
+                                // searchQueryDestination == ""
+                                ""
+                              : "border border-white bg-white px-1 py-0.5 left-[20px] hover:border-black rounded-[3px] transition-all duration-300 leading-[20px]"
+                          }`}
+                        >
+                          {destinationAirport !== "" ? destinationAirport : ""}
+                          <span className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer px-1 py-3 ">
+                            <FaTimes onClick={handleClearArrival} />
+                          </span>
+                        </p> */}
+
+                        <p
+                          className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                            destinationAirport
+                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              : ""
+                          }`}
+                        >
+                          {destinationAirport && (
+                            <>
+                              <span className="px-1.5 py-0.5 truncate">
+                                {destinationAirport}
+                              </span>
+                              <span
+                                onClick={handleClearArrival}
+                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                onMouseEnter={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "hover:border-black",
+                                    "border-white"
+                                  )
+                                }
+                                onMouseLeave={(e) =>
+                                  e.currentTarget.parentElement.classList.replace(
+                                    "border-white",
+                                    "hover:border-black"
+                                  )
+                                }
+                              >
+                                <FaTimes />
+                              </span>
+                            </>
+                          )}
                         </p>
                         <input
-                          value={
-                            destinationAirport !== "" ? "" : searchQueryArrival
-                          }
+                          ref={destinationInputRef}
+                          value={searchQueryDestination}
                           type="text"
                           onChange={(e) =>
-                            setSearchQueryArrival(e.target.value)
+                            setSearchQueryDestination(e.target.value)
                           }
-                          // placeholder="To ?"
-                          className="w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                          placeholder="To ?"
+                          className="hover:bg-[#d9e2e8] w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                         />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Airplane />
-                        </div>
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer">
-                          <FaTimes onClick={handleClearArrival} />
-                        </div>
+
+                        {!destinationAirport && (
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                            <Airplane />
+                          </div>
+                        )}
                       </div>
                       {isOpenArrival ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10 right-0">
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
-                              {filteredAirportsArrival.map(
-                                (destination, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                    onClick={() => {
-                                      setSearchQueryArrival(destination.value);
-                                      setDestinationAirport(destination.name);
-                                      setIsOpenArrival(false);
-                                    }}
-                                  >
-                                    <div className="flex-grow">
-                                      <p className="font-semibold">
-                                        {destination.name}, {destination.value}
+                              {filteredAirportsArrival.map((arrival, index) => (
+                                <li
+                                  key={index}
+                                  className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-lg"
+                                  onClick={() => {
+                                    setSearchQueryDestination(arrival.value);
+                                    setDestinationAirport(arrival.label);
+                                    setIsOpenArrival(false);
+                                  }}
+                                >
+                                  <img
+                                    src={arrival.img}
+                                    alt=""
+                                    className="w-[60px] h-[60px]"
+                                  />
+                                  <div className="flex-grow">
+                                    <div className="flex items-center gap-3 ">
+                                      <p className="font-semibold text-[16px]">
+                                        {arrival.label.replace(
+                                          /\s\([^)]*\)/,
+                                          ""
+                                        )}
                                       </p>
-                                      <p className="text-sm text-gray-500">
-                                        {destination.label}
-                                      </p>
+                                      <span className="text-[14px]">
+                                        {arrival.value}
+                                      </span>
                                     </div>
-                                  </li>
-                                )
-                              )}
+                                    <p className="text-sm text-gray-500">
+                                      {arrival.name}
+                                    </p>
+                                  </div>
+                                  <Checkbox className="bg-white rounded-[4px] shadow-none border border-gray-400" />
+                                </li>
+                              ))}
                             </ul>
                           </div>
                           {recentSearchData?.length > 0 ? (
                             <div className="p-8">
-                              <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
+                              <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
                                 Recent Searches
                                 <button
-                                  onClick={() => setRecentSearchData([])}
-                                  className="text-orange-500 hover:text-orange-600"
+                                  type="button"
+                                  onClick={() => handleRecentSearchDelete()}
+                                  className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
                                 >
                                   Clear
                                 </button>
                               </h3>
-                              <ul className="space-y-4">
+                              <ul className="space-y-4 max-h-[200px] overflow-y-auto">
                                 {recentSearchData?.map((recent, index) => (
                                   <li
                                     key={index}
-                                    className="flex items-center space-x-4"
+                                    onClick={() =>
+                                      handleSubmitRecentSearch(recent)
+                                    }
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                   >
-                                    <div className="bg-gray-100 p-2 rounded-full">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-gray-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
+                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                      <Airplane />
                                     </div>
                                     <div>
-                                      <p className="font-semibold">
-                                        {recent?.origin} - {recent?.destination}
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        {moment(recent?.journeyDate).format(
-                                          "MMMM Do, YYYY"
-                                        )}
-                                      </p>
+                                      {/* <p className="font-semibold capitalize">
+                                        {recent?.type} Trip
+                                      </p> */}
+                                      {recent?.legs?.map((leg, legIndex) => (
+                                        <div key={legIndex}>
+                                          <p className="font-semibold text-[14px]">
+                                            {leg?.from} → {leg?.to}
+                                          </p>
+                                          <p className="text-xs text-gray-500">
+                                            {moment(leg?.departure_date).format(
+                                              "MMMM Do, YYYY"
+                                            )}
+
+                                            {leg?.arrival_date && (
+                                              <>
+                                                <span> - </span>
+
+                                                {moment(
+                                                  leg?.arrival_date
+                                                ).format("MMMM Do, YYYY")}
+                                              </>
+                                            )}
+                                          </p>
+                                        </div>
+                                      ))}
+                                      {/* <p className="text-sm text-gray-500">
+                                        {recent?.passengers
+                                          ?.map(
+                                            (pax) =>
+                                              `${pax.quantity} ${pax.type}`
+                                          )
+                                          .join(", ")}
+                                      </p> */}
                                     </div>
                                   </li>
                                 ))}
@@ -1116,6 +2010,33 @@ export default function Page({ searchParams }) {
                             </div>
                           ) : (
                             ""
+                          )}
+                          {!token && (
+                            <div className="px-8 pb-8 ">
+                              <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                <Link
+                                  href={"/login"}
+                                  // onClick={() =>
+                                  //   handleSubmitRecentSearch(recent)
+                                  // }
+
+                                  className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                >
+                                  <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                    <UserAvatar />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-[#FC660F]">
+                                      {/* {recent?.origin} - {recent?.destination} */}
+                                      Sign In / Sign Up
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      Access your searches on any device
+                                    </p>
+                                  </div>
+                                </Link>
+                              </div>
+                            </div>
                           )}
                         </div>
                       ) : (
@@ -1127,17 +2048,19 @@ export default function Page({ searchParams }) {
                   <div className="col-span-2 flex gap-2 justify-between">
                     <DatePickerOneWay
                       className={"w-full"}
+                      originalDate={originalDate}
                       setOneWayDate={setOneWayDate}
                       oneWayDate={oneWayDate}
                     />
 
                     {/* <Link href={"/search-result"}> */}
                     <button
-                      className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
+                      className="rounded-[10px] bg-[#FC660F] p-4 h-full hover:bg-[#d67136]"
                       type="submit"
                     >
-                      <div className="flex justify-center items-center w-full">
+                      <div className="flex justify-center items-center w-full gap-2">
                         <SearchIcon />
+                        {/* <p className="text-white font-bold">Search</p> */}
                       </div>
                     </button>
                     {/* </Link> */}
@@ -1149,149 +2072,82 @@ export default function Page({ searchParams }) {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-4  gap-2 relative">
                     <div className="col-span-2 flex gap-1 ">
-                      <div className="relative" ref={dropdownRefDestination}>
-                        <div
-                          onClick={() =>
-                            setIsOpenDestination(!isOpenDestination)
-                          }
-                        >
+                      <div
+                        className="relative w-full"
+                        ref={dropdownRefDestination}
+                      >
+                        <div onClick={() => setIsOpenDestination(true)}>
+                          <p
+                            className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                              originAirport
+                                ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                : ""
+                            }`}
+                          >
+                            {originAirport && (
+                              <>
+                                <span className="px-1.5 py-0.5 truncate">
+                                  {originAirport}
+                                </span>
+                                <span
+                                  onClick={handleClear}
+                                  className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                  onMouseEnter={(e) =>
+                                    e.currentTarget.parentElement.classList.replace(
+                                      "hover:border-black",
+                                      "border-white"
+                                    )
+                                  }
+                                  onMouseLeave={(e) =>
+                                    e.currentTarget.parentElement.classList.replace(
+                                      "border-white",
+                                      "hover:border-black"
+                                    )
+                                  }
+                                >
+                                  <FaTimes />
+                                </span>
+                              </>
+                            )}
+                          </p>
                           <input
-                            value={searchQueryDestination}
+                            ref={originInputRef}
+                            value={searchQueryOrigin}
                             type="text"
                             onChange={(e) =>
-                              setSearchQueryDestination(e.target.value)
+                              setSearchQueryOrigin(e.target.value)
                             }
                             placeholder="From ?"
-                            className="w-full pl-10 pr-4 py-4   focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
+                            className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
                           />
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                            <Airplane />
-                          </div>
+
+                          {!originAirport && (
+                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                              <Airplane />
+                            </div>
+                          )}
                         </div>
                         {isOpenDestination ? (
-                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10  ">
                             <div className="p-6 max-h-[300px] overflow-y-auto">
                               <ul className="space-y-4">
                                 {filteredAirportsDestination.map(
-                                  (origin, index) => (
-                                    <li
-                                      key={index}
-                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
-                                      onClick={() => {
-                                        setSearchQueryDestination(origin.value);
-                                        setIsOpenDestination(false);
-                                      }}
-                                    >
-                                      <div className="flex-grow">
-                                        <p className="font-semibold">
-                                          {origin.name}, {origin.value}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {origin.label}
-                                        </p>
-                                      </div>
-                                    </li>
-                                  )
-                                )}
-                              </ul>
-                            </div>
-                            {recentSearchData?.length > 0 ? (
-                              <div className="p-8 ">
-                                <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                  Recent Searches
-                                  <button
-                                    onClick={() => setRecentSearchData([])}
-                                    className="text-orange-500 hover:text-orange-600"
-                                  >
-                                    Clear
-                                  </button>
-                                </h3>
-                                <ul className="space-y-4">
-                                  {recentSearchData?.map((recent, index) => (
-                                    <li
-                                      key={index}
-                                      className="flex items-center space-x-4"
-                                    >
-                                      <div className="bg-gray-100 p-2 rounded-full">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-6 w-6 text-gray-600"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          stroke="currentColor"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M5 13l4 4L19 7"
-                                          />
-                                        </svg>
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold">
-                                          {recent?.origin} -{" "}
-                                          {recent?.destination}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {moment(recent?.journeyDate).format(
-                                            "MMMM Do, YYYY"
-                                          )}
-                                        </p>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : (
-                              ""
-                            )}
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                      </div>
-                      <button
-                        onClick={handleSwap}
-                        type="button"
-                        className="py-3 px-4 bg-gray-100 rounded-md"
-                      >
-                        <ArrowLeftRightIcon
-                          size={25}
-                          className="text-gray-600"
-                        />
-                      </button>
-                      <div className="relative" ref={dropdownRefArrival}>
-                        <div onClick={() => setIsOpenArrival(!isOpenArrival)}>
-                          <input
-                            value={searchQueryArrival}
-                            type="text"
-                            onChange={(e) =>
-                              setSearchQueryArrival(e.target.value)
-                            }
-                            placeholder="To ?"
-                            className="w-full pl-10 pr-4 py-4 focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                          />
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                            <Airplane />
-                          </div>
-                        </div>
-                        {isOpenArrival ? (
-                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                            <div className="p-6 ">
-                              <ul className="space-y-4">
-                                {filteredAirportsArrival.map(
                                   (destination, index) => (
                                     <li
                                       key={index}
-                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md"
+                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
                                       onClick={() => {
-                                        setSearchQueryArrival(
-                                          destination.value
-                                        );
-                                        setIsOpenArrival(false);
+                                        setSearchQueryOrigin(destination.value);
+                                        setOriginAirport(destination.label);
+                                        setIsOpenDestination(false);
                                       }}
                                     >
+                                      {" "}
+                                      <img
+                                        src={destination.img}
+                                        alt=""
+                                        className="w-[60px] h-[60px]"
+                                      />
                                       <div className="flex-grow">
                                         <p className="font-semibold">
                                           {destination.name},{" "}
@@ -1301,63 +2157,309 @@ export default function Page({ searchParams }) {
                                           {destination.label}
                                         </p>
                                       </div>
+                                      <Checkbox className="bg-white rounded-[4px] shadow-none border border-gray-400" />
                                     </li>
                                   )
                                 )}
                               </ul>
-
-                              {recentSearchData?.length > 0 ? (
-                                <div className="mt-8">
-                                  <h3 className="text-xl font-semibold mb-4 flex justify-between items-center">
-                                    Recent Searches
-                                    <button
-                                      onClick={() => setRecentSearchData([])}
-                                      className="text-orange-500 hover:text-orange-600"
+                            </div>
+                            {recentSearchData?.length > 0 ? (
+                              <div className="p-8">
+                                <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                  Recent Searches
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRecentSearchDelete()}
+                                    className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
+                                  >
+                                    Clear
+                                  </button>
+                                </h3>
+                                <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                  {recentSearchData?.map((recent, index) => (
+                                    <li
+                                      key={index}
+                                      onClick={() =>
+                                        handleSubmitRecentSearch(recent)
+                                      }
+                                      className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                     >
-                                      Clear
-                                    </button>
-                                  </h3>
-                                  <ul className="space-y-4">
-                                    {recentSearchData?.map((recent, index) => (
-                                      <li
-                                        key={index}
-                                        className="flex items-center space-x-4"
-                                      >
-                                        <div className="bg-gray-100 p-2 rounded-full">
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-6 w-6 text-gray-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              strokeWidth={2}
-                                              d="M5 13l4 4L19 7"
-                                            />
-                                          </svg>
-                                        </div>
-                                        <div>
-                                          <p className="font-semibold">
-                                            {recent?.origin} -{" "}
-                                            {recent?.destination}
-                                          </p>
-                                          <p className="text-sm text-gray-500">
-                                            {moment(recent?.journeyDate).format(
-                                              "MMMM Do, YYYY"
+                                      <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                        <Airplane />
+                                      </div>
+                                      <div>
+                                        {/* <p className="font-semibold capitalize">
+                                        {recent?.type} Trip
+                                      </p> */}
+                                        {recent?.legs.map((leg, legIndex) => (
+                                          <div key={legIndex}>
+                                            <p className="font-semibold text-[14px]">
+                                              {leg?.from} → {leg?.to}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              {moment(
+                                                leg?.departure_date
+                                              ).format("MMMM Do, YYYY")}
+
+                                              {leg?.arrival_date && (
+                                                <>
+                                                  <span> - </span>
+
+                                                  {moment(
+                                                    leg?.arrival_date
+                                                  ).format("MMMM Do, YYYY")}
+                                                </>
+                                              )}
+                                            </p>
+                                          </div>
+                                        ))}
+                                        {/* <p className="text-sm text-gray-500">
+                                        {recent?.passengers
+                                          ?.map(
+                                            (pax) =>
+                                              `${pax.quantity} ${pax.type}`
+                                          )
+                                          .join(", ")}
+                                      </p> */}
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                            {!token && (
+                              <div className="px-8 pb-8 ">
+                                <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                  <Link
+                                    href={"/login"}
+                                    // onClick={() =>
+                                    //   handleSubmitRecentSearch(recent)
+                                    // }
+
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                  >
+                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                      <UserAvatar />
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold text-[#FC660F]">
+                                        {/* {recent?.origin} - {recent?.destination} */}
+                                        Sign In / Sign Up
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        Access your searches on any device
+                                      </p>
+                                    </div>
+                                  </Link>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          ""
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSwap}
+                        className="py-3 px-4 bg-[#F0F3F5] rounded-md hover:bg-[#d9e2e8] "
+                      >
+                        <ArrowLeftRightIcon
+                          size={25}
+                          strokeWidth={3}
+                          className="text-black"
+                        />
+                      </button>
+                      <div className="relative w-full" ref={dropdownRefArrival}>
+                        <div onClick={() => setIsOpenArrival(true)}>
+                          <p
+                            className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
+                              destinationAirport
+                                ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                : ""
+                            }`}
+                          >
+                            {destinationAirport && (
+                              <>
+                                <span className="px-2 py-0.5 truncate">
+                                  {destinationAirport}
+                                </span>
+                                <span
+                                  onClick={handleClearArrival}
+                                  className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                  onMouseEnter={(e) =>
+                                    e.currentTarget.parentElement.classList.replace(
+                                      "hover:border-black",
+                                      "border-white"
+                                    )
+                                  }
+                                  onMouseLeave={(e) =>
+                                    e.currentTarget.parentElement.classList.replace(
+                                      "border-white",
+                                      "hover:border-black"
+                                    )
+                                  }
+                                >
+                                  <FaTimes />
+                                </span>
+                              </>
+                            )}
+                          </p>
+                          <input
+                            ref={destinationInputRef}
+                            value={searchQueryDestination}
+                            type="text"
+                            onChange={(e) =>
+                              setSearchQueryDestination(e.target.value)
+                            }
+                            placeholder="To ?"
+                            className="hover:bg-[#d9e2e8]  w-full pl-10 pr-6 py-4 truncate focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none bg-[#F0F3F5]"
+                          />
+                          {!destinationAirport && (
+                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
+                              <Airplane />
+                            </div>
+                          )}
+                        </div>
+                        {isOpenArrival ? (
+                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10 right-0">
+                            <div className="p-6 max-h-[300px] overflow-y-auto">
+                              <ul className="space-y-4">
+                                {filteredAirportsArrival.map(
+                                  (arrival, index) => (
+                                    <li
+                                      key={index}
+                                      className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-lg"
+                                      onClick={() => {
+                                        setSearchQueryDestination(
+                                          arrival.value
+                                        );
+                                        setDestinationAirport(arrival.label);
+                                        setIsOpenArrival(false);
+                                      }}
+                                    >
+                                      <img
+                                        src={arrival.img}
+                                        alt=""
+                                        className="w-[60px] h-[60px]"
+                                      />
+                                      <div className="flex-grow">
+                                        <div className="flex items-center gap-3 ">
+                                          <p className="font-semibold text-[16px]">
+                                            {arrival.label.replace(
+                                              /\s\([^)]*\)/,
+                                              ""
                                             )}
                                           </p>
+                                          <span className="text-[14px]">
+                                            {arrival.value}
+                                          </span>
                                         </div>
-                                      </li>
-                                    ))}
-                                  </ul>
+                                        <p className="text-sm text-gray-500">
+                                          {arrival.name}
+                                        </p>
+                                      </div>
+                                      <Checkbox className="bg-white rounded-[4px] shadow-none border border-gray-400" />
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            </div>
+                            {recentSearchData?.length > 0 ? (
+                              <div className="p-8">
+                                <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                  Recent Searches
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRecentSearchDelete()}
+                                    className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
+                                  >
+                                    Clear
+                                  </button>
+                                </h3>
+                                <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                  {recentSearchData?.map((recent, index) => (
+                                    <li
+                                      key={index}
+                                      onClick={() =>
+                                        handleSubmitRecentSearch(recent)
+                                      }
+                                      className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                    >
+                                      <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                        <Airplane />
+                                      </div>
+                                      <div>
+                                        {/* <p className="font-semibold capitalize">
+                                        {recent?.type} Trip
+                                      </p> */}
+                                        {recent?.legs?.map((leg, legIndex) => (
+                                          <div key={legIndex}>
+                                            <p className="font-semibold text-[14px]">
+                                              {leg?.from} → {leg?.to}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              {moment(
+                                                leg?.departure_date
+                                              ).format("MMMM Do, YYYY")}
+
+                                              {leg?.arrival_date && (
+                                                <>
+                                                  <span> - </span>
+
+                                                  {moment(
+                                                    leg?.arrival_date
+                                                  ).format("MMMM Do, YYYY")}
+                                                </>
+                                              )}
+                                            </p>
+                                          </div>
+                                        ))}
+                                        {/* <p className="text-sm text-gray-500">
+                                        {recent?.passengers
+                                          ?.map(
+                                            (pax) =>
+                                              `${pax.quantity} ${pax.type}`
+                                          )
+                                          .join(", ")}
+                                      </p> */}
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                            {!token && (
+                              <div className="px-8 pb-8 ">
+                                <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                  <Link
+                                    href={"/login"}
+                                    // onClick={() =>
+                                    //   handleSubmitRecentSearch(recent)
+                                    // }
+
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                  >
+                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                      <UserAvatar />
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold text-[#FC660F]">
+                                        {/* {recent?.origin} - {recent?.destination} */}
+                                        Sign In / Sign Up
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        Access your searches on any device
+                                      </p>
+                                    </div>
+                                  </Link>
                                 </div>
-                              ) : (
-                                ""
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           ""
@@ -1365,85 +2467,23 @@ export default function Page({ searchParams }) {
                       </div>
                     </div>
 
-                    {/* <div className="col-span-1 flex gap-2">
-                      <div
-                        className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        onClick={() => setIsCalenderShow(!isCalenderShow)}
-                      >
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Calender />
-                        </div>
-                        {selectedDate && formatDate(selectedDate)}
-                        {isCalenderShow ? (
-                          <div className="bg-white p-4 rounded-lg shadow-lg max-w-3xl mx-auto absolute w-full md:w-[834px] right-2 z-10 top-14">
-                            <div className="flex justify-end items-center mb-4">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm">Departure</span>
-                                <span className="text-xs text-[#007799]">
-                                  Exact
-                                </span>
-                              </div>
-                            </div>
-
-                            {renderTwoMonths()}
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                      </div>
-                    </div>
-                    <div className="col-span-1 flex gap-2">
-                      <div
-                        className="relative w-full pl-10 pr-4 py-4 cursor-pointer focus:ring-1 focus:ring-black focus:bg-transparent rounded-[10px] focus:outline-none  bg-[#F0F3F5]"
-                        onClick={() => setIsCalenderShow(!isCalenderShow)}
-                      >
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 ">
-                          <Calender />
-                        </div>
-                        {selectedDate && formatDate(selectedDate)}
-                        {isCalenderShow ? (
-                          <div className="bg-white p-4 rounded-lg shadow-lg max-w-3xl mx-auto absolute w-full md:w-[834px] right-2 z-10 top-14">
-                            <div className="flex justify-end items-center mb-4">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm">Departure</span>
-                                <span className="text-xs text-[#007799]">
-                                  Exact
-                                </span>
-                              </div>
-                            </div>
-
-                            {renderTwoMonths()}
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                      </div>
-
-                      <Link href={"/search-result"}>
-                        <button
-                          className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
-                          type="submit"
-                        >
-                          <div className="flex justify-center items-center w-full">
-                            <SearchIcon />
-                          </div>
-                        </button>
-                      </Link>
-                    </div> */}
-                    <div className="col-span-2 flex gap-2 justify-between">
+                    <div className="col-span-1 md:col-span-2  block md:flex gap-2 justify-between">
                       <div>
                         <DatePicker
+                          originalDate={originalDate}
+                          originalArrivalData={originalArrivalData}
                           setRoundDate={setRoundDate}
                           roundDate={roundDate}
                         />
                       </div>
 
                       <button
-                        className="rounded-[10px] bg-[#FC660F] w-[54px] h-full hover:bg-[#d67136]"
+                        className="rounded-[10px] bg-[#FC660F] p-4 max-h-full hover:bg-[#d67136] float-right md:float-none mt-2 md:mt-0"
                         type="submit"
                       >
-                        <div className="flex justify-center items-center w-full">
+                        <div className="flex justify-center items-center w-full gap-2">
                           <SearchIcon />
+                          {/* <p className="text-white font-bold">Search</p> */}
                         </div>
                       </button>
                     </div>

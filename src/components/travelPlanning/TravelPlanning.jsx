@@ -18,8 +18,10 @@ export default function TravelPlanning() {
     destinationQuery,
     travelPlanningDate,
     setTravelPlanningDate,
+    setDestinationAirport,
+    setOriginAirport,
   } = useAirlineStore();
-  const router = useRouter();
+
   const {
     data: travelData,
     error: travelDataError,
@@ -32,15 +34,19 @@ export default function TravelPlanning() {
   });
 
   const handleSearch = (item, destination) => {
-    setOriginQuery(item?.departure_code);
-    setDestinationQuery(destination?.code);
-    setTravelPlanningDate(item?.departure_date);
+    // setOriginQuery(item?.departure_code);
+    // setOriginAirport(item?.departure);
+    // setDestinationQuery(destination?.code);
+    // setDestinationAirport(destination?.name);
+    // setTravelPlanningDate(item?.departure_date);
 
     // Build the URL with query parameters
     const queryParams = new URLSearchParams({
-      originQuery: item?.departure_code,
-      destinationQuery: destination?.code,
+      destinationQuery: item?.departure_code,
+      originQuery: destination?.code,
       travelPlanningDate: item?.departure_date,
+      destinationAir: item?.departure,
+      originAir: destination?.name,
     }).toString();
 
     window.open(`/travel-plan/?${queryParams}`, "_blank");

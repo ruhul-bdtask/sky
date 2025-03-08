@@ -1732,7 +1732,7 @@ export default function SearchPad() {
                                       {/* <p className="font-semibold capitalize">
                                         {recent?.type} Trip
                                       </p> */}
-                                      {recent?.legs.map((leg, legIndex) => (
+                                      {recent?.legs?.map((leg, legIndex) => (
                                         <div key={legIndex}>
                                           <p className="font-semibold text-[14px]">
                                             {leg?.from} → {leg?.to}
@@ -2106,7 +2106,7 @@ export default function SearchPad() {
                           )}
                         </div>
                         {isOpenDestination ? (
-                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[700px] z-10 ">
+                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10  ">
                             <div className="p-6 max-h-[300px] overflow-y-auto">
                               <ul className="space-y-4">
                                 {filteredAirportsDestination.map(
@@ -2169,7 +2169,7 @@ export default function SearchPad() {
                                         {/* <p className="font-semibold capitalize">
                                         {recent?.type} Trip
                                       </p> */}
-                                        {recent?.legs.map((leg, legIndex) => (
+                                        {recent?.legs?.map((leg, legIndex) => (
                                           <div key={legIndex}>
                                             <p className="font-semibold text-[14px]">
                                               {leg?.from} → {leg?.to}
@@ -2302,14 +2302,14 @@ export default function SearchPad() {
                           )}
                         </div>
                         {isOpenArrival ? (
-                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[591px] max-h-[600px] z-10 overflow-y-auto">
-                            <div className="p-6 ">
+                          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10 right-0">
+                            <div className="p-6 max-h-[300px] overflow-y-auto">
                               <ul className="space-y-4">
                                 {filteredAirportsArrival.map(
                                   (arrival, index) => (
                                     <li
                                       key={index}
-                                      className="flex items-center space-x-4 hover:bg-[#f0f3f5] p-3 rounded-md cursor-pointer"
+                                      className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-lg"
                                       onClick={() => {
                                         setSearchQueryDestination(
                                           arrival.value
@@ -2324,11 +2324,19 @@ export default function SearchPad() {
                                         className="w-[60px] h-[60px]"
                                       />
                                       <div className="flex-grow">
-                                        <p className="font-semibold">
-                                          {arrival.name}, {arrival.value}
-                                        </p>
+                                        <div className="flex items-center gap-3 ">
+                                          <p className="font-semibold text-[16px]">
+                                            {arrival.label.replace(
+                                              /\s\([^)]*\)/,
+                                              ""
+                                            )}
+                                          </p>
+                                          <span className="text-[14px]">
+                                            {arrival.value}
+                                          </span>
+                                        </div>
                                         <p className="text-sm text-gray-500">
-                                          {arrival.label}
+                                          {arrival.name}
                                         </p>
                                       </div>
                                       <Checkbox className="bg-white rounded-[4px] shadow-none border border-gray-400" />
@@ -2336,58 +2344,58 @@ export default function SearchPad() {
                                   )
                                 )}
                               </ul>
-
-                              {recentSearchData?.length > 0 ? (
-                                <div className="p-8">
-                                  <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
-                                    Recent Searches
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRecentSearchDelete()}
-                                      className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
+                            </div>
+                            {recentSearchData?.length > 0 ? (
+                              <div className="p-8">
+                                <h3 className="text-xs font-semibold mb-4 flex justify-between items-center">
+                                  Recent Searches
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRecentSearchDelete()}
+                                    className="text-[#4A8DBB] hover:text-[#3b7aa3] font-bold"
+                                  >
+                                    Clear
+                                  </button>
+                                </h3>
+                                <ul className="space-y-4 max-h-[200px] overflow-y-auto">
+                                  {recentSearchData?.map((recent, index) => (
+                                    <li
+                                      key={index}
+                                      onClick={() =>
+                                        handleSubmitRecentSearch(recent)
+                                      }
+                                      className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
                                     >
-                                      Clear
-                                    </button>
-                                  </h3>
-                                  <ul className="space-y-4 max-h-[200px] overflow-y-auto">
-                                    {recentSearchData?.map((recent, index) => (
-                                      <li
-                                        key={index}
-                                        onClick={() =>
-                                          handleSubmitRecentSearch(recent)
-                                        }
-                                        className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                      >
-                                        <div className="bg-[#FFF3EB] p-4 rounded-lg">
-                                          <Airplane />
-                                        </div>
-                                        <div>
-                                          {/* <p className="font-semibold capitalize">
+                                      <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                        <Airplane />
+                                      </div>
+                                      <div>
+                                        {/* <p className="font-semibold capitalize">
                                         {recent?.type} Trip
                                       </p> */}
-                                          {recent?.legs.map((leg, legIndex) => (
-                                            <div key={legIndex}>
-                                              <p className="font-semibold text-[14px]">
-                                                {leg?.from} → {leg?.to}
-                                              </p>
-                                              <p className="text-xs text-gray-500">
-                                                {moment(
-                                                  leg?.departure_date
-                                                ).format("MMMM Do, YYYY")}
+                                        {recent?.legs?.map((leg, legIndex) => (
+                                          <div key={legIndex}>
+                                            <p className="font-semibold text-[14px]">
+                                              {leg?.from} → {leg?.to}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              {moment(
+                                                leg?.departure_date
+                                              ).format("MMMM Do, YYYY")}
 
-                                                {leg?.arrival_date && (
-                                                  <>
-                                                    <span> - </span>
+                                              {leg?.arrival_date && (
+                                                <>
+                                                  <span> - </span>
 
-                                                    {moment(
-                                                      leg?.arrival_date
-                                                    ).format("MMMM Do, YYYY")}
-                                                  </>
-                                                )}
-                                              </p>
-                                            </div>
-                                          ))}
-                                          {/* <p className="text-sm text-gray-500">
+                                                  {moment(
+                                                    leg?.arrival_date
+                                                  ).format("MMMM Do, YYYY")}
+                                                </>
+                                              )}
+                                            </p>
+                                          </div>
+                                        ))}
+                                        {/* <p className="text-sm text-gray-500">
                                         {recent?.passengers
                                           ?.map(
                                             (pax) =>
@@ -2395,42 +2403,41 @@ export default function SearchPad() {
                                           )
                                           .join(", ")}
                                       </p> */}
-                                        </div>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              ) : (
-                                ""
-                              )}
-                              {!token && (
-                                <div className="px-8 pb-8 ">
-                                  <div className="space-y-4 max-h-[200px] overflow-y-auto">
-                                    <Link
-                                      href={"/login"}
-                                      // onClick={() =>
-                                      //   handleSubmitRecentSearch(recent)
-                                      // }
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                            {!token && (
+                              <div className="px-8 pb-8 ">
+                                <div className="space-y-4 max-h-[200px] overflow-y-auto">
+                                  <Link
+                                    href={"/login"}
+                                    // onClick={() =>
+                                    //   handleSubmitRecentSearch(recent)
+                                    // }
 
-                                      className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
-                                    >
-                                      <div className="bg-[#FFF3EB] p-4 rounded-lg">
-                                        <UserAvatar />
-                                      </div>
-                                      <div>
-                                        <p className="font-semibold text-[#FC660F]">
-                                          {/* {recent?.origin} - {recent?.destination} */}
-                                          Sign In / Sign Up
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          Access your searches on any device
-                                        </p>
-                                      </div>
-                                    </Link>
-                                  </div>
+                                    className="flex items-center space-x-4 cursor-pointer hover:bg-[#f0f3f5] p-3 rounded-md"
+                                  >
+                                    <div className="bg-[#FFF3EB] p-4 rounded-lg">
+                                      <UserAvatar />
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold text-[#FC660F]">
+                                        {/* {recent?.origin} - {recent?.destination} */}
+                                        Sign In / Sign Up
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        Access your searches on any device
+                                      </p>
+                                    </div>
+                                  </Link>
                                 </div>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           ""
@@ -2438,7 +2445,7 @@ export default function SearchPad() {
                       </div>
                     </div>
 
-                    <div className="col-span-2 flex gap-2 justify-between">
+                    <div className="col-span-1 md:col-span-2  block md:flex gap-2 justify-between">
                       <div>
                         <DatePicker
                           originalDate={originalDate}
@@ -2449,7 +2456,7 @@ export default function SearchPad() {
                       </div>
 
                       <button
-                        className="rounded-[10px] bg-[#FC660F] p-4 h-full hover:bg-[#d67136]"
+                        className="rounded-[10px] bg-[#FC660F] p-4 max-h-full hover:bg-[#d67136] float-right md:float-none mt-2 md:mt-0"
                         type="submit"
                       >
                         <div className="flex justify-center items-center w-full gap-2">

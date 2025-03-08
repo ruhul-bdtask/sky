@@ -23,7 +23,8 @@ export default function DatePicker({
 }) {
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const [activeButton, setActiveButton] = React.useState(null); // 'from' or 'to'
-
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const handlePrevFromDate = (e) => {
     e.stopPropagation();
     if (roundDate?.from) {
@@ -163,25 +164,71 @@ export default function DatePicker({
               activeButton === "from" ? roundDate?.from : roundDate?.to
             }
             selected={roundDate}
+            // onSelect={(date) => {
+            //   if (activeButton === "from") {
+            //     // Directly set the from date without affecting the to date
+            //     setRoundDate((prev) => ({
+            //       ...prev,
+            //       from: date?.from || date,
+            //     }));
+            //     setActiveButton("to");
+            //   } else {
+            //     setRoundDate((prev) => ({
+            //       ...prev,
+            //       to: date?.to || date,
+            //     }));
+            //     if (date?.to) {
+            //       setIsPopoverOpen(false);
+            //     }
+            //   }
+            // }}
             onSelect={(date) => {
               if (activeButton === "from") {
-                // Directly set the from date without affecting the to date
-                setRoundDate((prev) => ({
-                  ...prev,
-                  from: date?.from || date,
-                }));
+                // Validate that "from" date is not before today
+                if (date?.from && date.from < today) {
+                  // If before today, set to today instead
+                  setRoundDate((prev) => ({
+                    ...prev,
+                    from: today,
+                  }));
+                } else {
+                  setRoundDate((prev) => ({
+                    ...prev,
+                    from: date?.from || date,
+                  }));
+                }
                 setActiveButton("to");
               } else {
-                setRoundDate((prev) => ({
-                  ...prev,
-                  to: date?.to || date,
-                }));
+                // Validate that "to" date is not before "from" date
+                if (date?.to && roundDate.from && date.to < roundDate.from) {
+                  // If before "from", set to "from" instead
+                  setRoundDate((prev) => ({
+                    ...prev,
+                    to: prev.from,
+                  }));
+                } else {
+                  setRoundDate((prev) => ({
+                    ...prev,
+                    to: date?.to || date,
+                  }));
+                }
                 if (date?.to) {
                   setIsPopoverOpen(false);
                 }
               }
             }}
             numberOfMonths={2}
+            disabled={(date) => {
+              // Disable dates before today for "from" selection
+              if (activeButton === "from") {
+                return date < today;
+              }
+              // Disable dates before "from" date for "to" selection
+              if (activeButton === "to" && roundDate.from) {
+                return date < roundDate.from;
+              }
+              return false;
+            }}
           />
         </PopoverContent>
         {/* <PopoverContent className="w-auto bg-white p-0" align="start">
