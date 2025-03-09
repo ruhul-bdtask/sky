@@ -1315,7 +1315,11 @@ export default function SearchPad() {
                         <p
                           className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                             row?.originAirport
-                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              ? `border border-transparent ${
+                                  row?.isOpenOrigin
+                                    ? "bg-[#F0F3F5]"
+                                    : "bg-white"
+                                } left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black`
                               : ""
                           }`}
                         >
@@ -1326,7 +1330,11 @@ export default function SearchPad() {
                               </span>
                               <span
                                 onClick={() => handleClearMulti(row.id)}
-                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                className={`text-gray-400 cursor-pointer p-1  border ${
+                                  row?.isOpenOrigin
+                                    ? "border-[#F0F3F5]"
+                                    : "border-white"
+                                } rounded-sm  hover:border-black transition-all duration-300`}
                                 onMouseEnter={(e) =>
                                   e.currentTarget.parentElement.classList.replace(
                                     "hover:border-black",
@@ -1426,7 +1434,11 @@ export default function SearchPad() {
                         <p
                           className={`text-[14px] absolute right-6 left-[40px]  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                             row?.destinationAirport
-                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              ? `border border-transparent ${
+                                  row?.isOpenDestination
+                                    ? "bg-[#F0F3F5]"
+                                    : "bg-white"
+                                } left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black`
                               : ""
                           }`}
                         >
@@ -1437,7 +1449,11 @@ export default function SearchPad() {
                               </span>
                               <span
                                 onClick={() => handleClearMultiArrival(row.id)}
-                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                className={`text-gray-400 cursor-pointer p-1  border ${
+                                  row?.isOpenDestination
+                                    ? "border-[#F0F3F5]"
+                                    : "border-white"
+                                } rounded-sm  hover:border-black transition-all duration-300`}
                                 onMouseEnter={(e) =>
                                   e.currentTarget.parentElement.classList.replace(
                                     "hover:border-black",
@@ -1615,7 +1631,11 @@ export default function SearchPad() {
                         <p
                           className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                             originAirport
-                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              ? `border border-transparent ${
+                                  isOpenDestination
+                                    ? "bg-[#F0F3F5]"
+                                    : "bg-white"
+                                }  left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black`
                               : ""
                           }`}
                         >
@@ -1626,7 +1646,11 @@ export default function SearchPad() {
                               </span>
                               <span
                                 onClick={handleClear}
-                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                className={`text-gray-400 cursor-pointer p-1  ${
+                                  isOpenDestination
+                                    ? "border-[#F0F3F5]"
+                                    : "border-white"
+                                } border  rounded-sm  hover:border-black transition-all duration-300`}
                                 onMouseEnter={(e) =>
                                   e.currentTarget.parentElement.classList.replace(
                                     "hover:border-black",
@@ -1662,7 +1686,7 @@ export default function SearchPad() {
                         )}
                       </div>
                       {isOpenDestination ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10  ">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10   ">
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsDestination.map(
@@ -1836,7 +1860,9 @@ export default function SearchPad() {
                         <p
                           className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                             destinationAirport
-                              ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                              ? `border border-transparent ${
+                                  isOpenArrival ? "bg-[#F0F3F5]" : "bg-white"
+                                } left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black`
                               : ""
                           }`}
                         >
@@ -1847,7 +1873,11 @@ export default function SearchPad() {
                               </span>
                               <span
                                 onClick={handleClearArrival}
-                                className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                className={`text-gray-400 cursor-pointer p-1  border ${
+                                  isOpenArrival
+                                    ? "border-[#F0F3F5]"
+                                    : "border-white"
+                                } rounded-sm  hover:border-black transition-all duration-300`}
                                 onMouseEnter={(e) =>
                                   e.currentTarget.parentElement.classList.replace(
                                     "hover:border-black",
@@ -1884,7 +1914,7 @@ export default function SearchPad() {
                         )}
                       </div>
                       {isOpenArrival ? (
-                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10   right-0 md:right-auto">
+                        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md   absolute top-16 w-[350px] md:w-[591px] max-h-[700px] z-10 right-0 md:right-auto">
                           <div className="p-6 max-h-[300px] overflow-y-auto">
                             <ul className="space-y-4">
                               {filteredAirportsArrival.map((arrival, index) => (
@@ -2058,7 +2088,11 @@ export default function SearchPad() {
                           <p
                             className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                               originAirport
-                                ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                ? `border border-transparent ${
+                                    isOpenDestination
+                                      ? "bg-[#F0F3F5]"
+                                      : "bg-white"
+                                  } left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black`
                                 : ""
                             }`}
                           >
@@ -2069,7 +2103,11 @@ export default function SearchPad() {
                                 </span>
                                 <span
                                   onClick={handleClear}
-                                  className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                  className={`text-gray-400 cursor-pointer p-1  border ${
+                                    isOpenDestination
+                                      ? "border-[#F0F3F5]"
+                                      : "border-white"
+                                  } rounded-sm  hover:border-black transition-all duration-300`}
                                   onMouseEnter={(e) =>
                                     e.currentTarget.parentElement.classList.replace(
                                       "hover:border-black",
@@ -2255,7 +2293,9 @@ export default function SearchPad() {
                           <p
                             className={`text-[14px] absolute right-6  top-1/2 transform -translate-y-1/2 max-w-fit flex items-center justify-between group ${
                               destinationAirport
-                                ? "border border-transparent bg-white left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black"
+                                ? `border border-transparent ${
+                                    isOpenArrival ? "bg-[#F0F3F5]" : "bg-white"
+                                  } left-[20px] rounded-[3px] leading-[20px] transition-all duration-300 hover:border-black`
                                 : ""
                             }`}
                           >
@@ -2266,7 +2306,11 @@ export default function SearchPad() {
                                 </span>
                                 <span
                                   onClick={handleClearArrival}
-                                  className="text-gray-400 cursor-pointer p-1  border border-white rounded-sm  hover:border-black transition-all duration-300"
+                                  className={`text-gray-400 cursor-pointer p-1  border ${
+                                    isOpenArrival
+                                      ? "border-[#F0F3F5]"
+                                      : "border-white"
+                                  } rounded-sm  hover:border-black transition-all duration-300`}
                                   onMouseEnter={(e) =>
                                     e.currentTarget.parentElement.classList.replace(
                                       "hover:border-black",
