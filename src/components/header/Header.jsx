@@ -739,24 +739,24 @@ export default function Header() {
       shortCode: "travel_blog",
       link: "/travel-blog",
     },
-    // {
-    //   icon: <Business />,
-    //   label: "TICKETING for Business",
-    //   shortCode: "ticking_for_business",
-    //   link: "/ticketingForBusiness",
-    // },
+    {
+      icon: <Business />,
+      label: "TICKETING for Business",
+      shortCode: "ticking_for_business",
+      link: "/ticketingForBusiness",
+    },
     {
       icon: <Love />,
       label: "Trips",
       shortCode: "trips",
       link: "/trips",
     },
-    // {
-    //   icon: <Feedback />,
-    //   label: "Feedback",
-    //   shortCode: "feedback",
-    //   link: "/feedback",
-    // },
+    {
+      icon: <Feedback />,
+      label: "Feedback",
+      shortCode: "feedback",
+      link: "/feedback",
+    },
   ];
 
   return (
@@ -840,6 +840,8 @@ export default function Header() {
             <a
               href={"/"}
               onClick={() => {
+                setIsActive("flights");
+                localStorage.setItem("activeSidebarTab", "flights");
                 setSearchData({});
                 setTravelPlanningDate("");
               }}
@@ -1552,9 +1554,9 @@ export default function Header() {
                           >
                             Trips
                           </Link>
-                          <p className="py-1 text-sm text-black cursor-pointer">
+                          {/* <p className="py-1 text-sm text-black cursor-pointer">
                             Help/FAQ
-                          </p>
+                          </p> */}
                           <Link
                             onClick={() => setIsOpenProfile(false)}
                             href={"/dashboard"}
