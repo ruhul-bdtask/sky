@@ -10,7 +10,7 @@ import ActiveIcon from "@/public/icons/ActiveIcon";
 import AvatarIcon from "@/public/icons/AvatarIcon";
 import HeartIcon from "@/public/icons/HeartIcon";
 import logo from "@/public/images/logo.png";
-import mobileLogo from "@/public/images/mobileLogo.jpg";
+import mobileLogo from "@/public/images/ticketing-new.png";
 import weather from "@/public/images/weather.png";
 import { fetchData } from "@/utils/api";
 import Cookies from "js-cookie";
@@ -32,9 +32,23 @@ import TripDatePicker from "../datePicker/TripDatePicker";
 import ModalLayout from "../modals/ModalLayout";
 import PopupBtn from "./PopupBtn";
 import SearchDestination from "./SearchDestination";
+import { ImSpinner6 } from "react-icons/im";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import FlightIcon from "@/public/icons/FlightIcon";
+import Love from "@/public/icons/Love";
+import Business from "@/public/icons/Business";
+import Clock from "@/public/icons/Clock";
+import Feedback from "@/public/icons/Feedback";
 
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [modalPage, setModalPage] = useState("google");
@@ -133,15 +147,16 @@ export default function Header() {
   useEffect(() => {
     if (!token) return;
 
-    setUserDataLoading(true);
-    fetchData("/user/me", "POST", userPayload, token)
-      .then((data) => {
+    fetchData("/user/me", "POST", userPayload, token).then((data) => {
+      if (data?.success == true) {
         setUserInfo(data);
         setUserData(data?.data ? data?.data : {});
-      })
-
-      .catch((error) => setUserDataError(error))
-      .finally(() => setUserDataLoading(false));
+        setUserDataLoading(false);
+      } else {
+        setUserDataError(data?.message);
+        setUserDataLoading(false);
+      }
+    });
   }, [token]);
 
   // useEffect(() => {
@@ -189,17 +204,22 @@ export default function Header() {
     return acc;
   }, []);
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const handleLogOut = () => {
-    setIsOpenProfile(false);
-    Cookies.remove("auth-token");
-    if (savedTrips?.length > 0 && savedTrips[0]?.id) {
-      setSavedTrips([]);
-      setSelectedSavedTrip({});
-    }
-    setToken(null);
-    setUserData({});
-  };
+    setIsLoggingOut(true); // Show loading spinner
 
+    setTimeout(() => {
+      setIsOpenProfile(false);
+      Cookies.remove("auth-token");
+      if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+        setSavedTrips([]);
+        setSelectedSavedTrip({});
+      }
+      setToken(null);
+      setUserData({});
+      setIsLoggingOut(false); // Hide loading spinner
+    }, 1000); // 1-second timeout
+  };
   // useEffect(() => {
   //   const checkAuth = () => {
   //     if (token) {
@@ -231,11 +251,10 @@ export default function Header() {
   //   }
   // }, [isExp]);
 
+  const storedToken = Cookies.get("auth-token");
+  const isExp = isExpired(storedToken);
   useEffect(() => {
-    const storedToken = Cookies.get("auth-token");
     if (storedToken) {
-      const isExp = isExpired(storedToken);
-
       if (isExp) {
         Cookies.remove("auth-token");
         setToken(null);
@@ -246,7 +265,7 @@ export default function Header() {
         setUserData({});
       }
     }
-  }, []);
+  }, [isExp]);
 
   useEffect(() => {
     savedTrips?.forEach((trip) => {
@@ -256,7 +275,6 @@ export default function Header() {
     });
   }, [savedTrips]);
 
-  const isMyTokenExpired = isExpired(token);
   const handleChange = (e, index) => {
     const newCode = [...code];
     newCode[index] = e.target.value;
@@ -294,7 +312,9 @@ export default function Header() {
   };
 
   const toggleMenu = () => {
-    setIsOpenProfile(!isOpenProfile);
+    if (!userDataLoading) {
+      setIsOpenProfile(!isOpenProfile);
+    }
   };
 
   const handleSaved = () => {
@@ -693,15 +713,63 @@ export default function Header() {
     }
   }, [router]);
 
+  const [isActive, setIsActive] = useState("");
+
+  useEffect(() => {
+    // Get the active tab from localStorage
+    const savedTab = localStorage.getItem("activeSidebarTab");
+    if (savedTab) {
+      setIsActive(savedTab);
+    } else {
+      setIsActive("flights"); // Default selection
+    }
+  }, []);
+
+  const handleTabClick = (shortCode) => {
+    setIsActive(shortCode);
+    localStorage.setItem("activeSidebarTab", shortCode);
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
+  };
+
+  const navItems = [
+    { icon: <FlightIcon />, label: "Flights", shortCode: "flights", link: "/" },
+    {
+      icon: <Clock />,
+      label: "Travel Blog",
+      shortCode: "travel_blog",
+      link: "/travel-blog",
+    },
+    // {
+    //   icon: <Business />,
+    //   label: "TICKETING for Business",
+    //   shortCode: "ticking_for_business",
+    //   link: "/ticketingForBusiness",
+    // },
+    {
+      icon: <Love />,
+      label: "Trips",
+      shortCode: "trips",
+      link: "/trips",
+    },
+    // {
+    //   icon: <Feedback />,
+    //   label: "Feedback",
+    //   shortCode: "feedback",
+    //   link: "/feedback",
+    // },
+  ];
+
   return (
-    <header className={`bg-white fixed left-0 z-50 right-0 h-20 border-b  `}>
+    <header
+      className={`bg-white fixed left-0 z-50 right-0 h-20 border-b px-2 `}
+    >
       <ModalLayout
         isModalOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
       ></ModalLayout>
       <div className="max-w-full sm:px-6 lg:px-2 h-full">
         <div className="flex justify-between items-center h-full">
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 rounded-md text-black hover:bg-gray-100 focus:outline-none  hidden md:block "
@@ -713,11 +781,65 @@ export default function Header() {
                 <Menu className="h-6 w-6" />
               )}
             </button>
+            <button
+              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+              className="p-2 rounded-md text-black hover:bg-gray-100 focus:outline-none  block md:hidden "
+            >
+              <span className="sr-only">Open sidebar</span>
+              {isMobileSidebarOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+            <Sheet
+              open={isMobileSidebarOpen}
+              onOpenChange={setIsMobileSidebarOpen}
+            >
+              <SheetContent side="left" className="w-[280px] sm:w-[350px]">
+                <SheetHeader>
+                  <SheetTitle>Ticketing</SheetTitle>
+                </SheetHeader>
+                <div className="h-full p-2 overflow-y-auto w-full">
+                  <nav className="space-y-2">
+                    {navItems.map((item, index) => (
+                      <Link href={item?.link} key={index}>
+                        <button
+                          onClick={() => handleTabClick(item.shortCode)}
+                          className={`rounded-lg hover:bg-[#E6EBEF] transition-all ease-in-out duration-200 w-full p-3 ${
+                            isActive === item.shortCode ? "bg-[#E6EBEF]" : ""
+                          }`}
+                        >
+                          <div className="flex items-center text-base font-normal w-full">
+                            <span
+                              className={`ms-0.5 me-6 ${
+                                isActive === item.shortCode
+                                  ? "text-black fill-black"
+                                  : "text-[var(--nav-color)] fill-[var(--nav-color)]"
+                              }`}
+                            >
+                              {item.icon}
+                            </span>
+                            <span
+                              className={`line-clamp-1 text-[14px] ${
+                                isActive === item.shortCode
+                                  ? "text-black font-semibold"
+                                  : "text-[var(--nav-color)]"
+                              }`}
+                            >
+                              {item.label}
+                            </span>
+                          </div>
+                        </button>
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
             <a
               href={"/"}
               onClick={() => {
-                setSelectedFlight({});
-                setPassengerInformation({});
                 setSearchData({});
                 setTravelPlanningDate("");
               }}
@@ -1356,11 +1478,27 @@ export default function Header() {
                     </button> */}
 
                     <div className="w-[40px] h-[40px] cursor-pointer">
-                      <img
+                      <Image
+                        className="rounded-full 
+                         object-cover w-full h-full"
+                        alt="logo"
+                        width={70}
+                        height={70}
+                        src={
+                          userDataLoading
+                            ? mobileLogo
+                            : userInfo?.data?.profile_pic
+                        }
+                      ></Image>
+                      {/* <img
                         className="rounded-full h-full w-full object-cover"
-                        src={userInfo?.data?.profile_pic}
+                        src={
+                          userDataLoading
+                            ? mobileLogo
+                            : userInfo?.data?.profile_pic
+                        }
                         alt=""
-                      />
+                      /> */}
                     </div>
                   </div>
 
@@ -1368,18 +1506,27 @@ export default function Header() {
                     <div className="absolute right-0 z-10 w-80 mt-2 bg-white rounded-md shadow-lg border border-gray-200 mx-2">
                       <div className="py-2 px-4 flex items-center gap-2">
                         <div className="w-[40px] h-[40px] ">
-                          <img
-                            className="rounded-full h-full w-full object-cover"
-                            src={userInfo?.data?.profile_pic}
-                            alt=""
-                          />
+                          <Image
+                            className="rounded-full 
+                         object-cover "
+                            alt="logo"
+                            width={50}
+                            height={50}
+                            src={
+                              userDataLoading
+                                ? mobileLogo
+                                : userInfo?.data?.profile_pic
+                            }
+                          ></Image>
                         </div>
                         <div className="flex flex-1 justify-between items-center">
                           <div>
                             <p className="text-[16px] font-[500] text-black">
-                              {userInfo?.data?.first_name +
-                                " " +
-                                userInfo?.data?.last_name}
+                              {userInfo?.data?.first_name !== undefined
+                                ? userInfo?.data?.first_name +
+                                  " " +
+                                  userInfo?.data?.last_name
+                                : "Loading..."}
                             </p>
                             <p className="text-[10px] text-black">
                               {userInfo?.data?.email}
@@ -1422,7 +1569,16 @@ export default function Header() {
                           onClick={handleLogOut}
                           className="w-full text-center text-black border border-black  py-1.5 rounded"
                         >
-                          Sign out
+                          {isLoggingOut ? (
+                            <div className="flex justify-center items-center">
+                              <ImSpinner6
+                                className="animate-spin cursor-not-allowed"
+                                size={20}
+                              />
+                            </div>
+                          ) : (
+                            <p className="cursor-pointer">Sign out</p>
+                          )}
                         </button>
                       </div>
                     </div>

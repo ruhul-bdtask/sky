@@ -115,6 +115,7 @@ export default function BookingForm() {
   }, [selectedFlight]);
 
   const [openFareRules, setOpenFareRules] = useState(false);
+  const [showBaggageInfo, setShowBaggageInfo] = useState(false);
 
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const { airlinesData } = useAirlines();
@@ -753,6 +754,42 @@ export default function BookingForm() {
 
   const groupedRules = groupRulesByCategory(fareRules, fareCategories);
 
+  const parseEconomySaverData = (dataArray) => {
+    if (!Array.isArray(dataArray))
+      return { title: "Economy Saver", categories: [], messages: [] };
+
+    const messages = [];
+
+    // Loop over each item in the dataArray
+    dataArray.forEach((item) => {
+      if (typeof item === "string" && item.includes("//")) {
+        const parts = item.split("//").map((part) => part.trim());
+        if (!parts[0]) return; // Skip empty categories
+
+        const message = parts.slice(1).join(" ").trim();
+        // Extract the first two words from the message to use as the category
+        const category = message.split(" ").slice(0, 2).join(" ");
+        messages.push({ category, message });
+      } else {
+        // If it's not a string with "//", treat it as a full message
+        const category = item.split(" ").slice(0, 2).join(" ");
+        messages.push({ category, message: item });
+      }
+    });
+
+    return {
+      title: "Economy Saver",
+      categories: messages, // Now each entry has { category: "..." , message: "..." }
+      messages,
+    };
+  };
+
+  const dataForBaggage = parseEconomySaverData(
+    selectedFlight?.fare_infos?.[0]?.Brand?.Text
+  );
+
+  console.log(dataForBaggage?.categories);
+
   if (isBookingLoading) {
     return (
       <div className="fixed  inset-0 flex items-center justify-center bg-white z-50">
@@ -1020,11 +1057,17 @@ export default function BookingForm() {
                   <button
                     onClick={() => handleChangeTab("payment")}
                     type="button"
-                    className=" float-right  text-white font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
+                    className={` ${
+                      emailChecking && "disabled cursor-not-allowed"
+                    } float-right  text-white font-semibold  transition duration-300 rounded-[4px] py-1 px-8 `}
                   >
-                    {emailChecking
-                      ? "Email checking ......................."
-                      : "Save & Continue to Payment"}
+                    {emailChecking ? (
+                      <div className="flex justify-center items-center ">
+                        <ImSpinner6 className="animate-spin" size={20} />
+                      </div>
+                    ) : (
+                      "Save & Continue to Payment"
+                    )}
                   </button>
                 </div>
                 {/* )} */}
@@ -1232,56 +1275,43 @@ export default function BookingForm() {
                     </Accordion>
                   </div>
                 )}
-                {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="flex items-start">
-                    <Luggage className="w-5 h-5 mr-2 text-gray-600" />
-                    <p className="text-sm">Checked baggage 40 kg</p>
-                  </div>
-                  <div className="flex items-start">
-                    <RefreshCw className="w-5 h-5 mr-2 text-gray-600" />
-                    <p className="text-sm">
-                      Change fee: USD 55.00
-                      <br />
-                      No - Show penalty : USD 155.00
-                    </p>
-                  </div>
-                  <div className="flex items-start">
-                    <DollarSign className="w-5 h-5 mr-2 text-gray-600" />
-                    <p className="text-sm">
-                      Refund Fee : USD 80.00 before Departure
-                      <br />
-                      Not permitted after departure
-                      <br />
-                      No - Show penalty USD 180.00
-                      <br />
-                      Before Departure
-                      <br />
-                      Not Permitted after departure
-                    </p>
-                  </div>
-                  <a
-                    href="#"
-                    className="text-[#343535] hover:text-blue-800 text-sm mt-2 flex items-end underline"
-                  >
-                    View detailed fare conditions
-                  </a>
-                </div> */}
-                {/* <div className="flex justify-center absolute right-[41%] -bottom-4 ">
-                  <button
-                    type="button"
-                    className="flex items-center text-black  rounded-full border py-2 px-5 bg-white"
-                    onClick={() => setOpenFareRules(!openFareRules)}
-                  >
-                    Hide fare rules
-                    {openFareRules ? (
-                      <ChevronUp className="w-4 h-4 ml-1" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 ml-1" />
-                    )}
-                  </button>
-                </div> */}
               </div>
             )}
+            {dataForBaggage?.categories?.length > 0 ? (
+              <div className="flex justify-center  ">
+                <button
+                  type="button"
+                  className="flex items-center text-black  rounded-full border py-2 px-5 bg-white z-10"
+                  onClick={() => setShowBaggageInfo(!showBaggageInfo)}
+                >
+                  {showBaggageInfo ? "Hide " : "Show "}
+                  Baggage info
+                  {showBaggageInfo ? (
+                    <ChevronUp className="w-4 h-4 ml-1" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                  )}
+                </button>
+              </div>
+            ) : (
+              ""
+            )}
+
+            {showBaggageInfo && (
+              <div className="px-2 md:px-12 pb-12 rounded-md relative">
+                <ul className="space-y-5">
+                  {dataForBaggage?.categories?.map((item, index) => (
+                    <li key={index}>
+                      <span className="font-semibold text-[14px]">
+                        {item?.category} :
+                      </span>
+                      <span className="text-[13px]">{` ${item?.message}`}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <div className="pt-8">
               <h2 className="text-lg font-semibold mb-4 bg-[#F6F6F6] px-12 py-4">
                 Passengers
