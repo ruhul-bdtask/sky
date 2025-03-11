@@ -35,24 +35,24 @@ export default function Sidebar() {
       shortCode: "travel_blog",
       link: "/travel-blog",
     },
-    {
-      icon: <Business />,
-      label: "TICKETING for Business",
-      shortCode: "ticking_for_business",
-      link: "/ticketingForBusiness",
-    },
+    // {
+    //   icon: <Business />,
+    //   label: "TICKETING for Business",
+    //   shortCode: "ticking_for_business",
+    //   link: "/ticketingForBusiness",
+    // },
     {
       icon: <Love />,
       label: "Trips",
       shortCode: "trips",
-      link: "#",
+      link: "/trips",
     },
-    {
-      icon: <Feedback />,
-      label: "Feedback",
-      shortCode: "feedback",
-      link: "/feedback",
-    },
+    // {
+    //   icon: <Feedback />,
+    //   label: "Feedback",
+    //   shortCode: "feedback",
+    //   link: "/feedback",
+    // },
   ];
 
   return (

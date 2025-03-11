@@ -400,7 +400,7 @@ export default function Account({
                     />
                   </div>
                 </div>
-                <div>
+                <div className="">
                   <label
                     htmlFor="address"
                     className="block text-sm font-medium text-gray-700 mb-1"
@@ -414,7 +414,7 @@ export default function Account({
                       name="address"
                       value={profileInfo?.address}
                       onChange={handleChange}
-                      className="flex-grow border-gray-300  focus:outline-none outline-none w-full"
+                      className="flex-grow border-gray-300  focus:outline-none outline-none "
                     />
                   </div>
                 </div>

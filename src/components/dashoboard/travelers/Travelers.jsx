@@ -301,11 +301,11 @@ export default function Travelers({
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
+                  {/* <div className="text-right">
                     <button className="text-sm text-[#007799] hover:text-[#297f97] focus:outline-none font-[500]">
                       Edit traveler
                     </button>
-                  </div>
+                  </div> */}
                 </div>
                 {index < userData?.data?.media.length - 1 && (
                   <div className="my-8 border-t border-dashed border-gray-300" />

@@ -125,7 +125,7 @@ export default function Page() {
   return (
     <>
       <Loading loading={loading} />
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-4xl mx-auto px-2 md:px-0">
         <h2 className="text-[36px] font-[700] py-8">Trips</h2>
         <div className=" bg-white shadow-custom_shadow flex items-center justify-between flex-wrap gap-5 py-5 px-5 sm:px-20 rounded-[7px]">
           <div className="col-span-3">
