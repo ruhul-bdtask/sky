@@ -45,7 +45,6 @@ export default function Travelers({
 
   // const handleSubmit = (e) => {
   //   e.preventDefault();
-  //   console.log(formData);
   //   setIsOpen(false);
   //   // Here you would typically send the data to your API
   // };

@@ -122,7 +122,6 @@ export default function ModalLayout({ children, isModalOpen, setIsModalOpen }) {
   //     : [];
   // });
 
-  // console.log(cities);
 
   useEffect(() => {
     if (selectedWay === "one_way" || selectedWay === "return") {

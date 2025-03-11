@@ -107,7 +107,6 @@ export default function TravelDashboard({
   }
 
   const totalPassengers = (passengers) => {
-    console.log(passengers);
     return passengers?.reduce(
       (total, passenger) => total + passenger.quantity,
       0

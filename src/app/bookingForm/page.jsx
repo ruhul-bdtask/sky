@@ -362,7 +362,6 @@ export default function BookingForm() {
   //     if (passenger[titleKey]) {
   //       acc[titleKey] = passenger[titleKey];
   //     }
-  //     console.log(acc)
   //     return acc;
   //   }, {}),
   // };
@@ -381,10 +380,8 @@ export default function BookingForm() {
     return date.toISOString().split("T")[0]; // Extract YYYY-MM-DD
   };
   // // const formattedDate = formatDate("Sun Feb 02 2025 00:00:00 GMT+0600");
-  // console.log(formattedDate); // "2025-02-02"
 
-  // console.log(formatDate("2001-01-18T18:00:00.000Z")); // Output: "2001-01-18"
-  // console.log(formatDate("2001-01-01")); // Output: "2001-01-01"
+
 
   const customersInfo = {
     email: contactInfo?.email,
@@ -546,13 +543,11 @@ export default function BookingForm() {
   //     // setSearchData([]);
   //     // setLegDescription([]);
   //     // setSelectedFlight({});
-  //     console.log(bookingData);
   //   } else {
   //     setIsBookingLoading(false);
   //   }
   // }, [bookingData]);
 
-  // console.log(bookingData, payload, registerData);
 
   const validatePassengers = (passengers) => {
     const nameRegex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
@@ -788,7 +783,6 @@ export default function BookingForm() {
     selectedFlight?.fare_infos?.[0]?.Brand?.Text
   );
 
-  console.log(dataForBaggage?.categories);
 
   if (isBookingLoading) {
     return (

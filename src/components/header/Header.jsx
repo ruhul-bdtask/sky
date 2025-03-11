@@ -125,7 +125,6 @@ export default function Header() {
     });
   }, [formData.name, formData.destination]);
 
-  // console.log(formData);
 
   const [tripNameExistError, setTripNameExistError] = useState("");
 
@@ -242,7 +241,6 @@ export default function Header() {
   // }, [router]);
 
   // const isExp = isExpired(token);
-  // console.log(isExp)
   // useEffect(() => {
   //   if (token && isExp) {
   //     Cookies.remove("auth-token");
