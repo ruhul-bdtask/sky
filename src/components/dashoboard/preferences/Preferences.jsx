@@ -52,7 +52,6 @@ export default function Preferences({ userDataLoading }) {
     }
   }, [userData]);
 
-  console.log(avoidAirlines);
 
   const mutation = useMutation({
     mutationFn: (payload) =>
@@ -134,7 +133,6 @@ export default function Preferences({ userDataLoading }) {
     }
   }, [tempInputAvoid]);
 
-  console.log(avoidSuggestions, avoidAirlines);
 
   useEffect(() => {
     if (tempInputHome) {

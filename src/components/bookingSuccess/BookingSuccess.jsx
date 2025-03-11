@@ -24,7 +24,6 @@ export default function BookingSuccess({ data, slack, message }) {
     });
   };
 
-  console.log(message);
 
   const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(":");
