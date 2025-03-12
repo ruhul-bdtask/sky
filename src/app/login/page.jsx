@@ -51,13 +51,34 @@ export default function Page({ searchParams }) {
     enabled: false,
   });
 
+  // const {
+  //   data: savedRecentSearches,
+  //   isLoading: savedRecentSearchesLoading,
+  //   refetch: savedRecentSearchesRefetch,
+  // } = useQuery({
+  //   queryKey: ["saved-searches"],
+  //   queryFn: () => fetchData("/gds/recent-searches", "GET", undefined, token),
+  //   enabled: false,
+  // });
+
   const {
     data: savedRecentSearches,
     isLoading: savedRecentSearchesLoading,
     refetch: savedRecentSearchesRefetch,
   } = useQuery({
     queryKey: ["saved-searches"],
-    queryFn: () => fetchData("/gds/recent-searches", "GET", undefined, token),
+    queryFn: async () => {
+      const response = await fetchData(
+        "/gds/recent-searches",
+        "GET",
+        undefined,
+        token
+      );
+      if (response?.success == true && response?.data?.length > 0) {
+        setRecentSearchData(response?.data);
+      }
+      return response;
+    },
     enabled: false,
   });
 
@@ -67,11 +88,11 @@ export default function Page({ searchParams }) {
     }
   }, [token]);
 
-  useEffect(() => {
-    if (savedRecentSearches?.data) {
-      setRecentSearchData(savedRecentSearches?.data);
-    }
-  }, [savedRecentSearches]);
+  // useEffect(() => {
+  //   if (savedRecentSearches?.data?.length > 0) {
+  //     setRecentSearchData(savedRecentSearches?.data);
+  //   }
+  // }, [savedRecentSearches]);
 
   const handleLogin = async (e) => {
     e.preventDefault();

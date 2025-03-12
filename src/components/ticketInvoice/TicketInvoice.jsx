@@ -11,6 +11,8 @@ import {
   User,
   CreditCard,
   Mail,
+  Phone,
+  CircleUser,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,7 +38,7 @@ export default function TicketInvoice({ searchParams, authToken }) {
     setSelectedSavedTrip,
   } = useAirlineStore();
   const router = useRouter();
-  const [loading, setLoading] = useState();
+  const [loading, setLoading] = useState(true);
   const printFn = useReactToPrint({
     contentRef: invoiceRef,
     documentTitle: "Invoice",
@@ -91,11 +93,12 @@ export default function TicketInvoice({ searchParams, authToken }) {
       setLoading(false);
     }
   }, [bookingData]);
-  useEffect(() => {
-    if (bookingLoading) {
-      setLoading(true);
-    }
-  }, [bookingLoading]);
+
+  // useEffect(() => {
+  //   if (bookingLoading) {
+  //     setLoading(true);
+  //   }
+  // }, [bookingLoading]);
 
   // if (loading) {
   //   return (
@@ -139,6 +142,23 @@ export default function TicketInvoice({ searchParams, authToken }) {
 
   const formattedAmount = totalTax.toLocaleString("en-BD");
   const formattedTotalAmount = totalAmount.toLocaleString("en-BD");
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    };
+    return date.toLocaleDateString("en-US", options);
+  };
+
+  // Format time
+  const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(":");
+    return `${hours}:${minutes}`;
+  };
 
   return (
     <>
@@ -184,12 +204,19 @@ export default function TicketInvoice({ searchParams, authToken }) {
                   Customer Details
                 </h2>
                 <div className="space-y-1 text-muted-foreground">
-                  <p>{userData?.first_name + userData?.last_name}</p>
+                  <p className="flex items-center gap-2">
+                    <CircleUser className="w-4 h-4" />
+                    {userData?.first_name + userData?.last_name}
+                  </p>
                   <p className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
                     {userData?.email}
                   </p>
-                  <p>{userData?.phone}</p>
+                  <p className="flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+
+                    {userData?.phone}
+                  </p>
                 </div>
               </div>
               <div>
@@ -209,55 +236,123 @@ export default function TicketInvoice({ searchParams, authToken }) {
             <div className="mb-8">
               <h2 className="font-semibold mb-4">Flight Details</h2>
               {bookingData?.data?.flights_info?.map((flight, index) => (
-                <div
-                  key={index}
-                  className="bg-slate-100 p-4 rounded-lg space-y-4 my-4"
-                >
-                  <div className="flex justify-between items-center flex-wrap gap-5">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Departure Date
-                        </p>
-                        <p className="font-medium">
-                          {formatDateForTicketCopy(flight?.departure_date)}
-                        </p>
-                      </div>
+                // <div
+                //   key={index}
+                //   className="bg-slate-100 p-4 rounded-lg space-y-4 my-4"
+                // >
+                //   <div className="flex justify-between items-center flex-wrap gap-5">
+                //     <div className="flex items-center gap-3">
+                //       <Calendar className="w-4 h-4 text-muted-foreground" />
+                //       <div>
+                //         <p className="text-sm text-muted-foreground">
+                //           Departure Date
+                //         </p>
+                //         <p className="font-medium">
+                //           {formatDateForTicketCopy(flight?.departure_date)}
+                //         </p>
+                //       </div>
+                //     </div>
+                //     <div className="flex items-center gap-3">
+                //       <Clock className="w-4 h-4 text-muted-foreground" />
+                //       <div>
+                //         <p className="text-sm text-muted-foreground">
+                //           Flight Time
+                //         </p>
+                //         <p className="font-medium">{flight?.departure_time}</p>
+                //       </div>
+                //     </div>
+                //   </div>
+                //   <div className="flex items-center justify-between flex-wrap border-t pt-4">
+                //     <div>
+                //       <p className="font-medium">{flight?.from_location}</p>
+                //       <p className="text-sm text-muted-foreground">
+                //         {flight?.from_airport}
+                //       </p>
+                //     </div>
+                //     <div className="flex-1 mx-4">
+                //       <div className="relative w-2/3 mx-auto">
+                //         <div className="border-t-2 border-dashed border-gray-300 w-full absolute top-1/2 -translate-y-1/2"></div>
+                //         <div className="text-center text-sm text-gray-500">
+                //           {flight?.cabin_class}
+                //         </div>
+                //         <div className="text-center text-xs text-gray-400">
+                //           {formatMinutesToHours(flight?.duration_minutes)}
+                //         </div>
+                //       </div>
+                //     </div>
+                //     <div className="text-right">
+                //       <p className="font-medium">{flight?.to_location}</p>
+                //       <p className="text-sm text-muted-foreground">
+                //         {flight?.to_airport}
+                //       </p>
+                //     </div>
+                //   </div>
+                // </div>
+                <div key={index} className="p-2 ">
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center">
+                      <Calendar className="text-[#FC660F] mr-2" size={20} />
+                      <span className="text-gray-700 font-medium">
+                        {formatDate(flight.departure_date)}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Flight Time
-                        </p>
-                        <p className="font-medium">{flight?.departure_time}</p>
-                      </div>
+                    <div className="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium text-gray-700">
+                      Flight {index + 1} of{" "}
+                      {bookingData?.data?.flights_info.length}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between flex-wrap border-t pt-4">
-                    <div>
-                      <p className="font-medium">{flight?.from_location}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {flight?.from_airport}
-                      </p>
+
+                  <div className="flex flex-col sm:flex-row  md:items-center justify-between">
+                    <div className="flex flex-col items-start mb-4 md:mb-0">
+                      <span className="text-sm text-gray-500">Departure</span>
+                      <span className="text-xl font-bold">
+                        {formatTime(flight.departure_time)}
+                      </span>
+                      <span className="text-gray-700">
+                        {flight.from_location}
+                      </span>
                     </div>
-                    <div className="flex-1 mx-4">
-                      <div className="relative w-2/3 mx-auto">
-                        <div className="border-t-2 border-dashed border-gray-300 w-full absolute top-1/2 -translate-y-1/2"></div>
-                        <div className="text-center text-sm text-gray-500">
-                          {flight?.cabin_class}
-                        </div>
-                        <div className="text-center text-xs text-gray-400">
-                          {formatMinutesToHours(flight?.duration_minutes)}
-                        </div>
+
+                    <div className="flex flex-col items-center mb-4 md:mb-0">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-[#FC660F]"></div>
+                        <div className="w-24 md:w-32 h-0.5 bg-[#FC660F]"></div>
+                        <Plane className="text-[#FC660F] mx-1" size={20} />
+                        <div className="w-24 md:w-32 h-0.5 bg-[#FC660F]"></div>
+                        <div className="w-2 h-2 rounded-full bg-[#FC660F]"></div>
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {formatMinutesToHours(flight.duration_minutes)}
+                      </div>
+                      <div className="text-sm text-[#FC660F] font-medium">
+                        {flight.cabin_class}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{flight?.to_location}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {flight?.to_airport}
-                      </p>
+
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm text-gray-500">Arrival</span>
+                      <span className="text-xl font-bold">
+                        {formatTime(flight.arrival_time)}
+                      </span>
+                      <span className="text-gray-700 text-right">
+                        {flight.to_location}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 bg-gray-50 p-3 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <span className="font-medium mr-2">
+                          {flight.airline_details}
+                        </span>
+                        <span className="text-gray-600 text-sm">
+                          {flight.airline_code}-{flight.flight_number}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Aircraft: {flight.aircraft_type_name}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -265,7 +360,7 @@ export default function TicketInvoice({ searchParams, authToken }) {
             </div>
 
             {/* Price Breakdown */}
-            <div className="border-t pt-6">
+            <div className="border-t pt-2">
               <h2 className="font-semibold mb-4">Price Breakdown</h2>
               <div className="space-y-2">
                 <div className="flex justify-between">
@@ -295,9 +390,9 @@ export default function TicketInvoice({ searchParams, authToken }) {
             </div>
 
             {/* Footer */}
-            <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
+            <div className="mt-8 pt-6  text-center text-sm text-muted-foreground">
               <p>Thank you for choosing our service!</p>
-              <p>For any queries, please contact our support team.</p>
+              <p>For any queries, please contact our Ticketing support team.</p>
             </div>
           </Card>
         </div>

@@ -37,7 +37,7 @@ export default function Sidebar() {
     },
     {
       icon: <Business />,
-      label: "TICKETING for Business",
+      label: "Ticketing Business",
       shortCode: "ticking_for_business",
       link: "/ticketingForBusiness",
     },
@@ -45,7 +45,7 @@ export default function Sidebar() {
       icon: <Love />,
       label: "Trips",
       shortCode: "trips",
-      link: "#",
+      link: "/trips",
     },
     {
       icon: <Feedback />,

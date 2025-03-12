@@ -1011,7 +1011,10 @@ export default function FlightCard({
                   </div>
                   <div>
                     <span className="text-[16px] font-bold">
-                      TK.{formatFlightFare(flight?.fare_details?.base_fare)}
+                      Tk.
+                      {formatFlightFare(
+                        flight?.passenger_infos[0]?.approximate_total_price
+                      )}{" "}
                     </span>
                   </div>
                 </div>

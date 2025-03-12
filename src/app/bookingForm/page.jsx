@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import BookingFormComp from "@/components/bookingFormComp/BookingFormComp";
-import { ChevronLeft, Info, Timer } from "lucide-react";
+import { ChevronLeft, Circle, Info, Timer } from "lucide-react";
 import Link from "next/link";
 import { isExpired } from "react-jwt";
 import "react-phone-input-2/lib/style.css";
@@ -16,7 +16,7 @@ import {
 import BookingConfirmationModal from "@/components/bookingConfirmationModal/BookingModal";
 import { toast } from "react-toastify";
 import useAirlineStore from "../../../stores/airlineStore";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchData } from "@/utils/api";
 import { useRouter } from "next/navigation";
 import { Oval } from "react-loader-spinner";
@@ -29,6 +29,15 @@ import { useAirlines } from "@/hooks/useAirlines";
 import Cookies from "js-cookie";
 import { duration } from "moment";
 import PhoneInput from "react-phone-input-2";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ImSpinner6 } from "react-icons/im";
+import LoginModal from "@/components/authModal/LoginModal";
+import RegisterModal from "@/components/authModal/RegisterModal";
 
 export default function BookingForm() {
   const {
@@ -57,8 +66,15 @@ export default function BookingForm() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [isModal, setIsModal] = useState(false);
+  const [isLoginModal, setIsLoginModal] = useState(false);
+  const [isRegisterModal, setIsRegisterModal] = useState(false);
+  const [fareRules, setFareRules] = useState();
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
+  const [selectedFareRuleKey, setSelectedFareRuleKey] = useState(null);
   const [paymentFlight, setPaymentFlight] = useState({
     origin_airport: "",
     destination_airport: "",
@@ -80,7 +96,7 @@ export default function BookingForm() {
   useEffect(() => {
     setContactInfo({
       email: userData?.email || "",
-      phone: userData?.phone || "",
+      phone: userData?.phone || contactInfo.phone || "",
     });
   }, [userData]);
   useEffect(() => {
@@ -98,7 +114,8 @@ export default function BookingForm() {
     });
   }, [selectedFlight]);
 
-  const [openFareRules, setOpenFareRules] = useState({});
+  const [openFareRules, setOpenFareRules] = useState(false);
+  const [showBaggageInfo, setShowBaggageInfo] = useState(false);
 
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const { airlinesData } = useAirlines();
@@ -345,7 +362,6 @@ export default function BookingForm() {
   //     if (passenger[titleKey]) {
   //       acc[titleKey] = passenger[titleKey];
   //     }
-  //     console.log(acc)
   //     return acc;
   //   }, {}),
   // };
@@ -364,10 +380,8 @@ export default function BookingForm() {
     return date.toISOString().split("T")[0]; // Extract YYYY-MM-DD
   };
   // // const formattedDate = formatDate("Sun Feb 02 2025 00:00:00 GMT+0600");
-  // console.log(formattedDate); // "2025-02-02"
 
-  // console.log(formatDate("2001-01-18T18:00:00.000Z")); // Output: "2001-01-18"
-  // console.log(formatDate("2001-01-01")); // Output: "2001-01-01"
+
 
   const customersInfo = {
     email: contactInfo?.email,
@@ -460,7 +474,7 @@ export default function BookingForm() {
         payload,
         token
       );
-      if (response?.success == true) {
+      if (response?.success == true && response?.data?.redirect_url) {
         router.push(response?.data?.redirect_url);
         setPassengerInformation([]);
         setContactInformation({});
@@ -470,56 +484,55 @@ export default function BookingForm() {
         setSelectedFlight({});
       } else {
         setIsBookingLoading(false);
+        toast.error("Something went wrong");
       }
       return response;
     },
     enabled: false,
   });
 
-  const registerPayload = {
-    first_name: passengerInformation?.[0]?.first_name,
-    last_name: passengerInformation?.[0]?.last_name,
-    email: contactInfo?.email,
-    phone: contactInfo?.phone,
-    verify_by: "email",
-  };
-  const {
-    data: registerData,
-    error: registerError,
-    isLoading: registerLoading,
-    refetch: refetchRegister,
-  } = useQuery({
-    queryKey: ["register", registerPayload],
-    queryFn: () => fetchData("/user/minimal-register", "POST", registerPayload),
-    enabled: false,
-  });
+  // const registerPayload = {
+  //   first_name: passengerInformation?.[0]?.first_name,
+  //   last_name: passengerInformation?.[0]?.last_name,
+  //   email: contactInfo?.email,
+  //   phone: contactInfo?.phone,
+  //   verify_by: "email",
+  // };
+  // const {
+  //   data: registerData,
+  //   error: registerError,
+  //   isLoading: registerLoading,
+  //   refetch: refetchRegister,
+  // } = useQuery({
+  //   queryKey: ["register", registerPayload],
+  //   queryFn: () => fetchData("/user/minimal-register", "POST", registerPayload),
+  //   enabled: false,
+  // });
 
   const handleBooking = (e) => {
     e.preventDefault();
     setIsBookingLoading(true);
 
-    if (token == null || token == undefined || token == "") {
-      refetchRegister();
-    } else {
-      if (isMyTokenExpired) {
-        setToken(null);
-        refetchRegister();
-      } else {
-        refetchBookingData();
-      }
+    // if (token == null || token == undefined || token == "") {
+    //   refetchRegister();
+    // } else {
+    if (!isMyTokenExpired) {
+      refetchBookingData();
     }
+
+    // }
   };
 
-  useEffect(() => {
-    if (registerData?.success == true) {
-      setToken(registerData?.authorization?.token);
-      Cookies.set("auth-token", token);
-      setUserData(registerData?.user);
-      if (token) {
-        refetchBookingData();
-      }
-    }
-  }, [registerData, token]);
+  // useEffect(() => {
+  //   if (registerData?.success == true) {
+  //     setToken(registerData?.authorization?.token);
+  //     Cookies.set("auth-token", token);
+  //     setUserData(registerData?.user);
+  //     if (token) {
+  //       refetchBookingData();
+  //     }
+  //   }
+  // }, [registerData, token]);
 
   // useEffect(() => {
   //   if (bookingData?.success == true) {
@@ -530,13 +543,11 @@ export default function BookingForm() {
   //     // setSearchData([]);
   //     // setLegDescription([]);
   //     // setSelectedFlight({});
-  //     console.log(bookingData);
   //   } else {
   //     setIsBookingLoading(false);
   //   }
   // }, [bookingData]);
 
-  // console.log(bookingData, payload, registerData);
 
   const validatePassengers = (passengers) => {
     const nameRegex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
@@ -588,35 +599,64 @@ export default function BookingForm() {
     return true;
   };
 
+  const emailMutation = useMutation({
+    mutationFn: ({ email }) =>
+      fetchData("/user/checkClientExist", "POST", { email }, null),
+    onSuccess: (data, variables) => {
+      if (data?.success) {
+        setEmailChecking(false);
+
+        // Update state upon successful mutation
+        if (data?.data?.isExist === true) {
+          setIsLoginModal(true);
+          setIsModal(true);
+          // setPassengerInformation(passengerData);
+          // setContactInformation(contactInfo);
+          // setActiveTab(variables.arg);
+        } else {
+          setIsLoginModal(false);
+          setIsModal(true);
+        }
+      } else {
+        setEmailChecking(false);
+        toast.error(data?.message);
+      }
+    },
+    onError: (error) => {
+      setEmailChecking(false);
+      toast.error(error?.message || "An error occurred");
+    },
+  });
+
   const handleChangeTab = (arg) => {
-    if (contactInfo?.email == "") {
+    if (!contactInfo?.email) {
       toast.error("Please enter a valid email address");
       return;
     }
-    if (contactInfo?.phone == "") {
+    if (!contactInfo?.phone) {
       toast.error("Please enter a valid phone number");
       return;
     }
-    const isEmailValid = validateEmail(contactInfo.email);
-    // const isPhoneValid = validatePhone(contactInfo.phone);
-
-    if (!isEmailValid) {
+    if (!validateEmail(contactInfo.email)) {
       toast.error("Please enter a valid email address");
       return;
     }
-    // if (!isPhoneValid) {
-    //   toast.error("Please enter a valid phone number");
-    // }
-
+    if (!validatePassengers(passengerData)) {
+      return;
+    }
     const isValid = validatePassengers(passengerData);
     if (!isValid) {
       return;
     }
 
-    console.log(passengerData, customersInfo);
-    setPassengerInformation(passengerData);
-    setContactInformation(contactInfo);
-    setActiveTab(arg);
+    if (!token) {
+      setEmailChecking(true);
+      emailMutation.mutate({ email: contactInfo.email, arg });
+    } else {
+      setPassengerInformation(passengerData);
+      setContactInformation(contactInfo);
+      setActiveTab(arg);
+    }
   };
 
   const toggleFareRule = (index) => {
@@ -625,6 +665,124 @@ export default function BookingForm() {
       [index]: !prevState[index], // Toggle only the clicked item
     }));
   };
+
+  const mutation = useMutation({
+    mutationFn: (payload) =>
+      fetchData("/gds/getFareRules", "POST", payload, null),
+    onSuccess: (data) => {
+      if (data?.success == true) {
+        setIsLoading(false);
+        // toast.success(data?.message);
+        setFareRules(data?.data?.FareRule?.children?.FareRuleLong);
+      } else {
+        toast.error(data?.message);
+        setIsLoading(false);
+      }
+    },
+    onError: (error) => {
+      setIsLoading(false);
+      console.error("Mutation failed", error);
+      toast.error(error?.message);
+    },
+  });
+  const handleFareRules = (fareRuleKey) => {
+    setOpenFareRules((prev) => !prev); // Toggle state
+    setSelectedFareRuleKey(fareRuleKey); // Store the fare rule key
+  };
+
+  useEffect(() => {
+    if (openFareRules && selectedFareRuleKey) {
+      const payload = { FareInfoRef: "", FareRuleKey: selectedFareRuleKey };
+      mutation.mutate(payload);
+    }
+  }, [openFareRules, selectedFareRuleKey]);
+
+  const fareCategories = [
+    { number: 1, name: "Eligibility" },
+    { number: 2, name: "Day/Time" },
+    { number: 3, name: "Seasonality" },
+    { number: 4, name: "Flight Application" },
+    { number: 5, name: "Advance Reservation/Ticketing" },
+    { number: 6, name: "Minimum Stay" },
+    { number: 7, name: "Maximum Stay" },
+    { number: 8, name: "Stopovers" },
+    { number: 9, name: "Transfers" },
+    { number: 10, name: "Combinability" },
+    { number: 11, name: "Blackout Dates" },
+    { number: 12, name: "Surcharges" },
+    { number: 13, name: "Accompanied Travel" },
+    { number: 14, name: "Travel Restrictions" },
+    { number: 15, name: "Sales Restrictions" },
+    { number: 16, name: "Penalties" },
+    { number: 17, name: "HIP/Mileage Exceptions" },
+    { number: 18, name: "Ticket Endorsements" },
+    { number: 19, name: "Children Discounts" },
+    { number: 20, name: "Tour Discounts" },
+    { number: 21, name: "Agent Discounts" },
+    { number: 22, name: "Other Discounts" },
+    { number: 23, name: "Miscellaneous Fare Tags" },
+    { number: 25, name: "Fare By Rule" },
+    { number: 26, name: "Groups" },
+    { number: 27, name: "Tours" },
+    { number: 28, name: "Visit Another Country" },
+    { number: 29, name: "Deposits" },
+    { number: 31, name: "Voluntary Changes" },
+    { number: 33, name: "Voluntary Refunds" },
+    { number: 35, name: "Negotiated Fares" },
+    { number: 50, name: "Application" },
+  ];
+  const groupRulesByCategory = (rules, fareRules) => {
+    return rules?.reduce((acc, rule) => {
+      const categoryId = rule?.attributes.Category;
+      const category = fareRules.find(
+        (fareRule) => fareRule.number.toString() === categoryId
+      );
+      if (category) {
+        if (!acc[category.name]) {
+          acc[category.name] = [];
+        }
+        acc[category.name]?.push(rule);
+      }
+      return acc;
+    }, {});
+  };
+
+  const groupedRules = groupRulesByCategory(fareRules, fareCategories);
+
+  const parseEconomySaverData = (dataArray) => {
+    if (!Array.isArray(dataArray))
+      return { title: "Economy Saver", categories: [], messages: [] };
+
+    const messages = [];
+
+    // Loop over each item in the dataArray
+    dataArray.forEach((item) => {
+      if (typeof item === "string" && item.includes("//")) {
+        const parts = item.split("//").map((part) => part.trim());
+        if (!parts[0]) return; // Skip empty categories
+
+        const message = parts.slice(1).join(" ").trim();
+        // Extract the first two words from the message to use as the category
+        const category = message.split(" ").slice(0, 2).join(" ");
+        messages.push({ category, message });
+      } else {
+        // If it's not a string with "//", treat it as a full message
+        const category = item.split(" ").slice(0, 2).join(" ");
+        messages.push({ category, message: item });
+      }
+    });
+
+    return {
+      title: "Economy Saver",
+      categories: messages, // Now each entry has { category: "..." , message: "..." }
+      messages,
+    };
+  };
+
+  const dataForBaggage = parseEconomySaverData(
+    selectedFlight?.fare_infos?.[0]?.Brand?.Text
+  );
+
 
   if (isBookingLoading) {
     return (
@@ -816,9 +974,11 @@ export default function BookingForm() {
                       type="text"
                       id={`email`}
                       name={`email`}
+                      disabled={token ? true : false}
+                      readOnly={token ? true : false}
                       value={contactInfo?.email ? contactInfo?.email : ""}
                       placeholder="Email address"
-                      className="border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none"
+                      className={`border-2 border-[##9B9B9B] p-3 w-full rounded-[4px] focus:outline-none `}
                     />
                   </div>
                   {/* <div className="flex flex-col gap-4">
@@ -891,15 +1051,53 @@ export default function BookingForm() {
                   <button
                     onClick={() => handleChangeTab("payment")}
                     type="button"
-                    className=" float-right  text-white font-semibold  transition duration-300 rounded-[4px] py-1 px-8 "
+                    className={` ${
+                      emailChecking && "disabled cursor-not-allowed"
+                    } float-right  text-white font-semibold  transition duration-300 rounded-[4px] py-1 px-8 `}
                   >
-                    Save & Continue to Payment
+                    {emailChecking ? (
+                      <div className="flex justify-center items-center ">
+                        <ImSpinner6 className="animate-spin" size={20} />
+                      </div>
+                    ) : (
+                      "Save & Continue to Payment"
+                    )}
                   </button>
                 </div>
                 {/* )} */}
               </div>
             </form>
           </>
+          {/*  setPassengerInformation(passengerData);
+      setContactInformation(contactInfo);
+      setActiveTab(arg); */}
+          {isLoginModal ? (
+            <LoginModal
+              defaultMail={contactInfo.email}
+              // setIsLoginModal={setIsLoginModal}
+              setPassengerInformation={setPassengerInformation}
+              passengerData={passengerData}
+              setContactInformation={setContactInformation}
+              contactInfo={contactInfo}
+              setActiveTab={setActiveTab}
+              arg={"payment"}
+              open={isModal}
+              setOpen={setIsModal}
+            />
+          ) : (
+            <RegisterModal
+              defaultPhone={contactInfo?.phone}
+              defaultMail={contactInfo.email}
+              setPassengerInformation={setPassengerInformation}
+              passengerData={passengerData}
+              setContactInformation={setContactInformation}
+              contactInfo={contactInfo}
+              setActiveTab={setActiveTab}
+              arg={"payment"}
+              open={isModal}
+              setOpen={setIsModal}
+            />
+          )}
         </>
       )}
 
@@ -951,7 +1149,7 @@ export default function BookingForm() {
                   /> */}
                     <img
                       src={`https://tbbd-flight.s3.ap-southeast-1.amazonaws.com/airlines-logo/${shd?.operating_code}.png`}
-                      alt="Air Asia Airlines"
+                      alt="Airline"
                       className="rounded-full w-10 h-10 me-2"
                     />
                     <div>
@@ -1012,79 +1210,102 @@ export default function BookingForm() {
                       </p>
                     </div>
                   </div>
-
-                  {!openFareRules[index] && (
-                    <div className="flex justify-center absolute right-[41%] ">
-                      <button
-                        type="button"
-                        className="flex items-center text-black  rounded-full border py-2 px-5 bg-white z-10"
-                        onClick={() => toggleFareRule(index)}
-                      >
-                        Show fare rules
-                        {openFareRules[index] ? (
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1" />
-                        )}
-                      </button>
-                    </div>
-                  )}
                 </div>
+              </div>
+            ))}
+            <div className="flex justify-center  ">
+              <button
+                type="button"
+                className="flex items-center text-black  rounded-full border py-2 px-5 bg-white z-10"
+                onClick={() =>
+                  handleFareRules(selectedFlight?.fare_infos?.[0]?.FareRuleKey)
+                }
+              >
+                {openFareRules ? "Hide " : "Show "}
+                fare rules
+                {openFareRules ? (
+                  <ChevronUp className="w-4 h-4 ml-1" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                )}
+              </button>
+            </div>
 
-                {openFareRules[index] && (
-                  <div className="mt-4 p-12 bg-gray-50 rounded-md relative">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="flex items-start">
-                        <Luggage className="w-5 h-5 mr-2 text-gray-600" />
-                        <p className="text-sm">Checked baggage 40 kg</p>
-                      </div>
-                      <div className="flex items-start">
-                        <RefreshCw className="w-5 h-5 mr-2 text-gray-600" />
-                        <p className="text-sm">
-                          Change fee: USD 55.00
-                          <br />
-                          No - Show penalty : USD 155.00
-                        </p>
-                      </div>
-                      <div className="flex items-start">
-                        <DollarSign className="w-5 h-5 mr-2 text-gray-600" />
-                        <p className="text-sm">
-                          Refund Fee : USD 80.00 before Departure
-                          <br />
-                          Not permitted after departure
-                          <br />
-                          No - Show penalty USD 180.00
-                          <br />
-                          Before Departure
-                          <br />
-                          Not Permitted after departure
-                        </p>
-                      </div>
-                      <a
-                        href="#"
-                        className="text-[#343535] hover:text-blue-800 text-sm mt-2 flex items-end underline"
-                      >
-                        View detailed fare conditions
-                      </a>
-                    </div>
-                    <div className="flex justify-center absolute right-[41%] -bottom-4 ">
-                      <button
-                        type="button"
-                        className="flex items-center text-black  rounded-full border py-2 px-5 bg-white"
-                        onClick={() => toggleFareRule(index)}
-                      >
-                        Hide fare rules
-                        {openFareRules[index] ? (
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1" />
-                        )}
-                      </button>
-                    </div>
+            {openFareRules && (
+              <div className="px-2 md:px-12 pb-12   rounded-md relative">
+                {isLoading ? (
+                  <div className="flex justify-center items-center">
+                    <ImSpinner6 className="animate-spin" size={20} />
+                  </div>
+                ) : (
+                  <div>
+                    <Accordion type="single" collapsible className="">
+                      {Object.keys(groupedRules).map((categoryName, index) => (
+                        <AccordionItem
+                          key={index}
+                          value={categoryName}
+                          className="my-5"
+                        >
+                          <AccordionTrigger className="font-bold text-black text-lg cursor-pointer bg-[#F6F6F6]  p-2 rounded-md">
+                            {categoryName}
+                          </AccordionTrigger>
+                          <AccordionContent className="max-h-[400px] overflow-auto">
+                            <ul>
+                              {groupedRules[categoryName].map(
+                                (rule, ruleIndex) => (
+                                  <li
+                                    className="text-xs"
+                                    key={ruleIndex}
+                                    dangerouslySetInnerHTML={{
+                                      __html: rule.value.replace(/\n/g, "<br>"),
+                                    }}
+                                  />
+                                )
+                              )}
+                            </ul>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
                   </div>
                 )}
               </div>
-            ))}
+            )}
+            {dataForBaggage?.categories?.length > 0 ? (
+              <div className="flex justify-center  ">
+                <button
+                  type="button"
+                  className="flex items-center text-black  rounded-full border py-2 px-5 bg-white z-10"
+                  onClick={() => setShowBaggageInfo(!showBaggageInfo)}
+                >
+                  {showBaggageInfo ? "Hide " : "Show "}
+                  Baggage info
+                  {showBaggageInfo ? (
+                    <ChevronUp className="w-4 h-4 ml-1" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                  )}
+                </button>
+              </div>
+            ) : (
+              ""
+            )}
+
+            {showBaggageInfo && (
+              <div className="px-2 md:px-12 pb-12 rounded-md relative">
+                <ul className="space-y-5">
+                  {dataForBaggage?.categories?.map((item, index) => (
+                    <li key={index}>
+                      <span className="font-semibold text-[14px]">
+                        {item?.category} :
+                      </span>
+                      <span className="text-[13px]">{` ${item?.message}`}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <div className="pt-8">
               <h2 className="text-lg font-semibold mb-4 bg-[#F6F6F6] px-12 py-4">
                 Passengers
@@ -1115,6 +1336,7 @@ export default function BookingForm() {
 
           <div className="flex justify-between items-center">
             <button
+              type="button"
               onClick={() => setActiveTab("passengers")}
               className="text-[#626262] hover:text-blue-800 underline"
             >
@@ -1126,7 +1348,7 @@ export default function BookingForm() {
                 // onClick={handleConfirmModal}
                 className=" bg-[#FC660F] text-white py-3 font-semibold hover:bg-orange-600 transition duration-300 rounded-[4px] w-[200px] h-[49px]"
               >
-                {registerLoading || bookingLoading ? (
+                {bookingLoading ? (
                   <div className="flex justify-center items-center ">
                     <Oval
                       visible={true}

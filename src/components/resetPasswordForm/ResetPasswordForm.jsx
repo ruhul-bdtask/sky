@@ -86,7 +86,6 @@ export default function ResetPasswordForm({ searchParams }) {
 
       // Simulate success
     } catch (err) {
-      console.log("Failed to reset password. Please try again.");
       setError("Failed to reset password. Please try again.");
       setIsSubmitting(false);
     } finally {

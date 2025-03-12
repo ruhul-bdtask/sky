@@ -2,42 +2,53 @@
 // app/components/Header.js
 import { useSidebar } from "@/context/sidebar-context";
 import { formatFlightFare } from "@/lib/formatFlightFare";
+import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
+import { formatShortDate } from "@/lib/formatShortDate";
 import { formatTripDate } from "@/lib/formatTripDate";
 import { unifyTimeFormat } from "@/lib/unifyTimeFormat";
 import ActiveIcon from "@/public/icons/ActiveIcon";
 import AvatarIcon from "@/public/icons/AvatarIcon";
 import HeartIcon from "@/public/icons/HeartIcon";
 import logo from "@/public/images/logo.png";
-import mobileLogo from "@/public/images/mobileLogo.jpg";
+import mobileLogo from "@/public/images/ticketing-new.png";
 import weather from "@/public/images/weather.png";
 import { fetchData } from "@/utils/api";
 import Cookies from "js-cookie";
-import { Menu, Pencil, SearchIcon, UserRound, X } from "lucide-react";
+import { Heart, Menu, Pencil, SearchIcon, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
-import { FaExchangeAlt } from "react-icons/fa";
+import { BiSolidUser } from "react-icons/bi";
+import { FaExchangeAlt, FaLongArrowAltRight } from "react-icons/fa";
 import { LuChevronsLeftRight } from "react-icons/lu";
 import { MdOutlineArrowRightAlt } from "react-icons/md";
-import { ToastContainer, toast } from "react-toastify";
+import { isExpired } from "react-jwt";
+import { Bounce, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useAirlineStore from "../../../stores/airlineStore";
 import TripDatePicker from "../datePicker/TripDatePicker";
 import ModalLayout from "../modals/ModalLayout";
 import PopupBtn from "./PopupBtn";
 import SearchDestination from "./SearchDestination";
-import { formatLongDataToShort } from "@/lib/formatLongDataToShort";
-import { Bounce } from "react-toastify";
-import { isExpired } from "react-jwt";
-import { useQuery } from "@tanstack/react-query";
-import { BiSolidUser } from "react-icons/bi";
-import { formatShortDate } from "@/lib/formatShortDate";
-import { formatMinutesToHours } from "@/lib/formatMinutesToHours";
+import { ImSpinner6 } from "react-icons/im";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import FlightIcon from "@/public/icons/FlightIcon";
+import Love from "@/public/icons/Love";
+import Business from "@/public/icons/Business";
+import Clock from "@/public/icons/Clock";
+import Feedback from "@/public/icons/Feedback";
 
 export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [modalPage, setModalPage] = useState("google");
@@ -75,7 +86,25 @@ export default function Header() {
     setTravelPlanningDate,
     setSelectedFlight,
   } = useAirlineStore();
-  const { destination, origin, journeyDate, returnDate, tripType } = searchData;
+
+  const tripType = searchData?.type; // "one_way", "return", or "multi_city"
+  const passengerDetails = searchData?.passengers || [];
+
+  // For one-way and return, we use the first leg
+  const firstLeg = searchData?.legs?.[0] || {};
+  const {
+    from: origin,
+    to: destination,
+    departure_date: journeyDate,
+    arrival_date: returnDate,
+    origin_airport: origin_airport,
+    destination_airport: destination_airport,
+  } = firstLeg;
+
+  const cabinClass = firstLeg?.class;
+
+  // For multi-city, extract all legs
+  const multiCityLegs = searchData?.legs || [];
 
   const [formData, setFormData] = useState({
     destination: "",
@@ -96,7 +125,6 @@ export default function Header() {
     });
   }, [formData.name, formData.destination]);
 
-  // console.log(formData);
 
   const [tripNameExistError, setTripNameExistError] = useState("");
 
@@ -118,15 +146,16 @@ export default function Header() {
   useEffect(() => {
     if (!token) return;
 
-    setUserDataLoading(true);
-    fetchData("/user/me", "POST", userPayload, token)
-      .then((data) => {
+    fetchData("/user/me", "POST", userPayload, token).then((data) => {
+      if (data?.success == true) {
         setUserInfo(data);
         setUserData(data?.data ? data?.data : {});
-      })
-
-      .catch((error) => setUserDataError(error))
-      .finally(() => setUserDataLoading(false));
+        setUserDataLoading(false);
+      } else {
+        setUserDataError(data?.message);
+        setUserDataLoading(false);
+      }
+    });
   }, [token]);
 
   // useEffect(() => {
@@ -174,17 +203,22 @@ export default function Header() {
     return acc;
   }, []);
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const handleLogOut = () => {
-    setIsOpenProfile(false);
-    Cookies.remove("auth-token");
-    if (savedTrips?.length > 0 && savedTrips[0]?.id) {
-      setSavedTrips([]);
-      setSelectedSavedTrip({});
-    }
-    setToken(null);
-    setUserData({});
-  };
+    setIsLoggingOut(true); // Show loading spinner
 
+    setTimeout(() => {
+      setIsOpenProfile(false);
+      Cookies.remove("auth-token");
+      if (savedTrips?.length > 0 && savedTrips[0]?.id) {
+        setSavedTrips([]);
+        setSelectedSavedTrip({});
+      }
+      setToken(null);
+      setUserData({});
+      setIsLoggingOut(false); // Hide loading spinner
+    }, 1000); // 1-second timeout
+  };
   // useEffect(() => {
   //   const checkAuth = () => {
   //     if (token) {
@@ -207,7 +241,6 @@ export default function Header() {
   // }, [router]);
 
   // const isExp = isExpired(token);
-  // console.log(isExp)
   // useEffect(() => {
   //   if (token && isExp) {
   //     Cookies.remove("auth-token");
@@ -216,11 +249,10 @@ export default function Header() {
   //   }
   // }, [isExp]);
 
+  const storedToken = Cookies.get("auth-token");
+  const isExp = isExpired(storedToken);
   useEffect(() => {
-    const storedToken = Cookies.get("auth-token");
     if (storedToken) {
-      const isExp = isExpired(storedToken);
-
       if (isExp) {
         Cookies.remove("auth-token");
         setToken(null);
@@ -231,7 +263,7 @@ export default function Header() {
         setUserData({});
       }
     }
-  }, []);
+  }, [isExp]);
 
   useEffect(() => {
     savedTrips?.forEach((trip) => {
@@ -241,7 +273,6 @@ export default function Header() {
     });
   }, [savedTrips]);
 
-  const isMyTokenExpired = isExpired(token);
   const handleChange = (e, index) => {
     const newCode = [...code];
     newCode[index] = e.target.value;
@@ -279,7 +310,9 @@ export default function Header() {
   };
 
   const toggleMenu = () => {
-    setIsOpenProfile(!isOpenProfile);
+    if (!userDataLoading) {
+      setIsOpenProfile(!isOpenProfile);
+    }
   };
 
   const handleSaved = () => {
@@ -678,15 +711,63 @@ export default function Header() {
     }
   }, [router]);
 
+  const [isActive, setIsActive] = useState("");
+
+  useEffect(() => {
+    // Get the active tab from localStorage
+    const savedTab = localStorage.getItem("activeSidebarTab");
+    if (savedTab) {
+      setIsActive(savedTab);
+    } else {
+      setIsActive("flights"); // Default selection
+    }
+  }, []);
+
+  const handleTabClick = (shortCode) => {
+    setIsActive(shortCode);
+    localStorage.setItem("activeSidebarTab", shortCode);
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
+  };
+
+  const navItems = [
+    { icon: <FlightIcon />, label: "Flights", shortCode: "flights", link: "/" },
+    {
+      icon: <Clock />,
+      label: "Travel Blog",
+      shortCode: "travel_blog",
+      link: "/travel-blog",
+    },
+    {
+      icon: <Business />,
+      label: "TICKETING for Business",
+      shortCode: "ticking_for_business",
+      link: "/ticketingForBusiness",
+    },
+    {
+      icon: <Love />,
+      label: "Trips",
+      shortCode: "trips",
+      link: "/trips",
+    },
+    {
+      icon: <Feedback />,
+      label: "Feedback",
+      shortCode: "feedback",
+      link: "/feedback",
+    },
+  ];
+
   return (
-    <header className={`bg-white fixed left-0 z-50 right-0 h-20 border-b  `}>
+    <header
+      className={`bg-white fixed left-0 z-50 right-0 h-20 border-b px-2 `}
+    >
       <ModalLayout
         isModalOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
       ></ModalLayout>
       <div className="max-w-full sm:px-6 lg:px-2 h-full">
         <div className="flex justify-between items-center h-full">
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 rounded-md text-black hover:bg-gray-100 focus:outline-none  hidden md:block "
@@ -698,11 +779,67 @@ export default function Header() {
                 <Menu className="h-6 w-6" />
               )}
             </button>
+            <button
+              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+              className="p-2 rounded-md text-black hover:bg-gray-100 focus:outline-none  block md:hidden "
+            >
+              <span className="sr-only">Open sidebar</span>
+              {isMobileSidebarOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+            <Sheet
+              open={isMobileSidebarOpen}
+              onOpenChange={setIsMobileSidebarOpen}
+            >
+              <SheetContent side="left" className="w-[280px] sm:w-[350px]">
+                <SheetHeader>
+                  <SheetTitle>Ticketing</SheetTitle>
+                </SheetHeader>
+                <div className="h-full p-2 overflow-y-auto w-full">
+                  <nav className="space-y-2">
+                    {navItems.map((item, index) => (
+                      <Link href={item?.link} key={index}>
+                        <button
+                          onClick={() => handleTabClick(item.shortCode)}
+                          className={`rounded-lg hover:bg-[#E6EBEF] transition-all ease-in-out duration-200 w-full p-3 ${
+                            isActive === item.shortCode ? "bg-[#E6EBEF]" : ""
+                          }`}
+                        >
+                          <div className="flex items-center text-base font-normal w-full">
+                            <span
+                              className={`ms-0.5 me-6 ${
+                                isActive === item.shortCode
+                                  ? "text-black fill-black"
+                                  : "text-[var(--nav-color)] fill-[var(--nav-color)]"
+                              }`}
+                            >
+                              {item.icon}
+                            </span>
+                            <span
+                              className={`line-clamp-1 text-[14px] ${
+                                isActive === item.shortCode
+                                  ? "text-black font-semibold"
+                                  : "text-[var(--nav-color)]"
+                              }`}
+                            >
+                              {item.label}
+                            </span>
+                          </div>
+                        </button>
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
             <a
               href={"/"}
               onClick={() => {
-                setSelectedFlight({});
-                setPassengerInformation({});
+                setIsActive("flights");
+                localStorage.setItem("activeSidebarTab", "flights");
                 setSearchData({});
                 setTravelPlanningDate("");
               }}
@@ -720,7 +857,7 @@ export default function Header() {
             </a>
           </div>
           <div>
-            {pathname == "/search-result" && searchData?.tripType && (
+            {pathname == "/search-result" && tripType && (
               <div
                 className="w-full items-center gap-1 flex md:hidden"
                 onClick={() => setIsModalOpen(true)}
@@ -728,7 +865,13 @@ export default function Header() {
                 <div className="">
                   <div className="flex items-center gap-2">
                     <div className="font-semibold">
-                      {origin} - {destination}
+                      {tripType === "multi_city" ? (
+                        <p>Multi city</p>
+                      ) : (
+                        <>
+                          {origin} - {destination}
+                        </>
+                      )}
                     </div>
                     <Pencil size={15} className="text-black" />
                   </div>
@@ -752,32 +895,57 @@ export default function Header() {
             )}
           </div>
           <div>
-            {pathname == "/search-result" && searchData?.tripType && (
+            {pathname === "/search-result" && tripType && (
               <div
-                className="w-full  items-center  gap-1 hidden md:flex"
+                className="w-full items-center gap-1 hidden md:flex cursor-pointer"
                 onClick={() => setIsModalOpen(true)}
               >
+                {/* Trip Type */}
                 <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer hover:bg-gray-300 transition-all border-[#d9e2e8] border">
-                  {tripType == "one_way"
+                  {tripType === "one_way"
                     ? "One way"
-                    : tripType == "return"
+                    : tripType === "return"
                     ? "Return"
                     : "Multi city"}
                 </div>
 
-                <div className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm cursor-pointer  transition-all flex items-center gap-4 border-[#d9e2e8] border">
-                  <div>{originAirportName}</div>
-                  <FaExchangeAlt
-                    className="hover:bg-gray-300 p-1 rounded-md"
-                    size={20}
-                  />
-                  <div>{destinationAirportName}</div>
-                </div>
+                {/* If One-way or Return, Show Single Route */}
+                {tripType !== "multi_city" ? (
+                  <div className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm cursor-pointer transition-all flex items-center gap-4 border-[#d9e2e8] border">
+                    <div>{origin_airport}</div>
+                    <FaExchangeAlt
+                      className="hover:bg-gray-300 p-1 rounded-md"
+                      size={20}
+                    />
+                    <div>{destination_airport}</div>
+                  </div>
+                ) : (
+                  // If Multi-City, Show Multiple Legs
+                  <div className="flex  gap-2">
+                    {multiCityLegs?.map((leg, index) => (
+                      <div
+                        key={index}
+                        className="bg-[#f0f3f5] px-4 py-3 rounded-lg text-sm flex items-center gap-4 border-[#d9e2e8] border"
+                      >
+                        <div>{leg.from}</div>
+                        <FaLongArrowAltRight
+                          className="hover:bg-gray-300 p-1 rounded-md"
+                          size={20}
+                        />
+                        <div>{leg.to}</div>
+                        {/* <span className="text-gray-500">
+                          ({formatLongDataToShort(leg.departure_date)})
+                        </span> */}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-3">
+                {/* Dates */}
+                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer transition-all border-[#d9e2e8] border flex items-center gap-3">
                   {formatLongDataToShort(journeyDate)}{" "}
                   <LuChevronsLeftRight size={20} />
-                  {tripType == "return" && (
+                  {tripType === "return" && (
                     <>
                       <div className="border-l-2 border-gray-100 h-5"></div>
                       {formatLongDataToShort(returnDate)}{" "}
@@ -786,21 +954,24 @@ export default function Header() {
                   )}
                 </div>
 
-                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer  transition-all border-[#d9e2e8] border flex items-center gap-4">
+                {/* Passenger Count & Class */}
+                <div className="bg-[#f0f3f5] px-2 py-3 rounded-lg text-sm cursor-pointer transition-all border-[#d9e2e8] border flex items-center gap-4">
                   <span>
                     {totalPassengers}{" "}
                     {totalPassengers !== 1 ? "Travelers" : "Adult"}
                   </span>{" "}
                   <span>
-                    {searchData?.class == "Y"
+                    {cabinClass === "Y"
                       ? "Economy"
-                      : searchData?.class == "P"
+                      : cabinClass === "P"
                       ? "Premium Economy"
-                      : searchData?.class == "C"
+                      : cabinClass === "C"
                       ? "Business"
                       : "First class"}
                   </span>
                 </div>
+
+                {/* Search Button */}
                 <button
                   className="rounded-[10px] bg-[#FC660F] w-[50px] h-[50px] hover:bg-[#d67136]"
                   type="submit"
@@ -812,6 +983,7 @@ export default function Header() {
               </div>
             )}
           </div>
+
           <div className="flex items-center gap-4">
             <div className="relative">
               <button
@@ -862,8 +1034,8 @@ export default function Header() {
                             <div className="flex items-center gap-4">
                               <Image
                                 alt="image"
-                                width={80}
-                                height={80}
+                                width={70}
+                                height={70}
                                 src={weather}
                               ></Image>
                               <div>
@@ -898,11 +1070,19 @@ export default function Header() {
                           </div>
 
                           <div className="p-4">
-                            {savedTrips?.length > 0 && (
+                            {selectedSavedTrip?.flights?.length > 0 ? (
                               <h4 className="mb-4 text-md font-semibold">
                                 Saved Flights (
                                 {selectedSavedTrip?.flights?.length})
                               </h4>
+                            ) : (
+                              <div className="flex flex-col text-center items-center p-5 space-y-3">
+                                <Heart size={60} />
+                                <div className="text-gray-950">
+                                  It doesn&apos;t hurt to heart. Save results to
+                                  Trips to decide on later.
+                                </div>
+                              </div>
                             )}
 
                             {groupedFlights?.map((data, index) => (
@@ -930,9 +1110,9 @@ export default function Header() {
                                 {/* =================Flights list================= */}
                                 {data?.flights?.map((flight, index) => (
                                   <div
-                                    // onClick={() =>
-                                    //   handleRedirect(flight?.flight_data)
-                                    // }
+                                    onClick={() =>
+                                      handleRedirect(flight?.flight_data)
+                                    }
                                     className="flex flex-col p-4 border-b cursor-pointer"
                                     key={index}
                                   >
@@ -1298,11 +1478,27 @@ export default function Header() {
                     </button> */}
 
                     <div className="w-[40px] h-[40px] cursor-pointer">
-                      <img
+                      <Image
+                        className="rounded-full 
+                         object-cover w-full h-full"
+                        alt="logo"
+                        width={70}
+                        height={70}
+                        src={
+                          userDataLoading
+                            ? mobileLogo
+                            : userInfo?.data?.profile_pic
+                        }
+                      ></Image>
+                      {/* <img
                         className="rounded-full h-full w-full object-cover"
-                        src={userInfo?.data?.profile_pic}
+                        src={
+                          userDataLoading
+                            ? mobileLogo
+                            : userInfo?.data?.profile_pic
+                        }
                         alt=""
-                      />
+                      /> */}
                     </div>
                   </div>
 
@@ -1310,18 +1506,27 @@ export default function Header() {
                     <div className="absolute right-0 z-10 w-80 mt-2 bg-white rounded-md shadow-lg border border-gray-200 mx-2">
                       <div className="py-2 px-4 flex items-center gap-2">
                         <div className="w-[40px] h-[40px] ">
-                          <img
-                            className="rounded-full h-full w-full object-cover"
-                            src={userInfo?.data?.profile_pic}
-                            alt=""
-                          />
+                          <Image
+                            className="rounded-full 
+                         object-cover "
+                            alt="logo"
+                            width={50}
+                            height={50}
+                            src={
+                              userDataLoading
+                                ? mobileLogo
+                                : userInfo?.data?.profile_pic
+                            }
+                          ></Image>
                         </div>
                         <div className="flex flex-1 justify-between items-center">
                           <div>
                             <p className="text-[16px] font-[500] text-black">
-                              {userInfo?.data?.first_name +
-                                " " +
-                                userInfo?.data?.last_name}
+                              {userInfo?.data?.first_name !== undefined
+                                ? userInfo?.data?.first_name +
+                                  " " +
+                                  userInfo?.data?.last_name
+                                : "Loading..."}
                             </p>
                             <p className="text-[10px] text-black">
                               {userInfo?.data?.email}
@@ -1347,9 +1552,9 @@ export default function Header() {
                           >
                             Trips
                           </Link>
-                          <p className="py-1 text-sm text-black cursor-pointer">
+                          {/* <p className="py-1 text-sm text-black cursor-pointer">
                             Help/FAQ
-                          </p>
+                          </p> */}
                           <Link
                             onClick={() => setIsOpenProfile(false)}
                             href={"/dashboard"}
@@ -1364,7 +1569,16 @@ export default function Header() {
                           onClick={handleLogOut}
                           className="w-full text-center text-black border border-black  py-1.5 rounded"
                         >
-                          Sign out
+                          {isLoggingOut ? (
+                            <div className="flex justify-center items-center">
+                              <ImSpinner6
+                                className="animate-spin cursor-not-allowed"
+                                size={20}
+                              />
+                            </div>
+                          ) : (
+                            <p className="cursor-pointer">Sign out</p>
+                          )}
                         </button>
                       </div>
                     </div>

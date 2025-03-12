@@ -24,7 +24,6 @@ export default function BookingSuccess({ data, slack, message }) {
     });
   };
 
-  console.log(message);
 
   const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(":");
@@ -35,7 +34,7 @@ export default function BookingSuccess({ data, slack, message }) {
   };
 
   return (
-    <div className="max-h-screen flex items-center justify-center p-4 bg-gray-100 py-20">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-100 py-20 ">
       <div className="w-full max-w-[700px] bg-white rounded-lg shadow-lg">
         <div className="flex flex-col items-center p-6">
           {/* Success Icon */}
