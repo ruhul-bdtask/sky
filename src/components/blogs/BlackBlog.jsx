@@ -19,12 +19,12 @@ export default function BlackBlog({ category }) {
   );
 
   if (isLoading) return <BlackBogSkeleton />;
-  // if (!isLoading && !foundCategory)
-  //   return (
-  //     <div className="p-10 text-center text-xl font-semibold bg-slate-100">
-  //       <h2>No blog category found!</h2>
-  //     </div>
-  //   );
+  if (!isLoading && !foundCategory)
+    return (
+      <div className="p-10 text-center text-xl font-semibold bg-slate-100">
+        <h2>No blog category found!</h2>
+      </div>
+    );
 
   return (
     <div className="bg-[#192024] h-full lg:h-[711px] flex justify-center items-center">
@@ -45,7 +45,7 @@ export default function BlackBlog({ category }) {
         <div className="px-10 md:px-36 pb-20 lg:pb-0">
           <Image
             className="rounded-[12px]"
-            src={category?.image || blog5}
+            src={foundCategory?.image || blog5}
             height={600}
             width={600}
             alt="traveler"
