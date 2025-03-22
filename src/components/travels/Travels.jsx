@@ -204,6 +204,24 @@ export default function Travels({ latestFlightsLoading, travelsData }) {
                     className="absolute inset-0 h-full w-full object-cover opacity-75 transition-opacity group-hover:opacity-50 "
                   />
 
+                  <div className="relative p-4 sm:p-6 lg:p-8">
+                    <p className="bg-white text-black text-xs font-semibold py-1 px-2 rounded w-fit">
+                      {travel?.trip_type}
+                    </p>
+
+
+                    <div className="mt-32 sm:mt-48 lg:mt-64">
+                      <div className="translate-y-8 transform opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">
+                        <p className="text-white text-[17px]">
+                          {travel?.origin_city} - {travel?.destination_city}
+                        </p>
+                        <span className="text-white text-[12px]">
+                          Price: {travel?.fare}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </a> */}
 
                     <div className="group relative block rounded-xl overflow-hidden cursor-pointer">
                       <img
