@@ -125,7 +125,6 @@ export default function Header() {
     });
   }, [formData.name, formData.destination]);
 
-
   const [tripNameExistError, setTripNameExistError] = useState("");
 
   const [tripErrors, setTripErrors] = useState({
@@ -739,7 +738,7 @@ export default function Header() {
     },
     {
       icon: <Business />,
-      label: "TICKETING for Business",
+      label: "Ticketing for Business",
       shortCode: "ticking_for_business",
       link: "/ticketingForBusiness",
     },
@@ -1450,20 +1449,7 @@ export default function Header() {
               )}
             </div>
 
-            <ToastContainer
-              closeOnClick={true}
-              position="top-center"
-              autoClose={5000}
-              hideProgressBar={true}
-              newestOnTop
-              // closeOnClick={false}
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="dark"
-              transition={Bounce}
-            />
+            
             {token ? (
               <>
                 <div
