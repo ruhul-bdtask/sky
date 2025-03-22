@@ -326,10 +326,10 @@ export default function BookingForm() {
   };
 
   useEffect(() => {
-    if (activeTab == "confirm") {
-      setIsModalOpen(true);
+    if (token == null || token == undefined || token == "") {
+      setActiveTab("passengers");
     }
-  }, [activeTab]);
+  }, [token]);
 
   // Validation functions
   const validateEmail = (email) => {
@@ -380,8 +380,6 @@ export default function BookingForm() {
     return date.toISOString().split("T")[0]; // Extract YYYY-MM-DD
   };
   // // const formattedDate = formatDate("Sun Feb 02 2025 00:00:00 GMT+0600");
-
-
 
   const customersInfo = {
     email: contactInfo?.email,
@@ -547,7 +545,6 @@ export default function BookingForm() {
   //     setIsBookingLoading(false);
   //   }
   // }, [bookingData]);
-
 
   const validatePassengers = (passengers) => {
     const nameRegex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
@@ -783,7 +780,6 @@ export default function BookingForm() {
     selectedFlight?.fare_infos?.[0]?.Brand?.Text
   );
 
-
   if (isBookingLoading) {
     return (
       <div className="fixed  inset-0 flex items-center justify-center bg-white z-50">
@@ -886,7 +882,7 @@ export default function BookingForm() {
   return (
     <div className="container_section_sm mx-auto p-4 max-w-7xl">
       {isTimeModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999]">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center animate-fade-in">
             <h2 className="text-2xl font-bold text-red-500 mb-4">
               Time&apos;s Up!

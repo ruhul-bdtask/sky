@@ -9,7 +9,12 @@ import Image from "next/image";
 export default function NotFound() {
   return (
     <>
-      <img className="h-screen w-full" src={notFound.src} alt="" />
+      <img
+        className="h-screen w-full object-cover"
+        draggable={false}
+        src={notFound.src}
+        alt=""
+      />
     </>
     // <div className="min-h-screen bg-gradient-to-b from-orange-300 to-orange-100 flex items-center justify-center p-4">
     //   <div className="max-w-2xl w-full bg-white rounded-lg shadow-xl overflow-hidden">
