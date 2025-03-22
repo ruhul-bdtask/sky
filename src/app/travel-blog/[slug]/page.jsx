@@ -21,7 +21,7 @@ const BlogDetailsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 items-center bg-gray-100 px-6 md:px-20 lg:px-60 py-10 gap-10">
         {/* Left: Blog Title */}
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight md:px-2 lg:px-10">
-          {blog.title}
+          {blog?.title}
         </h1>
 
         {/* Right: Blog Image */}
